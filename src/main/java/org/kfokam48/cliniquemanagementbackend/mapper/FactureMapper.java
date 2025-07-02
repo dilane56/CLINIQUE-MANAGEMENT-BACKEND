@@ -40,14 +40,14 @@ public class FactureMapper {
         factureResponseDto.setId(facture.getId());
         factureResponseDto.setMontantTotal(facture.getMontantTotal());
         factureResponseDto.setDateEmission(facture.getDateEmission());
-        factureResponseDto.setPatientUsername(facture.getRendezVous().getPatient().getUsername());
+        factureResponseDto.setPatientEmail(facture.getRendezVous().getPatient().getEmail());
         factureResponseDto.setRendezvousMotif(facture.getRendezVous().getMotif());
         factureResponseDto.setDatePayement(facture.getDatePayement());
         factureResponseDto.setMontantVerser(facture.getMontantPayement());
         factureResponseDto.setMontantRestant(facture.getMontantRestant());
         factureResponseDto.setStatutPayement(facture.getStatutPayement());
         factureResponseDto.setModePayement(facture.getModePayement());
-        factureResponseDto.setMedecinUsername(facture.getRendezVous().getMedecin().getUsername());
+        factureResponseDto.setMedecinEmail(facture.getRendezVous().getMedecin().getEmail());
         return factureResponseDto;
    }
     public Facture factureUpdateDTOToFacture(FactureUpdateDTO factureUpdateDTO){

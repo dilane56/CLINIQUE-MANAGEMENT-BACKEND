@@ -2,6 +2,7 @@ package org.kfokam48.cliniquemanagementbackend.mapper;
 
 import org.kfokam48.cliniquemanagementbackend.dto.UtilisateurDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.UtilisateurResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.auth.UserDTO;
 import org.kfokam48.cliniquemanagementbackend.model.Utilisateur;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,10 @@ public class UtilisateurMapper {
         return utilisateurs.stream()
                 .map(this::utilisateurToUtilisateurResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    public UserDTO utilisateurToUserDTO(Utilisateur utilisateur){
+        return modelMapper.map(utilisateur, UserDTO.class);
     }
 
 }

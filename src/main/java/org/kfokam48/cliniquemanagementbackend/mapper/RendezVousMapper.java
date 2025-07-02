@@ -2,6 +2,7 @@ package org.kfokam48.cliniquemanagementbackend.mapper;
 
 
 import org.kfokam48.cliniquemanagementbackend.dto.*;
+import org.kfokam48.cliniquemanagementbackend.exception.RessourceNotFoundException;
 import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
 import org.kfokam48.cliniquemanagementbackend.repository.MedecinRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.PatientRepository;
@@ -26,9 +27,9 @@ public class RendezVousMapper {
         RendezVous rendezVous = new RendezVous();
         rendezVous.setDateRendezVous(rendezVousDTO.getDateRendezVous());
         rendezVous.setMotif(rendezVousDTO.getMotif());
-        rendezVous.setPatient(patientRepository.findByUsername(rendezVousDTO.getPatientUsername())
-                .orElseThrow(() -> new RuntimeException("Patient not found")));
-        rendezVous.setMedecin(medecinRepository.findByUsername(rendezVousDTO.getMedecinUsername())
+        rendezVous.setPatient(patientRepository.findById(rendezVousDTO.getPatientId()).orElseThrow(()->new RessourceNotFoundException("Patient not found")));
+
+        rendezVous.setMedecin(medecinRepository.findById(rendezVousDTO.getMedecinId())
                 .orElseThrow(() -> new RuntimeException("Medecin not found")));
 
         return rendezVous;
@@ -45,11 +46,11 @@ public class RendezVousMapper {
        RendezVousResponseDTO rendezVousResponseDTO = new RendezVousResponseDTO();
         rendezVousResponseDTO.setDateRendezVous(rendezVousDTO.getDateRendezVous());
         rendezVousResponseDTO.setMotif(rendezVousDTO.getMotif());
-        PatientInRendezVousDTO patientDTO = patientRepository.findByUsername(rendezVousDTO.getPatientUsername())
+        PatientInRendezVousDTO patientDTO = patientRepository.findById(rendezVousDTO.getPatientId())
                 .map(patient -> modelMapper.map(patient, PatientInRendezVousDTO.class))
                 .orElseThrow(() -> new RuntimeException("Patient not found"));
         rendezVousResponseDTO.setPatient(patientDTO);
-        MedecinInRendezVousDto medecinDTO = medecinRepository.findByUsername(rendezVousDTO.getMedecinUsername())
+        MedecinInRendezVousDto medecinDTO = medecinRepository.findById(rendezVousDTO.getMedecinId())
                 .map(medecin -> modelMapper.map(medecin, MedecinInRendezVousDto.class))
                 .orElseThrow(() -> new RuntimeException("Medecin not found"));
         rendezVousResponseDTO.setMedecin(medecinDTO);
@@ -77,8 +78,11 @@ public class RendezVousMapper {
         rendezVousInUserDto.setId(rendezVous.getId());
         rendezVousInUserDto.setDateRendezVous(rendezVous.getDateRendezVous());
         rendezVousInUserDto.setMotif(rendezVous.getMotif());
-        rendezVousInUserDto.setPatientUsername(rendezVous.getPatient().getUsername());
-        rendezVousInUserDto.setMedecinUsername(rendezVous.getMedecin().getUsername());
+        rendezVousInUserDto.setMedecinNom(rendezVous.getMedecin().getNom());
+        rendezVousInUserDto.setPatientNom(rendezVousInUserDto.getPatientNom());
+        rendezVousInUserDto.setMedecinPrenon(rendezVous.getMedecin().getPrenom());
+        rendezVousInUserDto.setPatientPrenom(rendezVous.getPatient().getPrenom());
+
         return rendezVousInUserDto;
     }
 

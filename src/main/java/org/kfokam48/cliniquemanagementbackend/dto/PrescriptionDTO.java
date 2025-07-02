@@ -10,9 +10,9 @@ public class PrescriptionDTO {
     private String medicament;
     @NotNull(message = "Le nom du patient ne doit pas être null")
     @NotBlank(message = "Le nom du patient ne doit pas être vide")
-    private String patientUsername;
+    private Long patientId;
     @NotNull(message = "Le nom du médecin ne doit pas être null")
     @NotBlank(message = "Le nom du médecin ne doit pas être vide")
-    private String medecinUsername;
+    private Long medecinId;
     private String instructions;
 }

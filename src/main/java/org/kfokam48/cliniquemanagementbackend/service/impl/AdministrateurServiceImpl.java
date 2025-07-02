@@ -42,9 +42,7 @@ public class AdministrateurServiceImpl implements AdministrateurService {
         if (utilisateurRepository.existsByEmail(administrateurDTO.getEmail())) {
             throw new ResourceAlreadyExistException("Administrateur already exists with this email");
         }
-        if (utilisateurRepository.existsByUsername(administrateurDTO.getUsername())) {
-            throw new ResourceAlreadyExistException("Administrateur already exists with this username");
-        }
+
         Administrateur administrateur = administrateurMapper.administrateurDtoToAdministrateur(administrateurDTO);
         administrateur.setPassword(passwordEncoder.encode(administrateurDTO.getPassword()));
         administrateur.setRole(Roles.valueOf("ADMIN"));
@@ -69,11 +67,8 @@ public class AdministrateurServiceImpl implements AdministrateurService {
         if (utilisateurRepository.existsByEmail(administrateurDTO.getEmail())) {
             throw new ResourceAlreadyExistException("Administrateur already exists with this email");
         }
-        if (utilisateurRepository.existsByUsername(administrateurDTO.getUsername())) {
-            throw new ResourceAlreadyExistException("Administrateur already exists with this username");
-        }
+
         administrateur.setEmail(administrateurDTO.getEmail());
-        administrateur.setUsername(administrateurDTO.getUsername());
         administrateur.setPassword(passwordEncoder.encode(administrateurDTO.getPassword()));
         administrateurRepository.save(administrateur);
         return administrateur;

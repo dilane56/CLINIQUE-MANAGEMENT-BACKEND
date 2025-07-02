@@ -11,12 +11,12 @@ public class FactureResponseDto {
     private Long id;
     private Double montantTotal;
     private LocalDateTime dateEmission;
-    private String patientUsername;
+    private String patientEmail;
     private String rendezvousMotif;
     private LocalDateTime datePayement;
     private double montantVerser;
     private double montantRestant;
     private StatutPayement statutPayement;
     private ModePayement modePayement;
-    private String medecinUsername;
+    private String medecinEmail;
 }

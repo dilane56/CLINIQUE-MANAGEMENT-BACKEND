@@ -3,6 +3,7 @@ package org.kfokam48.cliniquemanagementbackend.controlleur.auth;
 import jakarta.validation.Valid;
 
 import org.kfokam48.cliniquemanagementbackend.dto.auth.LoginRequest;
+import org.kfokam48.cliniquemanagementbackend.dto.auth.LoginResponse;
 import org.kfokam48.cliniquemanagementbackend.service.auth.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,21 +26,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> authenticateUser(@Valid @RequestBody LoginRequest authRequest) {
-        try {
-            String token = authService.authenticateUser(authRequest);
-            String role = String.valueOf(authService.getUserRole(authRequest));
-            Map<String, String> response = new HashMap<>();
-            response.put("token", token);
-            response.put ("role", role);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-
-            return ResponseEntity.status(401).body(error);
-        }
-
-
+    public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest loginRequest) {
+        LoginResponse response = authService.authenticateUser(loginRequest);
+        return ResponseEntity.ok(response);
     }
 }

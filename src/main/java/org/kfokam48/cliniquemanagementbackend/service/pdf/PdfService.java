@@ -14,7 +14,6 @@ import org.kfokam48.cliniquemanagementbackend.model.Prescription;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.time.format.DateTimeFormatter;
 
 
@@ -50,15 +49,15 @@ public class PdfService {
         factureTable.addCell(new PdfPCell(new Phrase("Date d'émission: "))).setMinimumHeight(30);
         factureTable.addCell(new PdfPCell(new Phrase(facture.getDateEmission().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))).setMinimumHeight(30);
         factureTable.addCell(new PdfPCell(new Phrase("Patient: ")));
-        factureTable.addCell(new PdfPCell(new Phrase(facture.getRendezVous().getPatient().getUsername() + " " + facture.getRendezVous().getPatient().getPrenom()))).setMinimumHeight(30);
+        factureTable.addCell(new PdfPCell(new Phrase(facture.getRendezVous().getPatient().getNom() + " " + facture.getRendezVous().getPatient().getPrenom()))).setMinimumHeight(30);
         factureTable.addCell(new PdfPCell(new Phrase("Médecin: ")));
-        factureTable.addCell(new PdfPCell(new Phrase(facture.getRendezVous().getMedecin().getUsername() + " " + facture.getRendezVous().getMedecin().getPrenom()))).setMinimumHeight(30);
+        factureTable.addCell(new PdfPCell(new Phrase(facture.getRendezVous().getMedecin().getNom() + " " + facture.getRendezVous().getMedecin().getPrenom()))).setMinimumHeight(30);
         factureTable.addCell(new PdfPCell(new Phrase("Montant Total: ")));
-        factureTable.addCell(new PdfPCell(new Phrase(String.valueOf(facture.getMontantTotal()) + " €"))).setMinimumHeight(30);
+        factureTable.addCell(new PdfPCell(new Phrase(facture.getMontantTotal() + " €"))).setMinimumHeight(30);
         factureTable.addCell(new PdfPCell(new Phrase("Montant Versé: ")));
-        factureTable.addCell(new PdfPCell(new Phrase(String.valueOf(facture.getMontantPayement()) + " €"))).setMinimumHeight(30);
+        factureTable.addCell(new PdfPCell(new Phrase(facture.getMontantPayement() + " €"))).setMinimumHeight(30);
         factureTable.addCell(new PdfPCell(new Phrase("Montant Restant: ")));
-        factureTable.addCell(new PdfPCell(new Phrase(String.valueOf(facture.getMontantRestant()) + " €"))).setMinimumHeight(30);
+        factureTable.addCell(new PdfPCell(new Phrase(facture.getMontantRestant() + " €"))).setMinimumHeight(30);
         factureTable.addCell(new PdfPCell(new Phrase("Mode de Paiement: ")));
         factureTable.addCell(new PdfPCell(new Phrase(facture.getModePayement() != null ? facture.getModePayement().toString() : "Non spécifié"))).setMinimumHeight(30);
         factureTable.addCell(new PdfPCell(new Phrase("Statut de Paiement: ")));
@@ -103,7 +102,7 @@ public class PdfService {
         return outputStream;
     }
 
-    public ByteArrayOutputStream generatePrescriptionPdf(Prescription prescription) throws FileNotFoundException, DocumentException {
+    public ByteArrayOutputStream generatePrescriptionPdf(Prescription prescription) throws DocumentException {
         Patient patient = prescription.getPatient();
         Medecin medecin = prescription.getMedecin();
         Document document = new Document();
@@ -155,9 +154,9 @@ public class PdfService {
         document.add(subTitle);
         // Ajouter les informations du patient
         Paragraph patientInfo = new Paragraph();
-        patientInfo.add(new Paragraph("Nom: " + (patient.getUsername() !=null ? patient.getNom() : "N/A")));
+        patientInfo.add(new Paragraph("Nom: " + (patient.getNom() !=null ? patient.getNom() : "N/A")));
         patientInfo.add(new Paragraph("Prénom: " + (patient.getPrenom() !=null ? patient.getPrenom() : "N/A")));
-        patientInfo.add(new Paragraph(String.valueOf("Numéro de dossier médical: " + (!patient.getNumeroDossierMedical().toString().isEmpty() ? patient.getNumeroDossierMedical() : "N/A"))));
+        patientInfo.add(new Paragraph("Numéro de dossier médical: " + (!patient.getNumeroDossierMedical().toString().isEmpty() ? patient.getNumeroDossierMedical() : "N/A")));
         patientInfo.add(new Paragraph("Phone Number: " +(patient.getTelephone() != null ? patient.getTelephone() : "N/A")));
         patientInfo.setAlignment(Element.ALIGN_LEFT);
         document.add(patientInfo);
@@ -168,7 +167,7 @@ public class PdfService {
         patientInfo2.add(new Paragraph("Email: " + (patient.getEmail() != null ? patient.getEmail() : "N/A")));
         patientInfo2.add(new Paragraph("Gender: "+ (patient.getSexe() != null ? patient.getSexe().toString() : "N/A")));
         patientInfo2.add(new Paragraph("Address: " + (patient.getAdresse() != null ? patient.getAdresse() : "N/A")));
-        patientInfo2.add(new Paragraph("Allergies: " + (patient.getAllergies() != null ? patient.getAllergies().toString() : "N/A")));
+        patientInfo2.add(new Paragraph("Allergies: " + (patient.getAllergies() != null ? patient.getAllergies() : "N/A")));
         patientInfo2.setAlignment(Element.ALIGN_RIGHT);
         document.add(patientInfo2);
 
@@ -209,7 +208,7 @@ public class PdfService {
         document.add(new Paragraph("Phone Number: " + (medecin.getTelephone()!= null ? medecin.getTelephone() : "N/A")));
         document.add(new Paragraph("Email: " + (medecin.getEmail() != null ? medecin.getEmail() : "N/A")));
         document.add(new Paragraph("Address: " + (medecin.getAdresse()!=null ? medecin.getAdresse() : "N/A")));
-        document.add(new Paragraph("Specialty: " + (medecin.getSpecialite() != null ? medecin.getSpecialite().toString() : "N/A")));
+        document.add(new Paragraph("Specialty: " + (medecin.getSpecialite() != null ? medecin.getSpecialite() : "N/A")));
         document.add(new Paragraph(new Phrase("Physician Signature: [Signature]")));
 
 

@@ -24,9 +24,9 @@ public class PrescriptionMapper {
     }
     public Prescription prescriptionDtoToPrescription(PrescriptionDTO prescriptionDTO){
         Prescription prescription = new Prescription();
-        prescription.setPatient(patientRepository.findByUsername(prescriptionDTO.getPatientUsername())
+        prescription.setPatient(patientRepository.findById(prescriptionDTO.getPatientId())
                 .orElseThrow(() -> new RuntimeException("Patient not found")));
-        prescription.setMedecin(medecinRepository.findByUsername(prescriptionDTO.getMedecinUsername())
+        prescription.setMedecin(medecinRepository.findById(prescriptionDTO.getMedecinId())
                 .orElseThrow(() -> new RuntimeException("Medecin not found")));
         prescription.setMedicaments(prescriptionDTO.getMedicament());
         prescription.setInstructions(prescriptionDTO.getInstructions());
@@ -41,8 +41,10 @@ public class PrescriptionMapper {
         PrescriptionResponseDTO prescriptionResponseDTO = new PrescriptionResponseDTO();
         prescriptionResponseDTO.setId(prescription.getId());
         prescriptionResponseDTO.setMedicament(prescription.getMedicaments());
-        prescriptionResponseDTO.setPatientUsername(prescription.getPatient().getUsername());
-        prescriptionResponseDTO.setMedecinUsername(prescription.getMedecin().getUsername());
+        prescriptionResponseDTO.setPatientNom(prescription.getPatient().getNom());
+        prescriptionResponseDTO.setPatientPrenom(prescription.getPatient().getPrenom());
+        prescriptionResponseDTO.setMedecinNom(prescription.getMedecin().getNom());
+        prescriptionResponseDTO.setMedecinPrenom(prescription.getMedecin().getPrenom());
         prescriptionResponseDTO.setInstructions(prescription.getInstructions());
         prescriptionResponseDTO.setDatePrescription(prescription.getDatePrescription());
         return prescriptionResponseDTO;

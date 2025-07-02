@@ -29,42 +29,36 @@ public class JwtRequestFillter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
+        final String authorizationHeader = request.getHeader("Authorization");
+        String jwt = null;
+        String userEmail = null;
+        String path = request.getRequestURI();
+
+        // Ignorer les endpoints publics
+        if (path.startsWith("/api/auth/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
-            final String authorizationHeader = request.getHeader("Authorization");
-            String jwt = null;
-            String userEmail = null;
-
-            String path = request.getRequestURI();
-//            if (path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs")||path.equals("/api/v1/auth/login")) {
-//                filterChain.doFilter(request, response); // Laisser passer les requêtes Swagger
-//                return;
-//            }
-
-            // Vérification du header d'autorisation
+            // Extraire le token s'il existe
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 jwt = authorizationHeader.substring(7);
-                try {
-                    SecretKey key = AuthService.secretKey;
-                    Claims claims = Jwts.parser()
-                            .verifyWith(key)
-                            .build()
-                            .parseSignedClaims(jwt)
-                            .getPayload();
-                    userEmail = claims.getSubject();
-                } catch (Exception e) {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.getWriter().write("JWT invalide : " + e.getMessage());
-                    return;
-                }
-            }
-//            if(authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")){
-//                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-//                response.getWriter().write("Access token required");
-//                return;
-//            }
+                SecretKey key = AuthService.secretKey;
 
-            // Configuration du contexte de sécurité
+                Claims claims = Jwts.parser()
+                        .verifyWith(key)
+                        .build()
+                        .parseSignedClaims(jwt)
+                        .getPayload();
+
+                userEmail = claims.getSubject();
+            }
+
+            // Authentifier si le token est valide
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
                 UsernamePasswordAuthenticationToken authenticationToken =
@@ -73,13 +67,17 @@ public class JwtRequestFillter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
 
+            // Laisser la requête continuer
             filterChain.doFilter(request, response);
+
         } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("Une erreur s'est produite : " + e.getMessage());
+            if (!response.isCommitted()) {
+                response.resetBuffer(); // 🔐 Effacer tout ce qui aurait pu être écrit
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\": \"Token invalide ou expiré\"}");
+            }
         }
     }
+
 }
-
-
-

@@ -39,11 +39,8 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         Utilisateur utilisateur = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Utilisateur not found with id: " + id));
         if (!utilisateurRepository.existsByEmail(utilisateurDTO.getEmail())) {
-            if (utilisateurRepository.existsByUsername(utilisateurDTO.getUsername())) {
-                throw new RessourceNotFoundException("Utilisateur already exists with this username");
-            }
+
             utilisateur.setEmail(utilisateurDTO.getEmail());
-            utilisateur.setUsername(utilisateurDTO.getUsername());
             utilisateur.setPassword(passwordEncoder.encode(utilisateurDTO.getPassword()));
             utilisateurRepository.save(utilisateur);
         }
@@ -56,11 +53,7 @@ public class UtilisateurServiceImpl implements UtilisateurService {
                 .orElseThrow(() -> new RessourceNotFoundException("Utilisateur not found with email: " + email));
     }
 
-    @Override
-    public Utilisateur findByUsername(String username) {
-        return utilisateurRepository.findByUsername(username)
-                .orElseThrow(() -> new RessourceNotFoundException("Utilisateur not found with username: " + username));
-    }
+
 
     @Override
     public ResponseEntity<String> deleteById(Long id) {

@@ -6,9 +6,9 @@ import lombok.Data;
 public class MessageDTO {
 
     @NotNull(message = "Sender username cannot be null")
-    private String senderUsername;
+    private String senderEmail;
     @NotNull(message = "Receiver username cannot be null")
-    private String receiverUsername;
+    private String receiverEmail;
     private String content;
 
 

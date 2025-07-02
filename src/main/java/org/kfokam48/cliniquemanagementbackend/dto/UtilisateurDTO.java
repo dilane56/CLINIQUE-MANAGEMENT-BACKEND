@@ -12,9 +12,7 @@ import org.kfokam48.cliniquemanagementbackend.enums.Sexe;
 @NoArgsConstructor
 @Data
 public class UtilisateurDTO {
-    @NotNull(message = "Username is required")
-    @NotBlank(message = "Username cannot be blank")
-    private String username;
+
     @NotNull(message = "Password is required")
     @NotBlank(message = "Password cannot be blank")
     private String password;

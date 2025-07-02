@@ -13,7 +13,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Message> findBySenderAndReceiver(Long senderId, Long receiverId);
 
     // Custom query to find messages by receiver and sender
-    @Query("SELECT m FROM Message m WHERE (m.receiver.username = :receiverUsername AND m.sender.username = :senderUsername) OR (m.receiver.username = :senderUsername AND m.sender.username = :receiverUsername)")
+    @Query("SELECT m FROM Message m WHERE (m.receiver.email = :receiverUsername AND m.sender.email = :senderUsername) OR (m.receiver.email = :senderUsername AND m.sender.email = :receiverUsername)")
     List<Message> findByReceiverAndSender(String receiverUsername, String senderUsername);
 
     // Custom query to find messages by sender

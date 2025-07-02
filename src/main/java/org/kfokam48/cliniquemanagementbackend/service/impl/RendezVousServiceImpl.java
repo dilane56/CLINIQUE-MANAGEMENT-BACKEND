@@ -34,11 +34,11 @@ public class RendezVousServiceImpl implements RendezVousService {
 
     @Override
     public RendezVousResponseDTO save(@Valid RendezVousDTO rendezVousDTO) {
-        if(patientRepository.findByUsername(rendezVousDTO.getPatientUsername())
+        if(patientRepository.findById(rendezVousDTO.getPatientId())
                 .isEmpty()){
             throw new RessourceNotFoundException("Patient not found");
         }
-        if(medecinRepository.findByUsername(rendezVousDTO.getMedecinUsername()).isEmpty()){
+        if(medecinRepository.findById(rendezVousDTO.getMedecinId()).isEmpty()){
             throw new RessourceNotFoundException("Medecin not found");
         }
         RendezVousResponseDTO rendezVousResponseDTO = rendezVousMapper.rendezVousDtoToRendezVousResponseDto(rendezVousDTO);
@@ -61,9 +61,9 @@ public class RendezVousServiceImpl implements RendezVousService {
         rendezVous.setDateRendezVous(rendezVousDTO.getDateRendezVous());
         rendezVous.setMotif(rendezVousDTO.getMotif());
 
-        rendezVous.setPatient(patientRepository.findByUsername(rendezVousDTO.getPatientUsername())
+        rendezVous.setPatient(patientRepository.findById(rendezVousDTO.getPatientId())
                 .orElseThrow(() -> new RessourceNotFoundException("Patient not found")));
-        rendezVous.setMedecin(medecinRepository.findByUsername(rendezVousDTO.getMedecinUsername())
+        rendezVous.setMedecin(medecinRepository.findById(rendezVousDTO.getMedecinId())
                 .orElseThrow(() -> new RessourceNotFoundException("Medecin not found")));
         RendezVousResponseDTO rendezVousResponseDTO = rendezVousMapper.rendezVousDtoToRendezVousResponseDto(rendezVousDTO);
         rendezVousResponseDTO.setId( rendezVousRepository.save(rendezVousMapper.rendezVousDtoToRendezvous(rendezVousDTO)).getId());

@@ -18,8 +18,8 @@ public class MessageMapper {
 
     public MessageResponseDTO messageToMessageResponseDTO (Message message){
         MessageResponseDTO messageResponseDTO = new MessageResponseDTO();
-        messageResponseDTO.setSenderUsername(message.getSender().getUsername());
-        messageResponseDTO.setReceiverUsername(message.getReceiver().getUsername());
+        messageResponseDTO.setSenderEmail(message.getSender().getEmail());
+        messageResponseDTO.setReceiverEmail(message.getReceiver().getEmail());
         messageResponseDTO.setContent(message.getContent());
         messageResponseDTO.setDateEnvoi(message.getDateEnvoi());
         return messageResponseDTO;
@@ -27,8 +27,8 @@ public class MessageMapper {
 
    public Message messageDToToMessage(MessageDTO messageDTO){
         Message message = new Message();
-        message.setSender(utilisateurRepository.findByUsername(messageDTO.getSenderUsername()).orElseThrow(() -> new RuntimeException("Sender not found")));
-        message.setReceiver(utilisateurRepository.findByUsername(messageDTO.getReceiverUsername()).orElseThrow(() -> new RuntimeException("Receiver not found")));
+        message.setSender(utilisateurRepository.findByEmail(messageDTO.getSenderEmail()).orElseThrow(() -> new RuntimeException("Sender not found")));
+        message.setReceiver(utilisateurRepository.findByEmail(messageDTO.getReceiverEmail()).orElseThrow(() -> new RuntimeException("Receiver not found")));
         message.setContent(messageDTO.getContent());
         return message;
    }

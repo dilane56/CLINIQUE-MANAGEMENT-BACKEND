@@ -38,9 +38,7 @@ public class SecretaireServiceImpl implements SecretaireService {
         if (utilisateurRepository.existsByEmail(secretaireDTO.getEmail())) {
             throw new ResourceAlreadyExistException("User already exists with this email");
         }
-        if (utilisateurRepository.existsByUsername(secretaireDTO.getUsername())) {
-            throw new ResourceAlreadyExistException("User already exists with this username");
-        }
+
         Secretaire secretaire = secretaireMapper.secretaireDtoToSecretaire(secretaireDTO);
         secretaire.setPassword(passwordEncoder.encode(secretaireDTO.getPassword()));
         secretaire.setRole(Roles.valueOf("SECRETAIRE"));
@@ -59,10 +57,7 @@ public class SecretaireServiceImpl implements SecretaireService {
         Secretaire secretaire = secretaireRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Secretaire not found"));
         if (Objects.equals(secretaire.getEmail(), secretaireDTO.getEmail()) || !utilisateurRepository.existsByEmail(secretaireDTO.getEmail())) {
-            if (!Objects.equals(secretaire.getUsername(), secretaireDTO.getUsername()) && utilisateurRepository.existsByUsername(secretaireDTO.getUsername())) {
-                throw new ResourceAlreadyExistException("User already exists with this username");
-            }
-            secretaire.setUsername(secretaireDTO.getUsername());
+
             secretaire.setEmail(secretaireDTO.getEmail());
             secretaire.setPassword(secretaireDTO.getPassword());
             secretaireRepository.save(secretaire);

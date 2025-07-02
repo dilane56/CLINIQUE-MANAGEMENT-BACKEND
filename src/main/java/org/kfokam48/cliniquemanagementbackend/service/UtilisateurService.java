@@ -11,7 +11,6 @@ public interface UtilisateurService {
     Utilisateur findById(Long id);
     Utilisateur update(Long id, UtilisateurDTO utilisateurDTO);
     Utilisateur findByEmail(String email);
-    Utilisateur findByUsername(String username);
     ResponseEntity<String> deleteById(Long id);
     List<UtilisateurResponseDTO> findAll();
     boolean existsByEmail(String email);

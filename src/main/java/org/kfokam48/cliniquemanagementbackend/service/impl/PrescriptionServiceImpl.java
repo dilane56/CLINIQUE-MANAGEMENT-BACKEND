@@ -53,10 +53,10 @@ public class PrescriptionServiceImpl implements PrescriptionService {
         Prescription prescription = prescriptionRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Prescription not found"));
         prescription.setMedicaments(prescriptionDTO.getMedicament());
-        Patient patient = patientRepository.findByUsername(prescriptionDTO.getPatientUsername())
+        Patient patient = patientRepository.findById(prescriptionDTO.getPatientId())
                 .orElseThrow(() -> new RessourceNotFoundException("Patient not found"));
         prescription.setPatient(patient);
-        prescription.setMedecin(medecinRepository.findByUsername(prescriptionDTO.getMedecinUsername())
+        prescription.setMedecin(medecinRepository.findById(prescriptionDTO.getMedecinId())
                 .orElseThrow(() -> new RessourceNotFoundException("Medecin not found")));
         prescription.setDatePrescription(LocalDate.now());
         prescriptionRepository.save(prescription);

@@ -46,9 +46,7 @@ public class MedecinServiceImpl implements MedecinService {
         if (utilisateurRepository.existsByEmail(medecinDTO.getEmail())) {
             throw new ResourceAlreadyExistException("User already exists with this email");
         }
-        if (utilisateurRepository.existsByUsername(medecinDTO.getUsername())) {
-            throw new ResourceAlreadyExistException("User already exists with this username");
-        }
+
         Medecin medecin = medecinMapper.medecinDtoToMedecin(medecinDTO);
         medecin.setPassword(passwordEncoder.encode(medecinDTO.getPassword()));
         medecin.setRole(Roles.valueOf("MEDECIN"));
@@ -67,11 +65,7 @@ public class MedecinServiceImpl implements MedecinService {
         Medecin medecin = medecinRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Medecin not found"));
         if (Objects.equals(medecin.getEmail(), medecinDTO.getEmail()) || !utilisateurRepository.existsByEmail(medecinDTO.getEmail())) {
-            if (!Objects.equals(medecin.getUsername(), medecinDTO.getUsername()) && utilisateurRepository.existsByUsername(medecinDTO.getUsername())) {
-                throw new ResourceAlreadyExistException("User already exists with this username");
-            }
 
-            medecin.setUsername(medecinDTO.getUsername());
             medecin.setEmail(medecinDTO.getEmail());
             medecin.setPassword(medecinDTO.getPassword());
             medecin.setSpecialite(medecinDTO.getSpecialite());

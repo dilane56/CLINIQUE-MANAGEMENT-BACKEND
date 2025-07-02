@@ -18,7 +18,6 @@ public abstract class Utilisateur {
 
     @Column(unique = true, nullable = false)
     private String email;
-    private String username;
     private String nom;
     private String prenom;
     @Column(nullable = false)

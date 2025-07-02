@@ -7,7 +7,9 @@ import java.time.LocalDateTime;
 public class RendezVousInUserDto {
     private Long id;
     private LocalDateTime dateRendezVous; // Date du rendez-vous
-    private String patientUsername; // Référence au Patient
-    private String medecinUsername; // Référence au Médecin
+    private String patientNom; // Référence au Patient
+    private String patientPrenom;
+    private String medecinNom;
+    private String medecinPrenon;// Référence au Médecin
     private String motif;
 }

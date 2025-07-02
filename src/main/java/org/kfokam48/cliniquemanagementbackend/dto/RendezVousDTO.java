@@ -14,10 +14,10 @@ public class RendezVousDTO {
     private LocalDateTime dateRendezVous;// Date du rendez-vous
     @NotNull(message = "Le nom du patient ne doit pas être null")
     @NotBlank(message = "Le nom du patient ne doit pas être vide")
-    private String patientUsername; // Référence au Patient
+    private Long patientId; // Référence au Patient
     @NotNull(message = "Le nom du médecin ne doit pas être null")
     @NotBlank(message = "Le nom du médecin ne doit pas être vide")
-    private String medecinUsername; // Référence au Médecin
+    private Long medecinId; // Référence au Médecin
     private String motif; // Motif du rendez-vous
 
     // Getters et Setters

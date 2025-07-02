@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 @Data
 public class MessageResponseDTO {
 
-    private String senderUsername;
-    private String  receiverUsername;
+    private String senderEmail;
+    private String  receiverEmail;
     private String content;
     private LocalDateTime dateEnvoi;
 }

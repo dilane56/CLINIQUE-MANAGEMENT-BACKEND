@@ -1,9 +1,9 @@
-package org.kfokam48.cliniquemanagementbackend.dto;
+package org.kfokam48.cliniquemanagementbackend.dto.auth;
 
 import lombok.Data;
 
 @Data
-public class UtilisateurResponseDTO {
+public class UserDTO {
     private Long id;
     private String email;
     private String nom;
@@ -11,7 +11,5 @@ public class UtilisateurResponseDTO {
     private String telephone;
     private String sexe;
     private String adresse;
-    private String role;
-
-
+//    private String role;
 }

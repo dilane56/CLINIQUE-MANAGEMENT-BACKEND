@@ -38,9 +38,7 @@ public class PatientServiceImpl implements PatientService {
         if (utilisateurRepository.existsByEmail(patientDto.getEmail())) {
             throw new ResourceAlreadyExistException("User already exists with this email");
         }
-        if (utilisateurRepository.existsByUsername(patientDto.getUsername())) {
-            throw new ResourceAlreadyExistException("User already exists with this username");
-        }
+
         Patient patient = patientMapper.patientDtoToPatient(patientDto);
         patient.setPassword(passwordEncoder.encode(patientDto.getPassword()));
         patient.setRole(Roles.valueOf("PATIENT"));
@@ -61,10 +59,7 @@ public class PatientServiceImpl implements PatientService {
        if(!Objects.equals(patient.getEmail(), patientDTO.getEmail()) && utilisateurRepository.existsByEmail(patientDTO.getEmail())){
             throw new ResourceAlreadyExistException("User already exists with this email");
         }
-        if(!Objects.equals(patient.getUsername(), patientDTO.getUsername()) && utilisateurRepository.existsByUsername(patientDTO.getUsername())){
-            throw new ResourceAlreadyExistException("User already exists with this username");
-        }
-        patient.setUsername(patientDTO.getUsername());
+
         patient.setEmail(patientDTO.getEmail());
         patient.setPassword(patientDTO.getPassword());
         patient.setNumeroDossierMedical(patientDTO.getNumeroDossierMedical());
