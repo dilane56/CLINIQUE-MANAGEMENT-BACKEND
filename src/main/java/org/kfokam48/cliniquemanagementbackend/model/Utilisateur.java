@@ -23,8 +23,6 @@ public abstract class Utilisateur {
     @Column(nullable = false)
     private String password;
     private String telephone;
-    private Sexe sexe;
-    private String adresse;
 
     @Column(nullable = false)
     private Roles role; // ADMIN, MEDECIN, INFIRMIERE, SECRETAIRE

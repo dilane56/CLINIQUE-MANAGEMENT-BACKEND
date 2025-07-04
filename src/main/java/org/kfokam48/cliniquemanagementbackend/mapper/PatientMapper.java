@@ -1,9 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.mapper;
 
 
-import org.kfokam48.cliniquemanagementbackend.dto.PatientDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.PatientResponseDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.RendezVousInUserDto;
+import org.kfokam48.cliniquemanagementbackend.dto.patient.PatientDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.patient.PatientResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.model.Patient;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
@@ -31,10 +30,11 @@ public class PatientMapper {
         PatientResponseDTO patientResponseDTO = new PatientResponseDTO();
         patientResponseDTO.setId(patient.getId());
         patientResponseDTO.setEmail(patient.getEmail());
+        patientResponseDTO.setAdresse(patient.getAdresse());
+        patientResponseDTO.setNom(patient.getNom());
+        patientResponseDTO.setPrenom(patient.getPrenom());
+        patientResponseDTO.setTelephone(patient.getTelephone());
         patientResponseDTO.setDateNaissance(patient.getDateNaissance());
-        patientResponseDTO.setNumeroDossierMedical(patient.getNumeroDossierMedical());
-        patientResponseDTO.setRole(patient.getRole());
-        patientResponseDTO.setPassword(patient.getPassword());
         patientResponseDTO.setRendezvous(rendezVousMapper.rendezVousListToRendezVousInUserDtoList(patient.getRendezvous()));
         patientResponseDTO.setSexe(patient.getSexe());
         return patientResponseDTO;

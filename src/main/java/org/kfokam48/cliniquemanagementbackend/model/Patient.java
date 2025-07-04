@@ -1,11 +1,10 @@
 package org.kfokam48.cliniquemanagementbackend.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.PrimaryKeyJoinColumn;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.kfokam48.cliniquemanagementbackend.enums.Sexe;
 
 
 import java.util.ArrayList;
@@ -18,12 +17,22 @@ import java.util.List;
 @Data
 @Entity
 @PrimaryKeyJoinColumn(name = "utilisateur_id")
-public class Patient extends Utilisateur{
+public class Patient {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(unique = true, nullable = false)
+    private String email;
+    private String nom;
+    private String prenom;
+    private String telephone;
     private Date dateNaissance;
     private String antecedents;
     private String allergies;
-    private Integer numeroDossierMedical;
+    private Sexe sexe;
+    private String adresse;
 
     @OneToMany(mappedBy = "patient")
     private List<RendezVous> rendezvous = new ArrayList<>();

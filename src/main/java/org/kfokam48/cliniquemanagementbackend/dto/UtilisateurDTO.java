@@ -19,8 +19,7 @@ public class UtilisateurDTO {
     @NotNull(message = "Email is required")
     @NotBlank(message = "Email cannot be blank")
     private String email;
-    @NotNull(message = "le sexe est requis")
-    private Sexe sexe;
+
 
 
 

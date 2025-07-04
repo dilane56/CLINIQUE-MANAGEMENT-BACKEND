@@ -9,8 +9,6 @@ public class UtilisateurResponseDTO {
     private String nom;
     private String prenom;
     private String telephone;
-    private String sexe;
-    private String adresse;
     private String role;
 
 

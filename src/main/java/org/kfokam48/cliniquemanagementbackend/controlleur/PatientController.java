@@ -2,8 +2,8 @@ package org.kfokam48.cliniquemanagementbackend.controlleur;
 
 
 import jakarta.validation.Valid;
-import org.kfokam48.cliniquemanagementbackend.dto.PatientDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.PatientResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.patient.PatientDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.patient.PatientResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.model.Patient;
 import org.kfokam48.cliniquemanagementbackend.service.impl.PatientServiceImpl;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +22,8 @@ public class PatientController {
     }
     @PostMapping("/create")
     @PreAuthorize("hasRole('MEDECIN') or hasRole('ADMIN') or hasRole('SECRETAIRE')") // Accès pour les rôles MEDECIN, ADMIN et SECRETAIRE
-    public ResponseEntity<Patient> createPatient(@Valid @RequestBody PatientDTO patientDto) {
-        Patient patient = patientService.save(patientDto);
+    public ResponseEntity<PatientResponseDTO> createPatient(@Valid @RequestBody PatientDTO patientDto) {
+        PatientResponseDTO patient = patientService.save(patientDto);
         return ResponseEntity.ok(patient);
     }
 
@@ -43,8 +43,8 @@ public class PatientController {
 
     @PutMapping("/update/{id}")
     @PreAuthorize("hasRole('MEDECIN') or hasRole('ADMIN') or hasRole('SECRETAIRE') or hasRole('PATIENT')") // Accès pour les rôles MEDECIN, ADMIN et SECRETAIRE et PATIENT
-    public ResponseEntity<Patient> updatePatient(@PathVariable Long id,@Valid @RequestBody PatientDTO patientDto) {
-        Patient updatedPatient = patientService.update(id, patientDto);
+    public ResponseEntity<PatientResponseDTO> updatePatient(@PathVariable Long id,@Valid @RequestBody PatientDTO patientDto) {
+        PatientResponseDTO updatedPatient = patientService.update(id, patientDto);
         return ResponseEntity.ok(updatedPatient);
     }
 

@@ -156,7 +156,7 @@ public class PdfService {
         Paragraph patientInfo = new Paragraph();
         patientInfo.add(new Paragraph("Nom: " + (patient.getNom() !=null ? patient.getNom() : "N/A")));
         patientInfo.add(new Paragraph("Prénom: " + (patient.getPrenom() !=null ? patient.getPrenom() : "N/A")));
-        patientInfo.add(new Paragraph("Numéro de dossier médical: " + (!patient.getNumeroDossierMedical().toString().isEmpty() ? patient.getNumeroDossierMedical() : "N/A")));
+        patientInfo.add(new Paragraph("Numéro Patient: " +  patient.getId() ));
         patientInfo.add(new Paragraph("Phone Number: " +(patient.getTelephone() != null ? patient.getTelephone() : "N/A")));
         patientInfo.setAlignment(Element.ALIGN_LEFT);
         document.add(patientInfo);
@@ -207,7 +207,6 @@ public class PdfService {
         document.add(new Paragraph("Prénom: " + (medecin.getPrenom() !=null ? medecin.getPrenom() : "N/A")));
         document.add(new Paragraph("Phone Number: " + (medecin.getTelephone()!= null ? medecin.getTelephone() : "N/A")));
         document.add(new Paragraph("Email: " + (medecin.getEmail() != null ? medecin.getEmail() : "N/A")));
-        document.add(new Paragraph("Address: " + (medecin.getAdresse()!=null ? medecin.getAdresse() : "N/A")));
         document.add(new Paragraph("Specialty: " + (medecin.getSpecialite() != null ? medecin.getSpecialite() : "N/A")));
         document.add(new Paragraph(new Phrase("Physician Signature: [Signature]")));
 

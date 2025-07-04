@@ -1,9 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
 import jakarta.validation.Valid;
-import org.kfokam48.cliniquemanagementbackend.dto.PatientDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.PatientResponseDTO;
-import org.kfokam48.cliniquemanagementbackend.enums.Roles;
+import org.kfokam48.cliniquemanagementbackend.dto.patient.PatientDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.patient.PatientResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.exception.ResourceAlreadyExistException;
 import org.kfokam48.cliniquemanagementbackend.exception.RessourceNotFoundException;
 import org.kfokam48.cliniquemanagementbackend.mapper.PatientMapper;
@@ -34,16 +33,14 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public Patient save(@Valid PatientDTO patientDto) {
+    public PatientResponseDTO save(@Valid PatientDTO patientDto) {
         if (utilisateurRepository.existsByEmail(patientDto.getEmail())) {
             throw new ResourceAlreadyExistException("User already exists with this email");
         }
 
         Patient patient = patientMapper.patientDtoToPatient(patientDto);
-        patient.setPassword(passwordEncoder.encode(patientDto.getPassword()));
-        patient.setRole(Roles.valueOf("PATIENT"));
         patientRepository.save(patient);
-        return patient;
+        return patientMapper.patientToPatientResponseDTO(patient);
     }
 
     @Override
@@ -53,18 +50,17 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public Patient update(Long id,@Valid PatientDTO patientDTO) {
+    public PatientResponseDTO update(Long id,@Valid PatientDTO patientDTO) {
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Patient not found"));
        if(!Objects.equals(patient.getEmail(), patientDTO.getEmail()) && utilisateurRepository.existsByEmail(patientDTO.getEmail())){
             throw new ResourceAlreadyExistException("User already exists with this email");
         }
-
         patient.setEmail(patientDTO.getEmail());
-        patient.setPassword(patientDTO.getPassword());
-        patient.setNumeroDossierMedical(patientDTO.getNumeroDossierMedical());
+       patient.setPrenom(patientDTO.getPrenom());
+       patient.setNom(patientDTO.getNom());
         patient.setSexe(patientDTO.getSexe());
-        return patientRepository.save(patient);
+        return patientMapper.patientToPatientResponseDTO(patientRepository.save(patient));
     }
 
     @Override
