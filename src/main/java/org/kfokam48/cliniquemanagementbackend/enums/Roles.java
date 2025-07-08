@@ -4,6 +4,4 @@ public enum Roles {
     MEDECIN,
     ADMIN,
     SECRETAIRE
-
-
 }

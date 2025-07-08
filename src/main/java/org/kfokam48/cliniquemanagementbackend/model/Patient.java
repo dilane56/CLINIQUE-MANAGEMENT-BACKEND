@@ -16,7 +16,6 @@ import java.util.List;
 @AllArgsConstructor
 @Data
 @Entity
-@PrimaryKeyJoinColumn(name = "utilisateur_id")
 public class Patient {
 
     @Id
