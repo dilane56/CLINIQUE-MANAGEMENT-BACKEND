@@ -1,6 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.dto.auth;
 
 import lombok.Data;
+import org.kfokam48.cliniquemanagementbackend.enums.Roles;
 
 @Data
 public class UserDTO {
@@ -11,5 +12,6 @@ public class UserDTO {
     private String telephone;
     private String sexe;
     private String adresse;
+    private Roles role;
 //    private String role;
 }

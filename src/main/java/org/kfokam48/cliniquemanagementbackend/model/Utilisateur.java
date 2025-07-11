@@ -25,7 +25,7 @@ public abstract class Utilisateur {
     private String telephone;
 
     @Column(nullable = false)
-    private Roles role; // ADMIN, MEDECIN, INFIRMIERE, SECRETAIRE
+    private Roles role; // ADMIN, MEDECIN, SECRETAIRE
 
     public Utilisateur() {
     }

@@ -64,7 +64,6 @@ public class AuthService {
             LoginResponse loginResponse = new LoginResponse();
             loginResponse.setToken(token);
             loginResponse.setUser(utilisateurMapper.utilisateurToUserDTO(user));
-            loginResponse.setRole(String.valueOf(user.getRole()));
             return loginResponse;
 
         } catch (Exception e) {

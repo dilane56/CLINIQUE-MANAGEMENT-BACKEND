@@ -14,4 +14,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @PrimaryKeyJoinColumn(name = "utilisateur_id")
 public class Secretaire extends Utilisateur{
+
+    @ManyToMany(mappedBy = "secretaires")
+    private List<Medecin> medecins = new ArrayList<>();
 }

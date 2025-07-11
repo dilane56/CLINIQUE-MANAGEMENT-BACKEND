@@ -29,8 +29,6 @@ public class DefaultUserInitializer implements CommandLineRunner {
             user.setRole(Roles.valueOf("ADMIN")); // Définissez le rôle
 
             userRepository.save(user); // Enregistrez l'utilisateur
-        }else{
-            System.out.println("nothing to add");
         }
     }
 }
