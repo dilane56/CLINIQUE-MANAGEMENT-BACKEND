@@ -1,7 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.mapper;
 
-import org.kfokam48.cliniquemanagementbackend.dto.UtilisateurDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.UtilisateurResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.auth.UserDTO;
 import org.kfokam48.cliniquemanagementbackend.model.Utilisateur;
 import org.modelmapper.ModelMapper;

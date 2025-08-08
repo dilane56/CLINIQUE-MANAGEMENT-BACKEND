@@ -1,7 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
 import jakarta.validation.Valid;
-import org.kfokam48.cliniquemanagementbackend.dto.SecretaireDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.secretaire.SecretaireDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.secretaire.SecretaireResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.enums.Roles;
 import org.kfokam48.cliniquemanagementbackend.exception.ResourceAlreadyExistException;
 import org.kfokam48.cliniquemanagementbackend.exception.RessourceNotFoundException;
@@ -34,7 +35,7 @@ public class SecretaireServiceImpl implements SecretaireService {
     }
 
     @Override
-    public Secretaire save(@Valid SecretaireDTO secretaireDTO) {
+    public SecretaireResponseDTO save(@Valid SecretaireDTO secretaireDTO) {
         if (utilisateurRepository.existsByEmail(secretaireDTO.getEmail())) {
             throw new ResourceAlreadyExistException("User already exists with this email");
         }
@@ -43,25 +44,30 @@ public class SecretaireServiceImpl implements SecretaireService {
         secretaire.setPassword(passwordEncoder.encode(secretaireDTO.getPassword()));
         secretaire.setRole(Roles.valueOf("SECRETAIRE"));
         secretaireRepository.save(secretaire);
-        return secretaire;
+        return secretaireMapper.secretaireToSecretaireResponseDto(secretaire);
     }
 
     @Override
-    public Secretaire findById(Long id) {
-        return secretaireRepository.findById(id)
+    public SecretaireResponseDTO findById(Long id) {
+        Secretaire secretaire= secretaireRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Secretaire not found"));
+        return secretaireMapper.secretaireToSecretaireResponseDto(secretaire);
     }
 
     @Override
-    public Secretaire update(Long id,@Valid SecretaireDTO secretaireDTO) {
+    public SecretaireResponseDTO update(Long id,@Valid SecretaireDTO secretaireDTO) {
         Secretaire secretaire = secretaireRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Secretaire not found"));
         if (Objects.equals(secretaire.getEmail(), secretaireDTO.getEmail()) || !utilisateurRepository.existsByEmail(secretaireDTO.getEmail())) {
 
             secretaire.setEmail(secretaireDTO.getEmail());
-            secretaire.setPassword(secretaireDTO.getPassword());
+            secretaire.setPassword(passwordEncoder.encode(secretaireDTO.getPassword()));
+            secretaire.setRole(secretaireDTO.getRole());
+            secretaire.setPrenom(secretaireDTO.getPrenom());
+            secretaire.setTelephone(secretaireDTO.getTelephone());
+            secretaire.setNom(secretaireDTO.getNom());
             secretaireRepository.save(secretaire);
-            return secretaire;
+            return secretaireMapper.secretaireToSecretaireResponseDto(secretaire);
         } else {
             throw new ResourceAlreadyExistException("User already exists with this email");
         }
@@ -70,13 +76,13 @@ public class SecretaireServiceImpl implements SecretaireService {
     }
 
     @Override
-    public List<Secretaire> findAll() {
-        return secretaireRepository.findAll();
+    public List<SecretaireResponseDTO> findAll() {
+       return secretaireMapper.secretaireListToSecretaireResponseDtoList(secretaireRepository.findAll());
     }
 
     @Override
     public ResponseEntity<String> deleteById(Long id) {
-        Secretaire secretaire = secretaireRepository.findById(id)
+       secretaireRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Secretaire not found"));
         secretaireRepository.deleteById(id);
         return ResponseEntity.ok("Secretaire deleted successfully");

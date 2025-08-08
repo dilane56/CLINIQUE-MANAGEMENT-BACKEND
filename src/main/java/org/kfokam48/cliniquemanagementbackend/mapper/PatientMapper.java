@@ -33,6 +33,8 @@ public class PatientMapper {
         patientResponseDTO.setAdresse(patient.getAdresse());
         patientResponseDTO.setNom(patient.getNom());
         patientResponseDTO.setPrenom(patient.getPrenom());
+        patientResponseDTO.setAntecedents(patient.getAntecedents());
+        patientResponseDTO.setAllergies(patient.getAllergies());
         patientResponseDTO.setTelephone(patient.getTelephone());
         patientResponseDTO.setDateNaissance(patient.getDateNaissance());
         patientResponseDTO.setRendezvous(rendezVousMapper.rendezVousListToRendezVousInUserDtoList(patient.getRendezvous()));

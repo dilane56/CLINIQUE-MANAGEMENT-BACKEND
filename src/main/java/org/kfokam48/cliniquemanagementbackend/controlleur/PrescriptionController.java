@@ -2,8 +2,9 @@ package org.kfokam48.cliniquemanagementbackend.controlleur;
 
 import com.itextpdf.text.DocumentException;
 import jakarta.validation.Valid;
-import org.kfokam48.cliniquemanagementbackend.dto.PrescriptionDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.PrescriptionResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.prescription.PrescriptionDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.prescription.PrescriptionResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.prescription.PrescriptionUpdateDTO;
 import org.kfokam48.cliniquemanagementbackend.exception.RessourceNotFoundException;
 import org.kfokam48.cliniquemanagementbackend.model.Prescription;
 import org.kfokam48.cliniquemanagementbackend.repository.PrescriptionRepository;
@@ -50,7 +51,7 @@ public class PrescriptionController {
 
     // Endpoint pour mettre à jour une prescription existante
     @PutMapping("/{id}")
-    public ResponseEntity<PrescriptionResponseDTO> updatePrescription(@PathVariable Long id, @RequestBody @Valid PrescriptionDTO prescriptionDTO) {
+    public ResponseEntity<PrescriptionResponseDTO> updatePrescription(@PathVariable Long id, @RequestBody @Valid PrescriptionUpdateDTO prescriptionDTO) {
         PrescriptionResponseDTO updatedPrescription = prescriptionService.update(id, prescriptionDTO);
         return ResponseEntity.ok(updatedPrescription);
     }
@@ -82,5 +83,12 @@ public class PrescriptionController {
         headers.add("Content-Disposition", "attachment; filename=prescription_" + prescription.getId() + ".pdf");
 
         return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+    }
+
+    // Endpoint pour récupérer toutes les prescriptions d'un médecin spécifique
+    @GetMapping("/medecin/{medecinId}")
+    public ResponseEntity<List<PrescriptionResponseDTO>> getPrescriptionsByMedecinId(@PathVariable Long medecinId) {
+        List<PrescriptionResponseDTO> prescriptions = prescriptionService.findByMedecinId(medecinId);
+        return ResponseEntity.ok(prescriptions);
     }
 }

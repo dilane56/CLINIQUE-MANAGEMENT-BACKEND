@@ -1,6 +1,6 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
 
-;
+
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.dto.AdministrateurDTO;
 import org.kfokam48.cliniquemanagementbackend.model.Administrateur;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/administrateur")
+@RequestMapping("/api/administrateurs")
 public class AdministrateurController {
     private final AdministrateurServiceImpl administrateurService;
 
@@ -56,8 +56,7 @@ public class AdministrateurController {
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteAdministrateur(@PathVariable Long id) {
-        ResponseEntity<String> response = administrateurService.deleteById(id);
-        return response;
+        return administrateurService.deleteById(id);
     }
 
 

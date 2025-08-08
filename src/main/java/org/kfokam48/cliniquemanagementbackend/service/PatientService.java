@@ -14,4 +14,5 @@ public interface PatientService {
     PatientResponseDTO update(Long id, PatientDTO patientDTO);
     ResponseEntity<String > deleteById(Long id);
     List<PatientResponseDTO> findAll();
+    List<PatientResponseDTO> findByMedecinId(Long medecinId);
 }

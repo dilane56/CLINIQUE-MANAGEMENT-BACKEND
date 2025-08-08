@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.kfokam48.cliniquemanagementbackend.enums.Sexe;
 
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -27,7 +28,7 @@ public class Patient {
     private String nom;
     private String prenom;
     private String telephone;
-    private Date dateNaissance;
+    private LocalDate dateNaissance;
     private String antecedents;
     private String allergies;
     private Sexe sexe;

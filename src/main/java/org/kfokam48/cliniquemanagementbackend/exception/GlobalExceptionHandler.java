@@ -57,5 +57,14 @@ public class GlobalExceptionHandler {
                 .body("Accès refusé : " + ex.getMessage());
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(RendezVousNonTermineException.class)
+    public ResponseEntity<String> handleRendezVousNonTermineException(RendezVousNonTermineException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+    }
 
 }

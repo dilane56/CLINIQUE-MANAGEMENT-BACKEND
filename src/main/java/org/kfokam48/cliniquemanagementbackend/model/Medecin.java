@@ -1,16 +1,12 @@
 package org.kfokam48.cliniquemanagementbackend.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.PrimaryKeyJoinColumn;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,4 +19,13 @@ public class Medecin extends Utilisateur{
 
     @OneToMany(mappedBy = "medecin")
     private List<RendezVous> rendezvous = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+            name= "medecin_secretaire",
+            joinColumns = @JoinColumn(name = "medecin_id"),
+            inverseJoinColumns = @JoinColumn(name = "secretarire_id")
+    )
+    private Set<Secretaire> secretaires = new HashSet<>();
+
 }

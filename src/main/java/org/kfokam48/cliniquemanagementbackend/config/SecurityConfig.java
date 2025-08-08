@@ -36,7 +36,17 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable) // Utilisation de la nouvelle API pour d
+        http.csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors
+                        .configurationSource(request -> {
+                            var corsConfig = new org.springframework.web.cors.CorsConfiguration();
+                            corsConfig.setAllowedOrigins(java.util.List.of("http://localhost:3000", "http://localhost:3001")); // Remplace par l’URL de ton frontend
+                            corsConfig.setAllowedMethods(java.util.List.of("GET", "POST", "PUT","PATCH", "DELETE", "OPTIONS"));
+                            corsConfig.setAllowedHeaders(java.util.List.of("*"));
+                            corsConfig.setAllowCredentials(true);
+                            return corsConfig;
+                        })
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/**",
@@ -44,20 +54,12 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-resources/**",
                                 "/webjars/**",
-                                "/api/secretaire/create",
-                                "/api/patient/create",
-                                "/api/administrateur/create",
-                                "/api/medecin/create",
-                                "/api/utilisateurs/all"
+                                "/api/secretaires",
+                                "/api/patient",
+                                "/api/administrateurs/create",
+                                "/api/medecins",
+                                "/api/utilisateurs"
                         ).permitAll()
-
-//                        // Restreindre l'accès aux endpoints spécifiques
-//                        .requestMatchers("/api/medecins/**").hasRole("MEDECIN") // Accès uniquement pour les médecins
-//                        .requestMatchers("/api/secretaire/**").hasRole("SECRETAIRE") // Accès uniquement pour les secrétaires
-//                        .requestMatchers("/api/utilisateurs/**").hasRole("ADMIN") // Accès uniquement pour les administrateurs
-//                        .requestMatchers("/api/**").hasRole("ADMIN") // Accès uniquement pour les administrateurs
-
-                        // Restreindre l'accès à tous les autres endpoints
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptionHandling ->
                         exceptionHandling.accessDeniedHandler((request, response, accessDeniedException) -> {
@@ -67,9 +69,6 @@ public class SecurityConfig {
 
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
-
-
-        //  .headers(headers -> headers.frameOptions().disable());//uniquement lors de l'utilisation d'un BD H2
         return http.build();
     }
 
@@ -80,9 +79,6 @@ public class SecurityConfig {
     public AuthenticationManager authManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
-
-
-
 
 
 }

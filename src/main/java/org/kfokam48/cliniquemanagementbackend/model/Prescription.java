@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -15,16 +17,14 @@ public class Prescription {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private LocalDate datePrescription;
-    private String medicaments;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "patient_id")
-    private Patient patient;
+    private String description;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "medecin_id")
-    private Medecin medecin;
-    private String instructions;
+    @ManyToOne
+    private RendezVous rendezVous;
 
+    @OneToMany(mappedBy = "prescription", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LignePrescription> lignes = new ArrayList<>();
+
+    private LocalDate date;
 }

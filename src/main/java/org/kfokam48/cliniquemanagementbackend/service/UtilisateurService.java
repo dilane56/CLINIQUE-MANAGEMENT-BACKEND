@@ -1,7 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.service;
 
-import org.kfokam48.cliniquemanagementbackend.dto.UtilisateurDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.UtilisateurResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.model.Utilisateur;
 import org.springframework.http.ResponseEntity;
 
@@ -15,4 +15,5 @@ public interface UtilisateurService {
     List<UtilisateurResponseDTO> findAll();
     boolean existsByEmail(String email);
     Utilisateur addRoleTouser(Utilisateur utilisateur, String role);
+
 }

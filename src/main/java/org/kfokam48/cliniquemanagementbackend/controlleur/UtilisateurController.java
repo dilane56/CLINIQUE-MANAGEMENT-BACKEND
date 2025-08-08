@@ -1,9 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
 
 
-import jakarta.validation.Valid;
-import org.kfokam48.cliniquemanagementbackend.dto.UtilisateurDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.UtilisateurResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.model.Utilisateur;
 
 import org.kfokam48.cliniquemanagementbackend.service.impl.UtilisateurServiceImpl;
@@ -12,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-@CrossOrigin(origins = {"http://localhost:4200"}, allowedHeaders = "*", methods ={RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
 @RestController
 @RequestMapping("/api/utilisateurs") // URL de base pour le contrôleur
 public class UtilisateurController {
@@ -48,7 +45,7 @@ public class UtilisateurController {
     }
 
     // Endpoint pour récupérer tous les utilisateurs
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<UtilisateurResponseDTO>> getAllUtilisateurs() {
         List<UtilisateurResponseDTO> utilisateurs = utilisateurService.findAll();
         return new ResponseEntity<>(utilisateurs, HttpStatus.OK);

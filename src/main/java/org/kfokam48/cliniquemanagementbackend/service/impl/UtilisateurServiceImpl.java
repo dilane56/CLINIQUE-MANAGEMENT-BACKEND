@@ -1,8 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
 import jakarta.validation.Valid;
-import org.kfokam48.cliniquemanagementbackend.dto.UtilisateurDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.UtilisateurResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.exception.RessourceNotFoundException;
 import org.kfokam48.cliniquemanagementbackend.mapper.UtilisateurMapper;
 import org.kfokam48.cliniquemanagementbackend.model.Utilisateur;
@@ -59,6 +59,7 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     public ResponseEntity<String> deleteById(Long id) {
         Utilisateur utilisateur = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Utilisateur not found with id: " + id));
+        utilisateurRepository.deleteById(id);
         return ResponseEntity.ok("Utilisateur deleted successfully");
     }
 

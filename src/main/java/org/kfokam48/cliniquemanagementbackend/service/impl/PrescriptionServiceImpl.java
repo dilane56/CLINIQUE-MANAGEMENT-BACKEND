@@ -2,15 +2,17 @@ package org.kfokam48.cliniquemanagementbackend.service.impl;
 
 
 import jakarta.validation.Valid;
-import org.kfokam48.cliniquemanagementbackend.dto.PrescriptionDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.PrescriptionResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.prescription.PrescriptionDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.prescription.PrescriptionResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.prescription.PrescriptionUpdateDTO;
+import org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous;
 import org.kfokam48.cliniquemanagementbackend.exception.RessourceNotFoundException;
+import org.kfokam48.cliniquemanagementbackend.mapper.LignePrescriptionMapper;
 import org.kfokam48.cliniquemanagementbackend.mapper.PrescriptionMapper;
-import org.kfokam48.cliniquemanagementbackend.model.Patient;
+import org.kfokam48.cliniquemanagementbackend.model.LignePrescription;
 import org.kfokam48.cliniquemanagementbackend.model.Prescription;
-import org.kfokam48.cliniquemanagementbackend.repository.MedecinRepository;
-import org.kfokam48.cliniquemanagementbackend.repository.PatientRepository;
-import org.kfokam48.cliniquemanagementbackend.repository.PrescriptionRepository;
+import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
+import org.kfokam48.cliniquemanagementbackend.repository.*;
 import org.kfokam48.cliniquemanagementbackend.service.PrescriptionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -24,20 +26,27 @@ import java.util.List;
 public class PrescriptionServiceImpl implements PrescriptionService {
     private final PrescriptionRepository prescriptionRepository;
     private final PrescriptionMapper prescriptionMapper;
-    private final PatientRepository patientRepository;
-    private final MedecinRepository medecinRepository;
+    private final RendezVousRepository rendezVousRepository;
+    private final LignePrescriptionMapper lignePrescriptionMapper;
 
-    public PrescriptionServiceImpl(PrescriptionRepository prescriptionRepository, PrescriptionMapper prescriptionMapper, PatientRepository patientRepository, MedecinRepository medecinRepository) {
+
+    public PrescriptionServiceImpl(PrescriptionRepository prescriptionRepository, PrescriptionMapper prescriptionMapper, RendezVousRepository rendezVousRepository, LignePrescriptionMapper lignePrescriptionMapper) {
         this.prescriptionRepository = prescriptionRepository;
         this.prescriptionMapper = prescriptionMapper;
-        this.patientRepository = patientRepository;
-        this.medecinRepository = medecinRepository;
+        this.rendezVousRepository = rendezVousRepository;
+
+        this.lignePrescriptionMapper = lignePrescriptionMapper;
     }
 
     @Override
     public PrescriptionResponseDTO save(@Valid PrescriptionDTO prescriptionDTO) {
+        RendezVous rendezVous = rendezVousRepository.findById(prescriptionDTO.getRendezVousId())
+                .orElseThrow(() -> new RessourceNotFoundException("RendezVous not found"));
+        if (!(rendezVous.getStatutRendezVous() == StatutRendezVous.TERMINE || rendezVous.getStatutRendezVous() == StatutRendezVous.EN_COURS)) {
+            throw new IllegalStateException("Impossible d'ajouter une prescription pour un rendez-vous qui n'est pas terminé ou en cours.");
+        }
         Prescription prescription = prescriptionMapper.prescriptionDtoToPrescription(prescriptionDTO);
-        prescription.setDatePrescription(LocalDate.now());
+        prescription.setDate(LocalDate.now());
         prescriptionRepository.save(prescription);
         return prescriptionMapper.prescriptionToPrescriptionResponseDto(prescription);
     }
@@ -49,18 +58,19 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     }
 
     @Override
-    public PrescriptionResponseDTO update(Long id,@Valid PrescriptionDTO prescriptionDTO) {
+    public PrescriptionResponseDTO update(Long id, @Valid PrescriptionUpdateDTO prescriptionUpdateDTO) {
         Prescription prescription = prescriptionRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Prescription not found"));
-        prescription.setMedicaments(prescriptionDTO.getMedicament());
-        Patient patient = patientRepository.findById(prescriptionDTO.getPatientId())
-                .orElseThrow(() -> new RessourceNotFoundException("Patient not found"));
-        prescription.setPatient(patient);
-        prescription.setMedecin(medecinRepository.findById(prescriptionDTO.getMedecinId())
-                .orElseThrow(() -> new RessourceNotFoundException("Medecin not found")));
-        prescription.setDatePrescription(LocalDate.now());
-        prescriptionRepository.save(prescription);
+        RendezVous rendezVous = rendezVousRepository.findById(prescriptionUpdateDTO.getRendezVousId())
+                .orElseThrow(() -> new RessourceNotFoundException("RendezVous not found"));
+        if (!(rendezVous.getStatutRendezVous() == StatutRendezVous.TERMINE || rendezVous.getStatutRendezVous() == StatutRendezVous.EN_COURS)) {
+            throw new IllegalStateException("Impossible de modifier une prescription pour un rendez-vous qui n'est pas terminé ou en cours.");
+        }
+        prescription.setRendezVous(rendezVous);
+       prescriptionMapper.updatePrescriptionFromUpdateDTO(prescription, prescriptionUpdateDTO, lignePrescriptionMapper);
+        prescription.setDate(LocalDate.now());
 
+        prescriptionRepository.save(prescription);
         return prescriptionMapper.prescriptionToPrescriptionResponseDto(prescription);
     }
 
@@ -76,5 +86,11 @@ public class PrescriptionServiceImpl implements PrescriptionService {
         prescriptionRepository.deleteById(id);
         return ResponseEntity.ok("Prescription deleted successfully");
 
+    }
+
+    @Override
+    public List<PrescriptionResponseDTO> findByMedecinId(Long medecinId) {
+        List<Prescription> prescriptions = prescriptionRepository.findByMedecinId(medecinId);
+        return prescriptionMapper.prescriptionListToPrescriptionResponseDtoList(prescriptions);
     }
 }

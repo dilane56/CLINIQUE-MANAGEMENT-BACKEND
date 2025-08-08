@@ -2,9 +2,9 @@ package org.kfokam48.cliniquemanagementbackend.controlleur;
 
 
 import jakarta.validation.Valid;
-import org.kfokam48.cliniquemanagementbackend.dto.RendezVousDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.RendezVousResponseDTO;
-import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
+import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous;
 import org.kfokam48.cliniquemanagementbackend.service.impl.RendezVousServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,13 +19,13 @@ public class RendezVousController {
     public RendezVousController(RendezVousServiceImpl rendezVousService) {
         this.rendezVousService = rendezVousService;
     }
-    @PostMapping("/create")
+    @PostMapping
     public ResponseEntity<RendezVousResponseDTO> createRendezVous(@Valid @RequestBody RendezVousDTO rendezVousDTO) {
         RendezVousResponseDTO rendezVous = rendezVousService.save(rendezVousDTO);
         return ResponseEntity.ok(rendezVous);
     }
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<RendezVousResponseDTO>> getAllRendezVous() {
         List<RendezVousResponseDTO> rendezVousList = rendezVousService.findAll();
         return ResponseEntity.ok(rendezVousList);
@@ -37,16 +37,32 @@ public class RendezVousController {
         return ResponseEntity.ok(rendezVous);
     }
 
-    @PutMapping("/update/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<RendezVousResponseDTO> updateRendezVous(@PathVariable Long id, @Valid @RequestBody RendezVousDTO rendezVousDTO) {
         RendezVousResponseDTO updatedRendezVous = rendezVousService.update(id, rendezVousDTO);
         return ResponseEntity.ok(updatedRendezVous);
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteRendezVous(@PathVariable Long id) {
-        ResponseEntity<String> response = rendezVousService.deleteById(id);
-        return response;
+        return rendezVousService.deleteById(id);
     }
 
+    @GetMapping("/medecin/{medecinId}")
+    public ResponseEntity<List<RendezVousResponseDTO>> getRendezVousByMedecin(@PathVariable Long medecinId) {
+        List<RendezVousResponseDTO> rendezVousList = rendezVousService.findByMedecinId(medecinId);
+        return ResponseEntity.ok(rendezVousList);
+    }
+
+    @PatchMapping("/{id}/statut")
+    public ResponseEntity<RendezVousResponseDTO> updateStatutRendezVous(@PathVariable Long id, @RequestParam("statut") StatutRendezVous statut) {
+        RendezVousResponseDTO updatedRendezVous = rendezVousService.updateStatut(id, statut);
+        return ResponseEntity.ok(updatedRendezVous);
+    }
+
+    @GetMapping("/medecin/{medecinId}/aujourd'hui")
+    public ResponseEntity<List<RendezVousResponseDTO>> getRendezVousDuJourByMedecin(@PathVariable Long medecinId) {
+        List<RendezVousResponseDTO> rendezVousList = rendezVousService.findRendezVousDuJourByMedecin(medecinId);
+        return ResponseEntity.ok(rendezVousList);
+    }
 }

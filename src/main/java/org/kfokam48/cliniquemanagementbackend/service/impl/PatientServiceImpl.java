@@ -60,6 +60,11 @@ public class PatientServiceImpl implements PatientService {
        patient.setPrenom(patientDTO.getPrenom());
        patient.setNom(patientDTO.getNom());
         patient.setSexe(patientDTO.getSexe());
+        patient.setDateNaissance(patientDTO.getDateNaissance());
+        patient.setAdresse(patientDTO.getAdresse());
+        patient.setTelephone(patientDTO.getTelephone());
+        patient.setAntecedents(patientDTO.getAntecedents());
+        patient.setAllergies(patientDTO.getAllergies());
         return patientMapper.patientToPatientResponseDTO(patientRepository.save(patient));
     }
 
@@ -75,5 +80,13 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public List<PatientResponseDTO> findAll() {
         return patientMapper.patientListToPatientResponseDtoList(patientRepository.findAll());
+    }
+
+    @Override
+    public List<PatientResponseDTO> findByMedecinId(Long medecinId) {
+        List<Patient> patients = patientRepository.findPatientsByMedecinId(medecinId);
+        return patients.stream()
+                .map(patientMapper::patientToPatientResponseDTO)
+                .toList();
     }
 }

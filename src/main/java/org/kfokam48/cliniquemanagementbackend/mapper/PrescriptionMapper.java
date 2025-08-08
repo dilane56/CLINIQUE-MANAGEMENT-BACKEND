@@ -1,11 +1,13 @@
 package org.kfokam48.cliniquemanagementbackend.mapper;
 
 
-import org.kfokam48.cliniquemanagementbackend.dto.PrescriptionDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.PrescriptionResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.ligneprescription.LignePrescriptionResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.prescription.PrescriptionDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.prescription.PrescriptionResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.prescription.PrescriptionUpdateDTO;
+import org.kfokam48.cliniquemanagementbackend.model.LignePrescription;
 import org.kfokam48.cliniquemanagementbackend.model.Prescription;
-import org.kfokam48.cliniquemanagementbackend.repository.MedecinRepository;
-import org.kfokam48.cliniquemanagementbackend.repository.PatientRepository;
+import org.kfokam48.cliniquemanagementbackend.repository.RendezVousRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
@@ -14,22 +16,25 @@ import java.util.List;
 @Component
 public class PrescriptionMapper {
     private final ModelMapper modelMapper;
-    private final PatientRepository patientRepository;
-    private final MedecinRepository medecinRepository;
+    private final RendezVousRepository rendezVousRepository;
+    private final LignePrescriptionMapper lignePrescriptionMapper;
 
-    public PrescriptionMapper(ModelMapper modelMapper, PatientRepository patientRepository, MedecinRepository medecinRepository) {
+    public PrescriptionMapper(ModelMapper modelMapper, RendezVousRepository rendezVousRepository, LignePrescriptionMapper lignePrescriptionMapper) {
         this.modelMapper = modelMapper;
-        this.patientRepository = patientRepository;
-        this.medecinRepository = medecinRepository;
+        this.rendezVousRepository = rendezVousRepository;
+        this.lignePrescriptionMapper = lignePrescriptionMapper;
     }
     public Prescription prescriptionDtoToPrescription(PrescriptionDTO prescriptionDTO){
         Prescription prescription = new Prescription();
-        prescription.setPatient(patientRepository.findById(prescriptionDTO.getPatientId())
-                .orElseThrow(() -> new RuntimeException("Patient not found")));
-        prescription.setMedecin(medecinRepository.findById(prescriptionDTO.getMedecinId())
-                .orElseThrow(() -> new RuntimeException("Medecin not found")));
-        prescription.setMedicaments(prescriptionDTO.getMedicament());
-        prescription.setInstructions(prescriptionDTO.getInstructions());
+        prescription.setRendezVous(rendezVousRepository.findById(prescriptionDTO.getRendezVousId())
+                .orElseThrow(() -> new RuntimeException("RendezVous not found")));
+        prescription.setDescription(prescriptionDTO.getDescription());
+        List<LignePrescription> lignes = lignePrescriptionMapper.lignePrescriptionDTOListToLignePrescriptionList(prescriptionDTO.getLignes());
+        // Associer la prescription à chaque ligne
+        for (LignePrescription ligne : lignes) {
+            ligne.setPrescription(prescription);
+        }
+        prescription.setLignes(lignes);
         return prescription;
     }
 
@@ -40,13 +45,22 @@ public class PrescriptionMapper {
     public PrescriptionResponseDTO prescriptionToPrescriptionResponseDto(Prescription prescription){
         PrescriptionResponseDTO prescriptionResponseDTO = new PrescriptionResponseDTO();
         prescriptionResponseDTO.setId(prescription.getId());
-        prescriptionResponseDTO.setMedicament(prescription.getMedicaments());
-        prescriptionResponseDTO.setPatientNom(prescription.getPatient().getNom());
-        prescriptionResponseDTO.setPatientPrenom(prescription.getPatient().getPrenom());
-        prescriptionResponseDTO.setMedecinNom(prescription.getMedecin().getNom());
-        prescriptionResponseDTO.setMedecinPrenom(prescription.getMedecin().getPrenom());
-        prescriptionResponseDTO.setInstructions(prescription.getInstructions());
-        prescriptionResponseDTO.setDatePrescription(prescription.getDatePrescription());
+        prescriptionResponseDTO.setDescription(prescription.getDescription());
+        if (prescription.getRendezVous() != null) {
+            if (prescription.getRendezVous().getPatient() != null) {
+                prescriptionResponseDTO.setPatientNom(prescription.getRendezVous().getPatient().getNom());
+                prescriptionResponseDTO.setPatientPrenom(prescription.getRendezVous().getPatient().getPrenom());
+            }
+            if (prescription.getRendezVous().getMedecin() != null) {
+                prescriptionResponseDTO.setMedecinNom(prescription.getRendezVous().getMedecin().getNom());
+                prescriptionResponseDTO.setMedecinPrenom(prescription.getRendezVous().getMedecin().getPrenom());
+            }
+        }
+        prescriptionResponseDTO.setDate(prescription.getDate());
+        // Mapping des lignes
+        List<LignePrescriptionResponseDTO> lignes = lignePrescriptionMapper.lignePrescriptionsToLignePrescriptionResponseDTOs(prescription.getLignes());
+        prescriptionResponseDTO.setLignes(lignes);
+
         return prescriptionResponseDTO;
     }
 
@@ -54,5 +68,19 @@ public class PrescriptionMapper {
         return prescriptions.stream()
                 .map(this::prescriptionToPrescriptionResponseDto)
                 .toList();
+    }
+
+    public void updatePrescriptionFromUpdateDTO(Prescription prescription, PrescriptionUpdateDTO dto, LignePrescriptionMapper lignePrescriptionMapper) {
+        prescription.setDescription(dto.getDescription());
+        
+        // Vider d'abord la liste existante pour éviter les problèmes avec orphanRemoval
+        prescription.getLignes().clear();
+        
+        // Ajouter les nouvelles lignes
+        List<LignePrescription> nouvellesLignes = lignePrescriptionMapper.lignePrescriptionUpdateDTOListToLignePrescriptionList(dto.getLignes());
+        for (LignePrescription ligne : nouvellesLignes) {
+            ligne.setPrescription(prescription);
+            prescription.getLignes().add(ligne);
+        }
     }
 }

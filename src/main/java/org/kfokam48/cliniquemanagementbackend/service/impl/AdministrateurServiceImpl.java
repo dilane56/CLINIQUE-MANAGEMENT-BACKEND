@@ -70,6 +70,10 @@ public class AdministrateurServiceImpl implements AdministrateurService {
 
         administrateur.setEmail(administrateurDTO.getEmail());
         administrateur.setPassword(passwordEncoder.encode(administrateurDTO.getPassword()));
+        administrateur.setNom(administrateurDTO.getNom());
+        administrateur.setPrenom(administrateurDTO.getPrenom());
+        administrateur.setTelephone(administrateurDTO.getTelephone());
+        administrateur.setRole(administrateurDTO.getRole());
         administrateurRepository.save(administrateur);
         return administrateur;
     }

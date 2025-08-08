@@ -1,22 +1,17 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
 import jakarta.validation.Valid;
-import org.kfokam48.cliniquemanagementbackend.dto.MedecinDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.MedecinResponseDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.UtilisateurDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.medecin.MedecinDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.medecin.MedecinResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.enums.Roles;
 import org.kfokam48.cliniquemanagementbackend.exception.ResourceAlreadyExistException;
 import org.kfokam48.cliniquemanagementbackend.exception.RessourceNotFoundException;
 import org.kfokam48.cliniquemanagementbackend.mapper.MedecinMapper;
-import org.kfokam48.cliniquemanagementbackend.mapper.UtilisateurMapper;
 import org.kfokam48.cliniquemanagementbackend.model.Medecin;
-import org.kfokam48.cliniquemanagementbackend.model.Utilisateur;
 import org.kfokam48.cliniquemanagementbackend.repository.MedecinRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
 import org.kfokam48.cliniquemanagementbackend.service.MedecinService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,8 +62,12 @@ public class MedecinServiceImpl implements MedecinService {
         if (Objects.equals(medecin.getEmail(), medecinDTO.getEmail()) || !utilisateurRepository.existsByEmail(medecinDTO.getEmail())) {
 
             medecin.setEmail(medecinDTO.getEmail());
-            medecin.setPassword(medecinDTO.getPassword());
+            medecin.setPassword(passwordEncoder.encode(medecinDTO.getPassword()));
             medecin.setSpecialite(medecinDTO.getSpecialite());
+            medecin.setNom(medecinDTO.getNom());
+            medecin.setPrenom(medecinDTO.getPrenom());
+            medecin.setRole(medecinDTO.getRole());
+            medecin.setTelephone(medecinDTO.getTelephone());
             medecinRepository.save(medecin);
             return medecinMapper.medecinToMedecinResponseDto(medecin);
         } else {

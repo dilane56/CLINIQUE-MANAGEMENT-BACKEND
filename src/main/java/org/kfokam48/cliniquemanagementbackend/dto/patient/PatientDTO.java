@@ -1,13 +1,12 @@
 package org.kfokam48.cliniquemanagementbackend.dto.patient;
 
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import org.kfokam48.cliniquemanagementbackend.dto.UtilisateurDTO;
 import org.kfokam48.cliniquemanagementbackend.enums.Sexe;
 
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -20,7 +19,7 @@ public class PatientDTO  {
    private String nom;
    private String prenom;
    private String telephone;
-   private Date dateNaissance;
+   private LocalDate dateNaissance;
    private String antecedents;
    private String allergies;
    private Sexe sexe;

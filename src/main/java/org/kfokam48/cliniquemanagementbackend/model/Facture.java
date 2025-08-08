@@ -5,11 +5,15 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import org.kfokam48.cliniquemanagementbackend.enums.ModePayement;
-import org.kfokam48.cliniquemanagementbackend.enums.StatutPayement;
+import org.kfokam48.cliniquemanagementbackend.enums.StatutFacture;
 
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Data
@@ -20,21 +24,21 @@ public class Facture {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private double montantTotal;
+    private BigDecimal montantTotal;
     private LocalDateTime dateEmission;
     private LocalDateTime datePayement;
-    private double montantPayement;
-    private double montantRestant;
-    private StatutPayement statutPayement;
-    private ModePayement modePayement;
-    private String description;
+    private BigDecimal montantPayement;
+    private BigDecimal montantRestant;
+    @Enumerated(EnumType.STRING)
+    private StatutFacture statut;
+
+    @OneToMany(mappedBy = "facture", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LigneFacture> lignes = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "rendezvous_id")
     private RendezVous rendezVous;
 
-    public void calculerMontantRestant() {
-        this.montantRestant = this.montantTotal - this.montantPayement;
-    }
+
 
 }

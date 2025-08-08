@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+
+
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,12 +20,17 @@ public class Message {
     private Long id;
 
     @ManyToOne
-    private Utilisateur sender;
+    private Utilisateur expediteur;
 
     @ManyToOne
-    private Utilisateur receiver;
+    private Utilisateur destinataire;
 
-    private String content;
+    private String contenu;
 
     private LocalDateTime dateEnvoi;
+
+    private Boolean lu = false;
+
+    @ManyToOne
+    private Conversation conversation;
 }

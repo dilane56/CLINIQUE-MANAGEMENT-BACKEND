@@ -1,7 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.mapper;
 
-import org.kfokam48.cliniquemanagementbackend.dto.MessageDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.MessageResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.message.MessageDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.message.MessageResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.model.Message;
 import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
 import org.springframework.stereotype.Component;

@@ -1,8 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
 import jakarta.validation.Valid;
-import org.kfokam48.cliniquemanagementbackend.dto.MessageDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.MessageResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.message.MessageDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.message.MessageResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.exception.RessourceNotFoundException;
 import org.kfokam48.cliniquemanagementbackend.mapper.MessageMapper;
 import org.kfokam48.cliniquemanagementbackend.model.Message;

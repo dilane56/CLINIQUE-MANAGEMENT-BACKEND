@@ -2,9 +2,10 @@ package org.kfokam48.cliniquemanagementbackend.controlleur;
 
 import com.itextpdf.text.DocumentException;
 import jakarta.validation.Valid;
-import org.kfokam48.cliniquemanagementbackend.dto.FactureDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.FactureResponseDto;
-import org.kfokam48.cliniquemanagementbackend.dto.FactureUpdateDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureResponseDto;
+import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureUpdateDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.facture.FacturePaiementUpdateDTO;
 import org.kfokam48.cliniquemanagementbackend.exception.RessourceNotFoundException;
 import org.kfokam48.cliniquemanagementbackend.model.Facture;
 import org.kfokam48.cliniquemanagementbackend.repository.FactureRepository;
@@ -19,7 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/facture")
+@RequestMapping("/api/factures")
 public class FactureController {
     private final FactureServiceImpl factureService;
     private final PdfService pdfService;
@@ -30,13 +31,13 @@ public class FactureController {
         this.pdfService = pdfService;
         this.factureRepository = factureRepository;
     }
-    @PostMapping("/create")
+    @PostMapping()
     public ResponseEntity<FactureResponseDto> createFacture(@Valid @RequestBody FactureDTO factureDTO) {
         FactureResponseDto facture = factureService.save(factureDTO);
         return ResponseEntity.ok(facture);
     }
 
-    @GetMapping("/all")
+    @GetMapping()
     public ResponseEntity<List<FactureResponseDto>> getAllFactures() {
         List<FactureResponseDto> factures = factureService.findAll();
         return ResponseEntity.ok(factures);
@@ -48,16 +49,27 @@ public class FactureController {
         return ResponseEntity.ok(facture);
     }
 
-    @PutMapping("/update/{id}")
-    public ResponseEntity<FactureResponseDto> updateFacture(@PathVariable Long id,@Valid @RequestBody FactureUpdateDTO factureDTO) {
+    @GetMapping("/medecin/{medecinId}")
+    public ResponseEntity<List<FactureResponseDto>> getFacturesByMedecin(@PathVariable Long medecinId) {
+        List<FactureResponseDto> factures = factureService.findByMedecinId(medecinId);
+        return ResponseEntity.ok(factures);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<FactureResponseDto> updateFacture(@PathVariable Long id,@Valid @RequestBody FactureDTO factureDTO) {
         FactureResponseDto updatedFacture = factureService.update(id, factureDTO);
         return ResponseEntity.ok(updatedFacture);
     }
 
-    @DeleteMapping("/delete/{id}")
+    @PutMapping("/{id}/paiement")
+    public ResponseEntity<FactureResponseDto> updatePaiementFacture(@PathVariable Long id, @Valid @RequestBody FacturePaiementUpdateDTO paiementUpdateDTO) {
+        FactureResponseDto updatedFacture = factureService.updatePaiement(id, paiementUpdateDTO);
+        return ResponseEntity.ok(updatedFacture);
+    }
+
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteFacture(@PathVariable Long id) {
-        ResponseEntity<String> response = factureService.deleteById(id);
-        return response;
+        return factureService.deleteById(id);
     }
 
     @GetMapping("/{id}/pdf")

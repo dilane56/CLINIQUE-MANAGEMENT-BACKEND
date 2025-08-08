@@ -16,28 +16,45 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
-
+import io.jsonwebtoken.io.Decoders; // Important pour décoder la chaîne Base64
+import org.springframework.beans.factory.annotation.Value;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.security.SecureRandom;
 import java.util.Date;
 
 @Service
 public class AuthService {
 
 
+    @Value("${jwt.secret}")
+    private String jwtSecretString; // La clé secrète lue depuis la configuration
+    // Dans AuthService
+    @Value("${jwt.expiration.milliseconds}")
+    private long jwtExpirationMs;
+
+    private SecretKey signingKey; // Pour stocker la clé décodée une fois
 
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
     private final UtilisateurRepository utilisateurRepository ;
-    private UtilisateurMapper utilisateurMapper;
-    public static final SecretKey secretKey = Keys.hmacShaKeyFor(generateSecureKey(256).getEncoded());
+    private final UtilisateurMapper utilisateurMapper;
+
 
     public AuthService(AuthenticationManager authenticationManager, UserDetailsService userDetailsService, UtilisateurRepository utilisateurRepository, UtilisateurMapper utilisateurMapper) {
         this.authenticationManager = authenticationManager;
         this.userDetailsService = userDetailsService;
         this.utilisateurRepository = utilisateurRepository;
         this.utilisateurMapper = utilisateurMapper;
+    }
+
+    // Initialisation de la clé au démarrage du service
+    // @PostConstruct est une bonne pratique pour l'initialisation après l'injection de dépendances
+    @jakarta.annotation.PostConstruct // Utilisez jakarta.annotation.PostConstruct si Spring Boot 3+
+    private void init() {
+        // Décoder la chaîne Base64 en bytes, puis créer la SecretKey
+        byte[] keyBytes = Decoders.BASE64.decode(jwtSecretString);
+        this.signingKey = Keys.hmacShaKeyFor(keyBytes);
+        // Vous pouvez vérifier la longueur ici pour vous assurer qu'elle est correcte
+        System.out.println("Clé JWT chargée. Longueur (octets) : " + this.signingKey.getEncoded().length);
     }
 
     public LoginResponse authenticateUser(@Valid LoginRequest authRequest) {
@@ -56,8 +73,8 @@ public class AuthService {
                     .issuer("CLINIQUE-MANAGEMENT")
                     .subject(userDetails.getUsername())
                     .issuedAt(new Date())
-                    .expiration(new Date(System.currentTimeMillis() + 86400000)) // Expire dans 1 jour
-                    .signWith(secretKey)
+                    .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs)) // Expire dans 1 jour
+                    .signWith(signingKey) // Utilisez la clé chargée et initialisée
                     .compact();
 
             // Construction de la réponse
@@ -78,12 +95,6 @@ public class AuthService {
         return user.getRole();
     }
 
-    // Generation de la clé de sécurité
-    public static SecretKey generateSecureKey(int keySize) {
-        byte[] keyBytes = new byte[keySize / 8]; // Convertir bits en bytes
-        SecureRandom random = new SecureRandom();
-        random.nextBytes(keyBytes); // Générer des bytes aléatoires
-        return new SecretKeySpec(keyBytes, "HmacSHA256"); // Adapter selon l'algorithme souhaité
-    }
+
 
 }

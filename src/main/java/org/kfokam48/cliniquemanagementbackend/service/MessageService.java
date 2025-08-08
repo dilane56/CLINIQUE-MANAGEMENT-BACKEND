@@ -1,7 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.service;
 
-import org.kfokam48.cliniquemanagementbackend.dto.MessageDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.MessageResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.message.MessageDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.message.MessageResponseDTO;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
