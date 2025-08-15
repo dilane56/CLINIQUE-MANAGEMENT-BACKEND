@@ -1,6 +1,5 @@
 package org.kfokam48.cliniquemanagementbackend.config;
 
-
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.*;
@@ -11,12 +10,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic"); // Pour les réponses (abonnement)
-        config.setApplicationDestinationPrefixes("/app"); // Pour les requêtes (envoi)
+        config.enableSimpleBroker("/topic", "/user"); // Ajout de /user pour les messages privés
+        config.setApplicationDestinationPrefixes("/app");
+        config.setUserDestinationPrefix("/user"); // Important pour /user/{id}/private
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws-chat").setAllowedOriginPatterns("*").withSockJS();
+        registry.addEndpoint("/ws-chat")
+                .setAllowedOriginPatterns("*")
+                .withSockJS();
     }
 }

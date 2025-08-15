@@ -1,5 +1,6 @@
 package org.kfokam48.cliniquemanagementbackend.mapper;
 
+import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.Contact;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.auth.UserDTO;
@@ -25,6 +26,25 @@ public class UtilisateurMapper {
     }
     public UtilisateurResponseDTO utilisateurToUtilisateurResponseDTO (Utilisateur utilisateur){
         return modelMapper.map(utilisateur, UtilisateurResponseDTO.class);
+    }
+
+    public Contact utilisateurToContact (Utilisateur user){
+        Contact contact = new Contact();
+        contact.setStatus(user.getStatus());
+        contact.setId(user.getId());
+        contact.setEmail(user.getEmail());
+        contact.setNom(user.getNom());
+        contact.setPrenom(user.getPrenom());
+        contact.setDerniereConnexion(user.getDerniereConnexion());
+        contact.setRole(user.getRole().name());
+        return contact;
+
+
+    }
+    public List<Contact> utilisateursToContacts(List<Utilisateur> utilisateurs) {
+        return utilisateurs.stream()
+                .map(this::utilisateurToContact)
+                .collect(Collectors.toList());
     }
     public List<UtilisateurResponseDTO> utilisateursToUtilisateurResponseDTOs (List<Utilisateur> utilisateurs){
         return utilisateurs.stream()

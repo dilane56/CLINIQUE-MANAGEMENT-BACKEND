@@ -1,6 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
 import jakarta.validation.Valid;
+import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.Contact;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.exception.RessourceNotFoundException;
@@ -76,5 +77,10 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     @Override
     public Utilisateur addRoleTouser(Utilisateur utilisateur, String role) {
         return null;
+    }
+
+    @Override
+    public List<Contact> findAllContacts() {
+        return utilisateurMapper.utilisateursToContacts(utilisateurRepository.findAll());
     }
 }

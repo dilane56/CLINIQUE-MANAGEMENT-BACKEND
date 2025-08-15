@@ -1,36 +1,36 @@
-package org.kfokam48.cliniquemanagementbackend.controlleur;
+package org.kfokam48.cliniquemanagementbackend.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.kfokam48.cliniquemanagementbackend.model.Message;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-
+import org.kfokam48.cliniquemanagementbackend.service.MessageService;
+import org.kfokam48.cliniquemanagementbackend.service.chat.ChatService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
-import java.time.LocalDateTime;
-
 
 @Controller
+@RequiredArgsConstructor
 public class ChatController {
 
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final ChatService messageService;
 
     @MessageMapping("/chat.send")
-    @SendTo("/topic/messages")
-    public Message envoyerMessage(Message message) {
-        message.setDateEnvoi(LocalDateTime.now());
-        // Sauvegarder dans la base
-        return message;
-    }
+    public void sendMessage(Message chatMessage) {
+        Message savedMessage = messageService.saveMessage(chatMessage);
 
-    @PostMapping("/api/messages")
-    public ResponseEntity<Message> sauvegarderMessage(@RequestBody Message message) {
-        // Save en base sans WebSocket (optionnel)
-        return ResponseEntity.ok(message);
+        // Envoi au destinataire
+        messagingTemplate.convertAndSendToUser(
+                chatMessage.getRecipientId().toString(),
+                "/private",
+                savedMessage
+        );
+
+        // (Optionnel) Envoi à l’expéditeur pour confirmation
+        messagingTemplate.convertAndSendToUser(
+                chatMessage.getSenderId().toString(),
+                "/private",
+                savedMessage
+        );
     }
 }

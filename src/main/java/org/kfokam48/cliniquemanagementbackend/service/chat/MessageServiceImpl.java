@@ -1,4 +1,4 @@
-package org.kfokam48.cliniquemanagementbackend.service.impl;
+package org.kfokam48.cliniquemanagementbackend.service.chat;
 
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.dto.message.MessageDTO;
@@ -7,7 +7,7 @@ import org.kfokam48.cliniquemanagementbackend.exception.RessourceNotFoundExcepti
 import org.kfokam48.cliniquemanagementbackend.mapper.MessageMapper;
 import org.kfokam48.cliniquemanagementbackend.model.Message;
 import org.kfokam48.cliniquemanagementbackend.repository.MessageRepository;
-import org.kfokam48.cliniquemanagementbackend.service.MessageService;
+import org.kfokam48.cliniquemanagementbackend.service.chat.MessageService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -72,10 +72,22 @@ public class MessageServiceImpl implements MessageService {
 
         Message message = messageRepository.findById(messageId).orElseThrow(() -> new RessourceNotFoundException("Message not found"));
         messageRepository.delete(message);
-        if (!Objects.equals(message.getSender().getId(), senderId)) {
+        if (!Objects.equals(message.getExpediteur().getId(), senderId)) {
             return new ResponseEntity<String>("You are not authorized to delete this message", HttpStatus.FORBIDDEN);
         }
         return new ResponseEntity<String>("Message deleted successfully", HttpStatus.OK);
+    }
+
+    @Override
+    public List<MessageResponseDTO> getMessagesBetweenUsers(Long userId1, Long userId2) {
+        return messageMapper.messageListToMessageResponseDTOList(messageRepository.findConversation(userId1, userId2));
+    }
+
+    @Override
+    public List<MessageResponseDTO> getMessages(Long userId1, Long userId2) {
+        return messageMapper.messageListToMessageResponseDTOList(
+                messageRepository.findByExpediteurIdAndDestinataireIdOrExpediteurIdAndDestinataireIdOrderByDateEnvoi(
+                        userId1, userId2, userId2, userId1));
     }
 
 }

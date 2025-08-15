@@ -18,18 +18,24 @@ public class MessageMapper {
 
     public MessageResponseDTO messageToMessageResponseDTO (Message message){
         MessageResponseDTO messageResponseDTO = new MessageResponseDTO();
-        messageResponseDTO.setSenderEmail(message.getSender().getEmail());
-        messageResponseDTO.setReceiverEmail(message.getReceiver().getEmail());
-        messageResponseDTO.setContent(message.getContent());
+        messageResponseDTO.setExpediteurEmail(message.getExpediteur().getEmail());
+        messageResponseDTO.setExpediteurNom(message.getExpediteur().getNom());
+        messageResponseDTO.setExpediteurPrenom(message.getExpediteur().getPrenom());
+        messageResponseDTO.setDestinataireEmail(message.getDestinataire().getEmail());
+        messageResponseDTO.setDestinataireNom(message.getDestinataire().getNom());
+        messageResponseDTO.setDestinatairePrenom(message.getDestinataire().getPrenom());
+        messageResponseDTO.setId(message.getId());
+        messageResponseDTO.setLu(message.getLu());
+        messageResponseDTO.setContent(message.getContenu());
         messageResponseDTO.setDateEnvoi(message.getDateEnvoi());
         return messageResponseDTO;
     }
 
    public Message messageDToToMessage(MessageDTO messageDTO){
         Message message = new Message();
-        message.setSender(utilisateurRepository.findByEmail(messageDTO.getSenderEmail()).orElseThrow(() -> new RuntimeException("Sender not found")));
-        message.setReceiver(utilisateurRepository.findByEmail(messageDTO.getReceiverEmail()).orElseThrow(() -> new RuntimeException("Receiver not found")));
-        message.setContent(messageDTO.getContent());
+        message.setExpediteur(utilisateurRepository.findById(messageDTO.getExpediteurId()).orElseThrow(() -> new RuntimeException("Sender not found")));
+        message.setDestinataire(utilisateurRepository.findById(messageDTO.getDestinataireId()).orElseThrow(() -> new RuntimeException("Receiver not found")));
+        message.setContenu(messageDTO.getContenu());
         return message;
    }
 

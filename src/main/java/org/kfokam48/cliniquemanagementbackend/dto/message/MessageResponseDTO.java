@@ -9,7 +9,11 @@ public class MessageResponseDTO {
 
     private Long id;
     private String expediteurEmail;
+    private String expediteurNom;
+    private String expediteurPrenom;
     private String  destinataireEmail;
+    private String destinataireNom;
+    private String destinatairePrenom;
     private String content;
     private LocalDateTime dateEnvoi;
     private Boolean lu;

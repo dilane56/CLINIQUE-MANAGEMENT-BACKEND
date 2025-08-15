@@ -1,9 +1,11 @@
 package org.kfokam48.cliniquemanagementbackend.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.List;
-
+@Data
 @Entity
 public class Conversation {
     @Id
@@ -11,9 +13,16 @@ public class Conversation {
     private Long id;
 
     @ManyToMany
+    @JoinTable(
+            name = "conversation_users",
+            joinColumns = @JoinColumn(name = "conversation_id"),
+            inverseJoinColumns = @JoinColumn(name = "utilisateur_id")
+    )
     private List<Utilisateur> participants;
 
-    @OneToMany(mappedBy = "conversation")
-    private List<Message> messages;
+    private LocalDateTime createdAt;
+
+
+
 }
 

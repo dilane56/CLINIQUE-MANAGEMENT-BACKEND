@@ -1,4 +1,4 @@
-package org.kfokam48.cliniquemanagementbackend.service;
+package org.kfokam48.cliniquemanagementbackend.service.chat;
 
 import org.kfokam48.cliniquemanagementbackend.dto.message.MessageDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.message.MessageResponseDTO;
@@ -15,6 +15,8 @@ public interface MessageService {
     MessageResponseDTO sendMessage(MessageDTO message);
     MessageResponseDTO updateMessage(Long messageId, MessageDTO message);
     ResponseEntity<String> deleteMessage(Long messageId, Long senderId);
+    public List<MessageResponseDTO> getMessagesBetweenUsers(Long userId1, Long userId2);
+    List<MessageResponseDTO> getMessages(Long userId1, Long userId2);
 
 
 }

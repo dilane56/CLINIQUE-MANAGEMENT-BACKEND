@@ -1,5 +1,6 @@
 package org.kfokam48.cliniquemanagementbackend.service;
 
+import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.Contact;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.model.Utilisateur;
@@ -15,5 +16,6 @@ public interface UtilisateurService {
     List<UtilisateurResponseDTO> findAll();
     boolean existsByEmail(String email);
     Utilisateur addRoleTouser(Utilisateur utilisateur, String role);
+    List<Contact> findAllContacts();
 
 }

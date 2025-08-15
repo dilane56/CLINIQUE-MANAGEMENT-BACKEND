@@ -5,6 +5,9 @@ import lombok.Data;
 
 import org.kfokam48.cliniquemanagementbackend.enums.Sexe;
 import org.kfokam48.cliniquemanagementbackend.enums.Roles;
+import org.kfokam48.cliniquemanagementbackend.enums.UserStatus;
+
+import java.time.LocalDateTime;
 
 @Data
 
@@ -23,7 +26,11 @@ public abstract class Utilisateur {
     @Column(nullable = false)
     private String password;
     private String telephone;
+    @Enumerated(EnumType.STRING)
+    private UserStatus status ; // ACTIVE, INACTIVE, SUSPENDED
 
+    // La date et l'heure de la dernière connexion
+    private LocalDateTime derniereConnexion;
     @Column(nullable = false)
     private Roles role; // ADMIN, MEDECIN, SECRETAIRE
 
