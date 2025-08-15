@@ -52,4 +52,30 @@ public class ChatService {
         return messageMapper.messageToMessageResponseDTO(message);
 
     }
+    public Message sendMessages(MessageDTO messageDTO){
+        Utilisateur sender = userRepo.findById(messageDTO.getExpediteurId())
+                .orElseThrow(() -> new RuntimeException("Sender not found"));
+        Utilisateur receiver = userRepo.findById(messageDTO.getDestinataireId())
+                .orElseThrow(() -> new RuntimeException("Receiver not found"));
+
+        // Recherche d'une conversation existante entre ces 2 utilisateurs
+        Conversation conversation = conversationRepo
+                .findByParticipants(sender, receiver)
+                .orElseGet(() -> {
+                    Conversation newConv = new Conversation();
+                    newConv.setParticipants(List.of(sender, receiver));
+                    newConv.setCreatedAt(LocalDateTime.now());
+                    return conversationRepo.save(newConv);
+                });
+
+        // Création du message
+        Message message = new Message();
+        message.setConversation(conversation);
+        message.setExpediteur(sender);
+        message.setContenu(messageDTO.getContenu());
+        message.setDestinataire(receiver);
+        message.setDateEnvoi(LocalDateTime.now());
+
+        return messageRepo.save(message);
+    }
 }

@@ -2,7 +2,7 @@ package org.kfokam48.cliniquemanagementbackend.controlleur;
 
 import lombok.RequiredArgsConstructor;
 import org.kfokam48.cliniquemanagementbackend.dto.message.MessageResponseDTO;
-import org.kfokam48.cliniquemanagementbackend.service.impl.MessageServiceImpl;
+import org.kfokam48.cliniquemanagementbackend.service.chat.MessageServiceImpl;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;

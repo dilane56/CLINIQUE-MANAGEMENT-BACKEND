@@ -1,8 +1,8 @@
-package org.kfokam48.cliniquemanagementbackend.controller;
+package org.kfokam48.cliniquemanagementbackend.controlleur;
 
 import lombok.RequiredArgsConstructor;
+import org.kfokam48.cliniquemanagementbackend.dto.message.MessageDTO;
 import org.kfokam48.cliniquemanagementbackend.model.Message;
-import org.kfokam48.cliniquemanagementbackend.service.MessageService;
 import org.kfokam48.cliniquemanagementbackend.service.chat.ChatService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -13,22 +13,22 @@ import org.springframework.stereotype.Controller;
 public class ChatController {
 
     private final SimpMessagingTemplate messagingTemplate;
-    private final ChatService messageService;
+    private final ChatService chatService;
 
     @MessageMapping("/chat.send")
-    public void sendMessage(Message chatMessage) {
-        Message savedMessage = messageService.saveMessage(chatMessage);
+    public void sendMessage(MessageDTO chatMessage) {
+        Message savedMessage = chatService.sendMessages(chatMessage);
 
         // Envoi au destinataire
         messagingTemplate.convertAndSendToUser(
-                chatMessage.getRecipientId().toString(),
+                chatMessage.getExpediteurId().toString(),
                 "/private",
                 savedMessage
         );
 
         // (Optionnel) Envoi à l’expéditeur pour confirmation
         messagingTemplate.convertAndSendToUser(
-                chatMessage.getSenderId().toString(),
+                chatMessage.getDestinataireId().toString(),
                 "/private",
                 savedMessage
         );
