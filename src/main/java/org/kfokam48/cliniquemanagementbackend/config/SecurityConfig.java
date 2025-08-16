@@ -58,7 +58,8 @@ public class SecurityConfig {
                                 "/api/patient",
                                 "/api/administrateurs/create",
                                 "/api/medecins",
-                                "/api/utilisateurs"
+                                "/api/utilisateurs",
+                                "/ws-chat/**"
                         ).permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptionHandling ->

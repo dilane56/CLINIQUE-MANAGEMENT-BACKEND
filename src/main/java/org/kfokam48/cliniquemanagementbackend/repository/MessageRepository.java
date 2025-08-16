@@ -35,5 +35,12 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             Long expediteurId2, Long destinataireId2
     );
 
+    // Nouvelle méthode pour récupérer les messages par conversation
+    @Query("SELECT m FROM Message m WHERE m.conversation.id = :conversationId ORDER BY m.dateEnvoi ASC")
+    List<Message> findByConversationIdOrderByDateEnvoiAsc(Long conversationId);
+
+    // Nouvelle méthode pour récupérer tous les messages d'un utilisateur
+    @Query("SELECT m FROM Message m WHERE m.destinataire.id = :userId OR m.expediteur.id = :userId ORDER BY m.dateEnvoi DESC")
+    List<Message> findByDestinataireIdOrExpediteurIdOrderByDateEnvoiDesc(Long userId, Long userId2);
 
 }

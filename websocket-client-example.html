@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test WebSocket Chat</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+    <h1>Test WebSocket Chat</h1>
+    <div>
+        <label>Votre ID: <input type="number" id="userId" value="1"></label>
+        <label>Destinataire ID: <input type="number" id="recipientId" value="2"></label>
+        <button onclick="connect()">Se connecter</button>
+        <button onclick="disconnect()">Se déconnecter</button>
+    </div>
+    <div id="status">Déconnecté</div>
+    <div id="messages" style="height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;"></div>
+    <input type="text" id="messageInput" placeholder="Tapez votre message..." onkeypress="handleKeyPress(event)">
+    <button onclick="sendMessage()">Envoyer</button>
+
+    <script>
+        let stompClient = null;
+        let userId = null;
+        let recipientId = null;
+
+        function connect() {
+            userId = document.getElementById('userId').value;
+            recipientId = document.getElementById('recipientId').value;
+            
+            const socket = new SockJS('http://localhost:8080/ws-chat');
+            stompClient = Stomp.over(socket);
+            
+            stompClient.connect({}, function (frame) {
+                console.log('Connecté: ' + frame);
+                document.getElementById('status').textContent = 'Connecté';
+                
+                stompClient.subscribe('/user/' + userId + '/queue/messages', function (message) {
+                    showMessage(JSON.parse(message.body), 'received');
+                });
+                
+                stompClient.subscribe('/user/' + userId + '/queue/errors', function (error) {
+                    console.error('Erreur:', error.body);
+                });
+                
+                stompClient.send("/app/chat.join", {}, userId);
+                
+            }, function (error) {
+                console.error('Erreur de connexion:', error);
+                document.getElementById('status').textContent = 'Erreur de connexion';
+            });
+        }
+
+        function disconnect() {
+            if (stompClient !== null) {
+                stompClient.disconnect();
+                document.getElementById('status').textContent = 'Déconnecté';
+            }
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+            
+            if (message && stompClient && stompClient.connected) {
+                const chatMessage = {
+                    expediteurId: parseInt(userId),
+                    destinataireId: parseInt(recipientId),
+                    contenu: message
+                };
+                
+                stompClient.send("/app/chat.send", {}, JSON.stringify(chatMessage));
+                messageInput.value = '';
+                
+                showMessage({
+                    contenu: message,
+                    expediteur: { nom: 'Vous' },
+                    dateEnvoi: new Date().toISOString()
+                }, 'sent');
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function showMessage(message, type) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.style.marginBottom = '10px';
+            messageDiv.style.padding = '8px';
+            messageDiv.style.backgroundColor = type === 'sent' ? '#d4edda' : '#f8d7da';
+            messageDiv.style.borderRadius = '5px';
+            
+            const time = new Date(message.dateEnvoi).toLocaleTimeString();
+            const sender = message.expediteur ? message.expediteur.nom : 'Inconnu';
+            
+            messageDiv.innerHTML = `<strong>${sender}</strong> (${time}): ${message.contenu}`;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+    </script>
+</body>
+</html>
