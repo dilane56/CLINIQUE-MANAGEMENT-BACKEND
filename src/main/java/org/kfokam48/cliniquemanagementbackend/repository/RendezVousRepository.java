@@ -13,6 +13,7 @@ import java.util.List;
 @Repository
 public interface RendezVousRepository extends JpaRepository<RendezVous, Long> {
     boolean existsByMedecinAndDateRendezVousBetween(Medecin medecin, LocalDateTime dateRendezVous, LocalDateTime dateTimeFinRendezVousPossible);
+    boolean existsByMedecinAndDateRendezVousBetweenAndIdNot(Medecin medecin, LocalDateTime dateRendezVous, LocalDateTime dateTimeFinRendezVousPossible, Long id);
     List<RendezVous> findByMedecinId(Long medecinId);
     List<RendezVous> findByMedecinIdAndDateRendezVousBetween(Long medecinId, LocalDateTime debut, LocalDateTime fin);
     boolean existsByPatientIdAndDateRendezVousBetween(Long patientId, LocalDateTime startOfDay, LocalDateTime endOfDay);

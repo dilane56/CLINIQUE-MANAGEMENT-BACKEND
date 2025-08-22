@@ -1,89 +1,74 @@
 package org.kfokam48.cliniquemanagementbackend.config;
+
+import lombok.RequiredArgsConstructor;
 import org.kfokam48.cliniquemanagementbackend.enums.UserStatus;
-import org.kfokam48.cliniquemanagementbackend.model.Utilisateur;
 import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.messaging.SessionDisconnectEvent;
-import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
+import org.kfokam48.cliniquemanagementbackend.model.Utilisateur;
 
-import java.security.Principal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Component
+@RequiredArgsConstructor
 public class WebSocketEventListener {
 
-    @Autowired
-    private SimpMessageSendingOperations messagingTemplate;
+    private final SimpMessageSendingOperations messagingTemplate;
     private final UtilisateurRepository utilisateurRepository;
-    
-    public WebSocketEventListener(UtilisateurRepository utilisateurRepository) {
-        this.utilisateurRepository = utilisateurRepository;
-    }
 
-    // Événement de connexion WebSocket
+    // Dans votre classe WebSocketEventListener.java
     @EventListener
-    public void handleWebSocketConnectListener(SessionConnectEvent event) {
-        try {
-            Principal principal = event.getUser();
-            if (principal == null) {
-                return;
+    public void handleWebSocketConnectListener(SessionConnectedEvent event) {
+        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+
+        // Vérifier si les attributs de session ne sont pas null
+        if (headerAccessor.getSessionAttributes() != null) {
+            String userIdStr = (String) headerAccessor.getSessionAttributes().get("user_id");
+
+            if (userIdStr != null) {
+                try {
+                    Long userId = Long.parseLong(userIdStr);
+                    Utilisateur user = utilisateurRepository.findById(userId).orElse(null);
+                    if (user != null && user.getStatus() != UserStatus.EN_LIGNE) {
+                        user.setStatus(UserStatus.EN_LIGNE);
+                        utilisateurRepository.save(user);
+
+                        messagingTemplate.convertAndSend("/topic/status",
+                                String.format("{\"userId\": %d, \"status\": \"EN_LIGNE\"}", user.getId()));
+                    }
+                } catch (NumberFormatException e) {
+                    System.err.println("ID utilisateur non valide lors de la connexion WebSocket.");
+                }
             }
-
-            String email = principal.getName();
-            Utilisateur user = utilisateurRepository.findByEmail(email).orElse(null);
-
-            if (user != null) {
-                user.setStatus(UserStatus.EN_LIGNE);
-                user.setDerniereConnexion(LocalDateTime.now());
-                utilisateurRepository.save(user);
-
-                // Notifier tous les utilisateurs du changement de statut
-                messagingTemplate.convertAndSend("/topic/status", 
-                    String.format("{\"userId\": %d, \"status\": \"EN_LIGNE\", \"email\": \"%s\"}", 
-                    user.getId(), user.getEmail()));
-            }
-        } catch (Exception e) {
-            // Log l'erreur mais ne pas faire échouer la connexion
-            System.err.println("Erreur lors de la gestion de la connexion WebSocket: " + e.getMessage());
         }
     }
 
-    // Événement de connexion établie
-    @EventListener
-    public void handleWebSocketConnectedListener(SessionConnectedEvent event) {
-        // La connexion est maintenant établie
-        System.out.println("Nouvelle connexion WebSocket établie");
-    }
-
-    // Événement de déconnexion
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
-        try {
-            Principal principal = event.getUser();
-            if (principal == null) {
-                return;
+        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+        String userIdStr = (String) headerAccessor.getSessionAttributes().get("user_id");
+
+        if (userIdStr != null) {
+            try {
+                Long userId = Long.parseLong(userIdStr);
+                Utilisateur user = utilisateurRepository.findById(userId).orElse(null);
+                if (user != null) {
+                    user.setStatus(UserStatus.HORS_LIGNE);
+                    user.setDerniereConnexion(Instant.now());
+                    utilisateurRepository.save(user);
+
+                    messagingTemplate.convertAndSend("/topic/status",
+                            String.format("{\"userId\": %d, \"status\": \"HORS_LIGNE\", \"derniereConnexion\": \"%s\"}",
+                                    user.getId(), Instant.now().toString()));
+                }
+            } catch (NumberFormatException e) {
+                System.err.println("ID utilisateur non valide lors de la déconnexion WebSocket.");
             }
-
-            String email = principal.getName();
-            Utilisateur user = utilisateurRepository.findByEmail(email).orElse(null);
-
-            if (user != null) {
-                user.setStatus(UserStatus.HORS_LIGNE);
-                user.setDerniereConnexion(LocalDateTime.now());
-                utilisateurRepository.save(user);
-
-                // Notifier tous les utilisateurs du changement de statut
-                messagingTemplate.convertAndSend("/topic/status", 
-                    String.format("{\"userId\": %d, \"status\": \"HORS_LIGNE\", \"email\": \"%s\"}", 
-                    user.getId(), user.getEmail()));
-            }
-        } catch (Exception e) {
-            // Log l'erreur mais ne pas faire échouer la déconnexion
-            System.err.println("Erreur lors de la gestion de la déconnexion WebSocket: " + e.getMessage());
         }
     }
 }

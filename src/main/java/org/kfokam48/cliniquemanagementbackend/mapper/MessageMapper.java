@@ -18,12 +18,13 @@ public class MessageMapper {
 
     public MessageResponseDTO messageToMessageResponseDTO (Message message){
         MessageResponseDTO messageResponseDTO = new MessageResponseDTO();
-        messageResponseDTO.setExpediteurEmail(message.getExpediteur().getEmail());
+        messageResponseDTO.setExpediteurId(message.getExpediteur().getId());
         messageResponseDTO.setExpediteurNom(message.getExpediteur().getNom());
         messageResponseDTO.setExpediteurPrenom(message.getExpediteur().getPrenom());
-        messageResponseDTO.setDestinataireEmail(message.getDestinataire().getEmail());
+        messageResponseDTO.setDestinataireId(message.getDestinataire().getId());
         messageResponseDTO.setDestinataireNom(message.getDestinataire().getNom());
         messageResponseDTO.setDestinatairePrenom(message.getDestinataire().getPrenom());
+        messageResponseDTO.setStatus(message.getMessageStatus());
         messageResponseDTO.setId(message.getId());
         messageResponseDTO.setLu(message.getLu());
         messageResponseDTO.setContent(message.getContenu());

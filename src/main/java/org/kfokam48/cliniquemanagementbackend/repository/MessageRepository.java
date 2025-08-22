@@ -1,28 +1,18 @@
 package org.kfokam48.cliniquemanagementbackend.repository;
 
+import jakarta.transaction.Transactional;
 import org.kfokam48.cliniquemanagementbackend.model.Message;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
-    // Custom query to find messages by sender and receiver
-    @Query("SELECT m FROM Message m WHERE (m.expediteur.id = :senderId AND m.destinataire.id = :receiverId) OR (m.expediteur.id = :receiverId AND m.destinataire.id = :senderId)")
-    List<Message> findBySenderAndReceiver(Long senderId, Long receiverId);
 
-    // Custom query to find messages by receiver and sender
-    @Query("SELECT m FROM Message m WHERE (m.destinataire.email = :receiverUsername AND m.expediteur.email = :senderUsername) OR (m.destinataire.email = :senderUsername AND m.expediteur.email = :receiverUsername)")
-    List<Message> findByReceiverAndSender(String receiverUsername, String senderUsername);
 
-    // Custom query to find messages by sender
-    @Query("SELECT m FROM Message m WHERE m.expediteur.id = :senderId")
-    List<Message> findBySender(Long senderId);
-
-    // Custom query to find messages by receiver
-    @Query("SELECT m FROM Message m WHERE m.destinataire.id = :receiverId")
-    List<Message> findByReceiver(Long receiverId);
 
     @Query("SELECT m FROM Message m " +
             "WHERE (m.expediteur.id = :user1Id AND m.destinataire.id = :user2Id) " +
@@ -30,10 +20,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             "ORDER BY m.dateEnvoi ASC")
     List<Message> findConversation(Long user1Id, Long user2Id);
 
-    List<Message> findByExpediteurIdAndDestinataireIdOrExpediteurIdAndDestinataireIdOrderByDateEnvoi(
-            Long expediteurId1, Long destinataireId1,
-            Long expediteurId2, Long destinataireId2
-    );
 
     // Nouvelle méthode pour récupérer les messages par conversation
     @Query("SELECT m FROM Message m WHERE m.conversation.id = :conversationId ORDER BY m.dateEnvoi ASC")
@@ -42,5 +28,11 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     // Nouvelle méthode pour récupérer tous les messages d'un utilisateur
     @Query("SELECT m FROM Message m WHERE m.destinataire.id = :userId OR m.expediteur.id = :userId ORDER BY m.dateEnvoi DESC")
     List<Message> findByDestinataireIdOrExpediteurIdOrderByDateEnvoiDesc(Long userId, Long userId2);
+
+    // Dans votre MessageRepository.java
+    @Modifying
+    @Transactional
+    @Query("UPDATE Message m SET m.messageStatus = 'READ', m.lu = true WHERE m.expediteur.id = :expediteurId AND m.destinataire.id = :destinataireId AND m.lu = false")
+    void updateMessageStatusToRead(@Param("expediteurId") Long expediteurId, @Param("destinataireId") Long destinataireId);
 
 }

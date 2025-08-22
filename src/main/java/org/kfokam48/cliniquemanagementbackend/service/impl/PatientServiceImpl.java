@@ -1,6 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
 import jakarta.validation.Valid;
+import org.kfokam48.cliniquemanagementbackend.controlleur.notification.NotificationController;
 import org.kfokam48.cliniquemanagementbackend.dto.patient.PatientDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.patient.PatientResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.exception.ResourceAlreadyExistException;
@@ -25,11 +26,13 @@ public class PatientServiceImpl implements PatientService {
     private final PatientMapper patientMapper;
     private final UtilisateurRepository utilisateurRepository;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final NotificationController notificationController ;
 
-    public PatientServiceImpl(PatientRepository patientRepository, PatientMapper patientMapper, UtilisateurRepository utilisateurRepository) {
+    public PatientServiceImpl(PatientRepository patientRepository, PatientMapper patientMapper, UtilisateurRepository utilisateurRepository, NotificationController notificationController) {
         this.patientRepository = patientRepository;
         this.patientMapper = patientMapper;
         this.utilisateurRepository = utilisateurRepository;
+        this.notificationController = notificationController;
     }
 
     @Override
@@ -40,6 +43,7 @@ public class PatientServiceImpl implements PatientService {
 
         Patient patient = patientMapper.patientDtoToPatient(patientDto);
         patientRepository.save(patient);
+        notificationController.sendNotification(1L,"Nouveau Patient","Un nouveau patient a été ajouter",false);
         return patientMapper.patientToPatientResponseDTO(patient);
     }
 

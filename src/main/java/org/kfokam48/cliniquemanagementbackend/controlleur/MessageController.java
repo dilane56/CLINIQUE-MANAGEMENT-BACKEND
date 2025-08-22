@@ -1,7 +1,6 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
 
 import lombok.RequiredArgsConstructor;
-import org.kfokam48.cliniquemanagementbackend.dto.message.MessageDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.message.MessageResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.service.chat.ChatService;
 import org.springframework.http.ResponseEntity;
@@ -16,19 +15,9 @@ public class MessageController {
 
     private final ChatService chatService;
 
-    @PostMapping("/send")
-    public ResponseEntity<MessageResponseDTO> sendMessage(@RequestBody MessageDTO messageDTO) {
-        try {
-            MessageResponseDTO response = chatService.sendMessage(messageDTO);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
     @GetMapping("/conversation/{user1Id}/{user2Id}")
     public ResponseEntity<List<MessageResponseDTO>> getConversation(
-            @PathVariable Long user1Id, 
+            @PathVariable Long user1Id,
             @PathVariable Long user2Id) {
         try {
             List<MessageResponseDTO> messages = chatService.getConversation(user1Id, user2Id);
@@ -38,16 +27,19 @@ public class MessageController {
         }
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<MessageResponseDTO>> getUserMessages(@PathVariable Long userId) {
+    @PostMapping("/mark-as-read/{senderId}/{recipientId}")
+    public ResponseEntity<Void> markMessagesAsRead(
+            @PathVariable Long senderId,
+            @PathVariable Long recipientId) {
         try {
-            List<MessageResponseDTO> messages = chatService.getMessagesForUser(userId);
-            return ResponseEntity.ok(messages);
+            chatService.markMessagesAsRead(senderId, recipientId);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
+    // Le reste des méthodes REST, comme getUserConversations
     @GetMapping("/conversations/{userId}")
     public ResponseEntity<?> getUserConversations(@PathVariable Long userId) {
         try {
@@ -57,4 +49,3 @@ public class MessageController {
         }
     }
 }
-

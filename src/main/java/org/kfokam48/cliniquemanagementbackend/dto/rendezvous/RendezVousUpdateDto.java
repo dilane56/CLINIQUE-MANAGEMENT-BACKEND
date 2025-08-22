@@ -1,17 +1,12 @@
 package org.kfokam48.cliniquemanagementbackend.dto.rendezvous;
 
-
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-
-
 import java.time.LocalDateTime;
 
-
 @Data
-public class RendezVousDTO {
-
+public class RendezVousUpdateDto {
     @NotNull(message = "La date du rendez-vous ne doit pas être null")
     private LocalDateTime dateRendezVous;// Date du rendez-vous
     @NotNull(message = "Le nom du patient ne doit pas être null")
@@ -21,9 +16,5 @@ public class RendezVousDTO {
     private String motif; // Motif du rendez-vous
     //private Integer dureeEstimerRendezVousEnMin;
     private Long typeRendezVousId; // Référence au Type de Rendez-vous
-    private Long secretaireId;
 
-
-    // Getters et Setters
 }
-

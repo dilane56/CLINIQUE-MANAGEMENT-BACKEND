@@ -42,6 +42,7 @@ public class RendezVousMapper {
         rendezVous.setDateRendezVous(rendezVousDTO.getDateRendezVous());
         rendezVous.setTypeRendezVous(typeRendezVousRepository.findById(rendezVousDTO.getTypeRendezVousId())
                 .orElseThrow(() -> new RessourceNotFoundException("Type de rendez-vous not found")));
+        rendezVous.setSecretaireId(rendezVousDTO.getSecretaireId());
 
 
         return rendezVous;

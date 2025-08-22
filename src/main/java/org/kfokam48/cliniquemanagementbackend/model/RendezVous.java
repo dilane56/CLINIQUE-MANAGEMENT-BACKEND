@@ -28,6 +28,8 @@ public class RendezVous {
     @JoinColumn(name = "medecin_id")
     private Medecin medecin;
 
+    private Long secretaireId;
+
     @ManyToOne
     private TypeRendezVous typeRendezVous;
 

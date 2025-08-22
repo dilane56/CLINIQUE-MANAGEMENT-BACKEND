@@ -2,8 +2,10 @@ package org.kfokam48.cliniquemanagementbackend.service.impl;
 
 
 import jakarta.validation.Valid;
+import org.kfokam48.cliniquemanagementbackend.controlleur.notification.NotificationController;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousUpdateDto;
 import org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous;
 import org.kfokam48.cliniquemanagementbackend.exception.RessourceNotFoundException;
 import org.kfokam48.cliniquemanagementbackend.mapper.RendezVousMapper;
@@ -28,13 +30,15 @@ public class RendezVousServiceImpl implements RendezVousService {
     private final PatientRepository patientRepository;
     private final MedecinRepository medecinRepository;
     private final TypeRendezVousRepository typeRendezVousRepository;
+    private final NotificationController notificationController;
 
-    public RendezVousServiceImpl(RendezVousRepository rendezVousRepository, RendezVousMapper rendezVousMapper, PatientRepository patientRepository, MedecinRepository medecinRepository, TypeRendezVousRepository typeRendezVousRepository) {
+    public RendezVousServiceImpl(RendezVousRepository rendezVousRepository, RendezVousMapper rendezVousMapper, PatientRepository patientRepository, MedecinRepository medecinRepository, TypeRendezVousRepository typeRendezVousRepository, NotificationController notificationController) {
         this.rendezVousRepository = rendezVousRepository;
         this.rendezVousMapper = rendezVousMapper;
         this.patientRepository = patientRepository;
         this.medecinRepository = medecinRepository;
         this.typeRendezVousRepository = typeRendezVousRepository;
+        this.notificationController = notificationController;
     }
 
     @Override
@@ -66,9 +70,12 @@ public class RendezVousServiceImpl implements RendezVousService {
             throw new IllegalArgumentException("Ce créneau est déjà pris pour ce médecin.");
         }
         rendezVous.setStatutRendezVous(StatutRendezVous.EN_ATTENTE);
-        return rendezVousMapper.rendezVousToRendezVousResponseDto(
+        RendezVousResponseDTO rendezVousResponseDTO = rendezVousMapper.rendezVousToRendezVousResponseDto(
                 rendezVousRepository.save(rendezVous)
         );
+        notificationController.sendNotification(rendezVousDTO.getMedecinId(),"Rendez-vous","Vous avez un nouveau rendez-vous",true);
+        notificationController.sendNotification(rendezVousDTO.getPatientId(), "Rendez-vous", "Vous avez un nouveau rendez-vous", true);
+        return rendezVousResponseDTO;
     }
 
     @Override
@@ -80,7 +87,7 @@ public class RendezVousServiceImpl implements RendezVousService {
     }
 
     @Override
-    public RendezVousResponseDTO update(Long id,@Valid RendezVousDTO rendezVousDTO) {
+    public RendezVousResponseDTO update(Long id,@Valid RendezVousUpdateDto rendezVousDTO) {
         RendezVous rendezVous = rendezVousRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous not found"));
         rendezVous.setDateRendezVous(rendezVousDTO.getDateRendezVous());
@@ -113,18 +120,23 @@ public class RendezVousServiceImpl implements RendezVousService {
         rendezVous.setDateTimeFinRendezVousPossible(
                 rendezVous.getDateRendezVous().plusMinutes(rendezVous.getTypeRendezVous().getDuree())
         );
-        // Vérifier les conflits
-        boolean conflit = rendezVousRepository.existsByMedecinAndDateRendezVousBetween(
+        // Vérifier les conflits (en excluant le rendez-vous actuel)
+        boolean conflit = rendezVousRepository.existsByMedecinAndDateRendezVousBetweenAndIdNot(
                 rendezVous.getMedecin(),
                 rendezVous.getDateRendezVous(),
-                rendezVous.getDateTimeFinRendezVousPossible()
+                rendezVous.getDateTimeFinRendezVousPossible(),
+                rendezVous.getId()
         );
         if (conflit) {
             throw new IllegalArgumentException("Ce créneau est déjà pris pour ce médecin.");
         }
-        return rendezVousMapper.rendezVousToRendezVousResponseDto(
+        rendezVous.setStatutRendezVous(StatutRendezVous.EN_ATTENTE);
+        RendezVousResponseDTO rendezVousResponseDTO =  rendezVousMapper.rendezVousToRendezVousResponseDto(
                 rendezVousRepository.save(rendezVous)
         );
+        notificationController.sendNotification(rendezVousDTO.getMedecinId(), "Rendez-vous", "Le rendez vous avec le patient "+rendezVous.getPatient().getNom()+" a été mis a jour",true);
+        notificationController.sendNotification(rendezVousDTO.getPatientId(), "Rendez-vous", "Le rendez vous avec le patient "+rendezVous.getPatient().getNom()+" a été mis a jour", true);
+        return rendezVousResponseDTO;
     }
 
     @Override
@@ -161,6 +173,9 @@ public class RendezVousServiceImpl implements RendezVousService {
         }
         rendezVous.setStatutRendezVous(statut);
         RendezVous updated = rendezVousRepository.save(rendezVous);
+        notificationController.sendNotification(rendezVous.getSecretaireId(), "Rendez-vous", "Le statut du rendez vous avec le patient "+rendezVous.getPatient().getNom()+" a été mis a jour",false);
+        notificationController.sendNotification(rendezVous.getPatient().getId(), "Rendez-vous", "Le statut du rendez vous avec le medecin "+rendezVous.getMedecin().getNom()+" a été mis a jour", true);
+        notificationController.sendNotification(rendezVous.getMedecin().getId(), "Rendez-vous", "Le rendez vous avec le patient "+rendezVous.getPatient().getNom()+" a change de statut",true);
         return rendezVousMapper.rendezVousToRendezVousResponseDto(updated);
     }
 

@@ -7,6 +7,7 @@ import org.kfokam48.cliniquemanagementbackend.enums.Sexe;
 import org.kfokam48.cliniquemanagementbackend.enums.Roles;
 import org.kfokam48.cliniquemanagementbackend.enums.UserStatus;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Data
@@ -30,7 +31,7 @@ public abstract class Utilisateur {
     private UserStatus status ; // ACTIVE, INACTIVE, SUSPENDED
 
     // La date et l'heure de la dernière connexion
-    private LocalDateTime derniereConnexion;
+    private Instant derniereConnexion;
     @Column(nullable = false)
     private Roles role; // ADMIN, MEDECIN, SECRETAIRE
 

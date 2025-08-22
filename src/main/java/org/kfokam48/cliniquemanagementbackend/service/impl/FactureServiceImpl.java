@@ -2,9 +2,9 @@ package org.kfokam48.cliniquemanagementbackend.service.impl;
 
 
 import jakarta.validation.Valid;
+import org.kfokam48.cliniquemanagementbackend.controlleur.notification.NotificationController;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureResponseDto;
-import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureUpdateDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FacturePaiementUpdateDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.lignefacture.LigneFactureDTO;
 import org.kfokam48.cliniquemanagementbackend.enums.StatutFacture;
@@ -17,7 +17,6 @@ import org.kfokam48.cliniquemanagementbackend.model.Facture;
 import org.kfokam48.cliniquemanagementbackend.model.LigneFacture;
 import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
 import org.kfokam48.cliniquemanagementbackend.repository.FactureRepository;
-import org.kfokam48.cliniquemanagementbackend.repository.PatientRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.RendezVousRepository;
 import org.kfokam48.cliniquemanagementbackend.service.FactureService;
 import org.springframework.http.ResponseEntity;
@@ -32,17 +31,17 @@ import java.util.List;
 @Transactional
 public class FactureServiceImpl implements FactureService {
      private final FactureRepository factureRepository;
-     private final PatientRepository patientRepository;
      private final RendezVousRepository rendezVousRepository;
     private final FactureMapper factureMapper;
     private final LigneFactureMapper ligneFactureMapper;
+    private final NotificationController notificationController;
 
-    public FactureServiceImpl(FactureRepository factureRepository, PatientRepository patientRepository, RendezVousRepository rendezVousRepository, FactureMapper factureMapper, LigneFactureMapper ligneFactureMapper) {
+    public FactureServiceImpl(FactureRepository factureRepository, RendezVousRepository rendezVousRepository, FactureMapper factureMapper, LigneFactureMapper ligneFactureMapper, NotificationController notificationController) {
         this.factureRepository = factureRepository;
-        this.patientRepository = patientRepository;
         this.rendezVousRepository = rendezVousRepository;
         this.factureMapper = factureMapper;
         this.ligneFactureMapper = ligneFactureMapper;
+        this.notificationController = notificationController;
     }
 
     @Override
@@ -162,6 +161,8 @@ public class FactureServiceImpl implements FactureService {
         }
         
         factureRepository.save(facture);
+        notificationController.sendNotification(1L, "Facture", "La facture a été payée",false);
+        notificationController.sendNotification(facture.getRendezVous().getMedecin().getId(), "Facture", "La facture a été payée",false);
         return factureMapper.factureToFactureResponseDto(facture);
     }
 }

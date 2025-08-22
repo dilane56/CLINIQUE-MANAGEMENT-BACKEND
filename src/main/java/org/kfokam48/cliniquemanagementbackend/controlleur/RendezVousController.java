@@ -4,6 +4,7 @@ package org.kfokam48.cliniquemanagementbackend.controlleur;
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousUpdateDto;
 import org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous;
 import org.kfokam48.cliniquemanagementbackend.service.impl.RendezVousServiceImpl;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +39,7 @@ public class RendezVousController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<RendezVousResponseDTO> updateRendezVous(@PathVariable Long id, @Valid @RequestBody RendezVousDTO rendezVousDTO) {
+    public ResponseEntity<RendezVousResponseDTO> updateRendezVous(@PathVariable Long id, @Valid @RequestBody RendezVousUpdateDto rendezVousDTO) {
         RendezVousResponseDTO updatedRendezVous = rendezVousService.update(id, rendezVousDTO);
         return ResponseEntity.ok(updatedRendezVous);
     }

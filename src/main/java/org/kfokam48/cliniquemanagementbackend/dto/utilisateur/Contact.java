@@ -3,6 +3,7 @@ package org.kfokam48.cliniquemanagementbackend.dto.utilisateur;
 import lombok.Data;
 import org.kfokam48.cliniquemanagementbackend.enums.UserStatus;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Data
@@ -13,5 +14,5 @@ public class Contact {
     private String prenom;
     private String role;
     private UserStatus status;
-    private LocalDateTime derniereConnexion;
+    private Instant derniereConnexion;
 }

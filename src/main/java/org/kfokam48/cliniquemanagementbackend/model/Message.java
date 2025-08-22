@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.kfokam48.cliniquemanagementbackend.enums.MessageStatus;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 
@@ -27,7 +29,10 @@ public class Message {
 
     private String contenu;
 
-    private LocalDateTime dateEnvoi;
+    private Instant dateEnvoi;
+
+    @Enumerated(EnumType.STRING)
+    private MessageStatus messageStatus;
 
     private Boolean lu = false;
 
