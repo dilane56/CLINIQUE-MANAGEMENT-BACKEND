@@ -8,6 +8,7 @@ import org.kfokam48.cliniquemanagementbackend.enums.Roles;
 import org.kfokam48.cliniquemanagementbackend.enums.UserStatus;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -34,6 +35,8 @@ public abstract class Utilisateur {
     private Instant derniereConnexion;
     @Column(nullable = false)
     private Roles role; // ADMIN, MEDECIN, SECRETAIRE
+    private LocalDate dateCreation;
+    private String adresse;
 
     public Utilisateur() {
     }

@@ -26,8 +26,16 @@ public class RendezVousSchedulerService {
             if (rdv.getDateRendezVous().isBefore(LocalDateTime.now())) {
                 rdv.setStatutRendezVous(StatutRendezVous.EXPIRE);
                 rendezVousRepository.save(rdv);
-                notificationController.sendNotification(rdv.getMedecin().getId(), "Rendez-vous expiré", "Le rendez-vous de " + rdv.getPatient().getNom() + " a été expiré.",true);
-                notificationController.sendNotification(rdv.getSecretaireId(), "Rendez-vous expiré", "Le rendez-vous de " + rdv.getPatient().getNom() + " a été expiré.",false);
+                if (rdv.getMedecin() != null && rdv.getMedecin().getId() != null) {
+                    notificationController.sendNotification(rdv.getMedecin().getId(), "Rendez-vous expiré", "Le rendez-vous de " + rdv.getPatient().getNom() + " a été expiré.", true);
+                }else{
+                    System.out.println("Le rendez-vous de " + rdv.getPatient().getNom() + " n'a pas de médecin assigné.");
+                }
+                if (rdv.getSecretaireId() != null) {
+                    notificationController.sendNotification(rdv.getSecretaireId(), "Rendez-vous expiré", "Le rendez-vous de " + rdv.getPatient().getNom() + " a été expiré.", false);
+                }else{
+                    System.out.println("Le rendez-vous de " + rdv.getPatient().getNom() + " n'a pas de secrétaire assigné.");
+                }
                 System.out.println("Rendez-vous expiré : " + rdv.getId());
             }
         }
@@ -39,13 +47,16 @@ public class RendezVousSchedulerService {
             if (rdv.getDateTimeFinRendezVousPossible().isBefore(LocalDateTime.now())) {
                 rdv.setStatutRendezVous(StatutRendezVous.A_REPROGRAMMER);
                 rendezVousRepository.save(rdv);
-                notificationController.sendNotification(rdv.getMedecin().getId(), "Rendez-vous à reprogrammer", "Le rendez-vous de " + rdv.getPatient().getNom() + " doit être reprogrammé.", true);
-                notificationController.sendNotification(rdv.getSecretaireId(), "Rendez-vous à reprogrammer", "Le rendez-vous de " + rdv.getPatient().getNom() + " doit être reprogrammé.", false);
+                if (rdv.getMedecin() != null && rdv.getMedecin().getId() != null) {
+                    notificationController.sendNotification(rdv.getMedecin().getId(), "Rendez-vous à reprogrammer", "Le rendez-vous de " + rdv.getPatient().getNom() + " doit être reprogrammé.", true);
+                }
+                if (rdv.getSecretaireId() != null) {
+                    notificationController.sendNotification(rdv.getSecretaireId(), "Rendez-vous à reprogrammer", "Le rendez-vous de " + rdv.getPatient().getNom() + " doit être reprogrammé.", false);
+                }
                 System.out.println("Rendez-vous a reprogrammer : " + rdv.getId());
             }
         }
     }
-
 
     @Scheduled(cron = "0 0 * * * *") // Toutes les heures à HH:00
     public void verfierRendezVousDebuterMaisPasterminer(){
@@ -54,11 +65,14 @@ public class RendezVousSchedulerService {
             if (rdv.getDateTimeFinRendezVousPossible().isBefore(LocalDateTime.now())) {
                 rdv.setStatutRendezVous(StatutRendezVous.TERMINE);
                 rendezVousRepository.save(rdv);
-                notificationController.sendNotification(rdv.getMedecin().getId(), "Rendez-vous Terminer", "Le rendez-vous de " + rdv.getPatient().getNom() + " est terminé.",false);
-                notificationController.sendNotification(rdv.getSecretaireId(), "Rendez-vous Terminer", "Le rendez-vous de " + rdv.getPatient().getNom() + " est terminé.",false);
+                if (rdv.getMedecin() != null && rdv.getMedecin().getId() != null) {
+                    notificationController.sendNotification(rdv.getMedecin().getId(), "Rendez-vous Terminer", "Le rendez-vous de " + rdv.getPatient().getNom() + " est terminé.", false);
+                }
+                if (rdv.getSecretaireId() != null) {
+                    notificationController.sendNotification(rdv.getSecretaireId(), "Rendez-vous Terminer", "Le rendez-vous de " + rdv.getPatient().getNom() + " est terminé.", false);
+                }
                 System.out.println("Rendez-vous Terminer : " + rdv.getId());
             }
         }
     }
 }
-
