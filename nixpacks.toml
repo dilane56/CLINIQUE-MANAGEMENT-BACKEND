@@ -1,0 +1,5 @@
+[phases.build]
+cmds = ["./mvnw clean install -DskipTests"]
+
+[phases.start]
+cmd = "java -Dspring.profiles.active=prod -jar target/CLINIQUE-MANAGEMENT-BACKEND-0.0.1-SNAPSHOT.jar"
