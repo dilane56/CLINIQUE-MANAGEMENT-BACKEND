@@ -1,22 +1,19 @@
-# render.yaml for deploying CLINIQUE-MANAGEMENT-BACKEND on Render
-# This example uses Render's Web Service with the native build (Maven) option.
-# If you prefer Docker, change `type: web` and use `service: docker` / `dockerBuild` accordingly.
+# Configuration Render pour deployment via Dockerfile
+# Remplacez <YOUR_GIT_REPO> par <username>/<repo> ou l'URL appropriée
 services:
   - type: web
     name: clinique-backend
-    env: private
-    repo: https://github.com/<org>/<repo>
+    runtime: docker
+    repo: https://github.com/dilane56/CLINIQUE-MANAGEMENT-BACKEND
     branch: main
-    buildCommand: mvn -DskipTests package
-    startCommand: java $JAVA_OPTS -jar target/CLINIQUE-MANAGEMENT-BACKEND-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod --server.port=$PORT
-    envVars:
-      - key: SPRING_DATASOURCE_URL
-      - key: SPRING_DATASOURCE_USERNAME
-      - key: SPRING_DATASOURCE_PASSWORD
-      - key: MAIL_USERNAME
-      - key: MAIL_PASSWORD
-      - key: JWT_SECRET
-      - key: JAVA_OPTS
+    dockerfilePath: Dockerfile
     autoDeploy: true
     plan: starter
-
+    # Optional: buildCommand si vous voulez forcer un build Maven explicite
+    buildCommand: "./mvnw -B -DskipTests package"
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: PORT
+        value: "8080"
+    healthCheckPath: /actuator/health
