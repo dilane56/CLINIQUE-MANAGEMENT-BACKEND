@@ -206,6 +206,71 @@ Tester l'envoi d'email
 mvn spring-boot:run
 ```
 
+## 📦 Déploiement sur Render.com
+
+Voici une procédure pas-à-pas pour déployer ce backend Spring Boot sur Render (option native ou Docker).
+
+Option A — Web Service (build natif Render)
+
+- Build Command : `mvn -DskipTests package`
+- Start Command : `java $JAVA_OPTS -jar target/CLINIQUE-MANAGEMENT-BACKEND-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod --server.port=$PORT`
+- Variables d'environnement à définir dans Render (remplacez les placeholders) :
+  - `SPRING_DATASOURCE_URL` = `jdbc:postgresql://<DB_HOST>:5432/<DB_NAME>`
+  - `SPRING_DATASOURCE_USERNAME` = `<DB_USER>`
+  - `SPRING_DATASOURCE_PASSWORD` = `<DB_PASS>`
+  - `MAIL_USERNAME` = `<MAIL_USER>`
+  - `MAIL_PASSWORD` = `<MAIL_PASS>`
+  - `JWT_SECRET` = `<JWT_SECRET>`
+  - `JAVA_OPTS` = `-Xms256m -Xmx512m -Djava.security.egd=file:/dev/./urandom` (optionnel)
+
+Notes : Render fournit la variable `$PORT` au runtime ; l'application lit `server.port=${PORT:9001}` depuis `application-prod.properties`.
+
+Option B — Docker (recommandé si vous voulez contrôler l'image)
+
+- Un `Dockerfile` multi-stage est fourni à la racine du projet.
+- `.dockerignore` est aussi fourni.
+- Pour builder et lancer localement :
+
+```powershell
+# build l'image
+docker build -t clinique-backend:latest .
+
+# run (expose port 8080 et passe les variables d'environnement)
+docker run --rm -e SPRING_DATASOURCE_URL="jdbc:postgresql://<DB_HOST>:5432/<DB_NAME>" -e SPRING_DATASOURCE_USERNAME="<DB_USER>" -e SPRING_DATASOURCE_PASSWORD="<DB_PASS>" -e MAIL_USERNAME="<MAIL_USER>" -e MAIL_PASSWORD="<MAIL_PASS>" -e JWT_SECRET="<JWT_SECRET>" -e PORT=8080 -p 8080:8080 clinique-backend:latest
+```
+
+Render.yml (option Git deploy)
+
+- Un exemple `render.yaml` est fourni. Remplacez les placeholders et poussez sur la branche configurée.
+
+Checklist avant déploiement
+
+- `mvn -DskipTests package` doit construire `target/CLINIQUE-MANAGEMENT-BACKEND-0.0.1-SNAPSHOT.jar` sans erreur.
+- `src/main/resources/application-prod.properties` lit les variables d'environnement (déjà configuré).
+- N'ajoutez jamais de secrets en clair dans le repo ; utilisez les Environment Variables de Render.
+- (Optionnel) Ajoutez `spring-boot-starter-actuator` si vous voulez un endpoint `/actuator/health` pour les health checks.
+
+Tests locaux rapides (PowerShell)
+
+- Builder et exécuter le jar localement (profil prod) :
+
+```powershell
+$env:SPRING_DATASOURCE_URL="jdbc:postgresql://<DB_HOST>:5432/<DB_NAME>"; $env:SPRING_DATASOURCE_USERNAME="<DB_USER>"; $env:SPRING_DATASOURCE_PASSWORD="<DB_PASS>"; $env:MAIL_USERNAME="<MAIL_USER>"; $env:MAIL_PASSWORD="<MAIL_PASS>"; $env:JWT_SECRET="<JWT_SECRET>"; mvn -DskipTests package; java -jar target/CLINIQUE-MANAGEMENT-BACKEND-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod --server.port=9001
+```
+
+Sécurité et recommandations post-déploiement
+
+- Ne pas committer les secrets.
+- Activer backups pour la base de données managée.
+- Forcer SSL si nécessaire (`?sslmode=require` dans `SPRING_DATASOURCE_URL`).
+- Configurer health checks (Actuator recommandé) et surveiller les logs via Render.
+
+Fichiers ajoutés
+
+- `Dockerfile` (multi-stage)
+- `.dockerignore`
+- `render.yaml` (exemple)
+
 ## 📝 Notes
 - Tous les endpoints nécessitent une authentification JWT (sauf /api/auth/login)
 - Les rôles disponibles: ADMIN, MEDECIN, SECRETAIRE, PATIENT
