@@ -18,6 +18,12 @@ JWT_SECRET=your-super-secret-jwt-key
 # Email
 MAIL_USERNAME=your-email@gmail.com
 MAIL_PASSWORD=your-app-password
+
+# CORS (Frontend URLs)
+CORS_ALLOWED_ORIGINS=https://your-frontend.vercel.app,http://localhost:3000
+CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS,PATCH
+CORS_ALLOWED_HEADERS=*
+CORS_ALLOW_CREDENTIALS=true
 ```
 
 ---
@@ -38,6 +44,12 @@ JWT_SECRET=your-super-secret-jwt-key
 # Email
 MAIL_USERNAME=your-email@gmail.com
 MAIL_PASSWORD=your-app-password
+
+# CORS (Frontend URLs)
+CORS_ALLOWED_ORIGINS=https://your-frontend.netlify.app,http://localhost:3000
+CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS,PATCH
+CORS_ALLOWED_HEADERS=*
+CORS_ALLOW_CREDENTIALS=true
 ```
 
 ---
