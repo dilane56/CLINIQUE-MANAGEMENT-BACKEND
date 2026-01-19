@@ -1,5 +1,8 @@
 [phases.build]
-cmds = ["./mvnw clean install -DskipTests"]
+cmds = ["./mvnw clean package -DskipTests"]
 
 [phases.start]
-cmd = "java -Dspring.profiles.active=prod -jar target/CLINIQUE-MANAGEMENT-BACKEND-0.0.1-SNAPSHOT.jar"
+cmd = "java $JAVA_OPTS -Dspring.profiles.active=prod -Dserver.port=${PORT:-8080} -jar target/CLINIQUE-MANAGEMENT-BACKEND-0.0.1-SNAPSHOT.jar"
+
+[variables]
+JAVA_OPTS = "-Xms256m -Xmx512m -Djava.security.egd=file:/dev/./urandom"

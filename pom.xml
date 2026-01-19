@@ -116,6 +116,12 @@
             <version>5.5.13.4</version>
         </dependency>
 
+        <!-- Spring Boot Actuator for health checks -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
 <!--        <dependency>-->
 <!--            <groupId>org.apache.pdfbox</groupId>-->
 <!--            <artifactId>pdfbox</artifactId>-->

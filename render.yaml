@@ -14,6 +14,51 @@ services:
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
-      - key: PORT
-        value: "8080"
+      - key: APP_NAME
+        # Nom de l'application (non sensible)
+        value: clinique-backend
+      - key: TZ
+        # Fuseau horaire pour le container
+        value: Europe/Paris
+      - key: JAVA_TOOL_OPTIONS
+        # Options JVM non sensibles par défaut; modifie si nécessaire
+        value: "-Xms256m -Xmx512m"
+      - key: SPRING_LOGGING_LEVEL_ROOT
+        # Niveau de log par défaut
+        value: INFO
+      - key: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+        # Endpoints Actuator exposés par défaut (non sensibles)
+        value: health,info,metrics,loggers
+      - key: SERVER_SERVLET_CONTEXT_PATH
+        # Préfixe d'API si tu veux exposer les endpoints sous /api
+        value: /api
+      - key: SPRING_OUTPUT_ANSI_ENABLED
+        # Permet la coloration ANSI dans les logs
+        value: ALWAYS
     healthCheckPath: /actuator/health
+
+# -----------------------------------------
+# Variables sensibles (NE PAS COMMITTER LES VALEURS)
+# Définir ces variables via le dashboard Render -> Environment -> Environment Variables & Secrets
+# (liste de noms seulement — ajoutez les valeurs en privé sur Render)
+# -----------------------------------------
+# SPRING_DATASOURCE_URL
+# SPRING_DATASOURCE_USERNAME
+# SPRING_DATASOURCE_PASSWORD
+# SPRING_JPA_HIBERNATE_DDL_AUTO  # si nécessaire (ex: validate, update)
+# MAIL_HOST
+# MAIL_PORT
+# MAIL_USERNAME
+# MAIL_PASSWORD
+# JWT_SECRET
+# SENTRY_DSN
+# STRIPE_API_KEY
+# AWS_ACCESS_KEY_ID
+# AWS_SECRET_ACCESS_KEY
+# DATABASE_URL  # si vous utilisez une base de données gérée par Render
+# -----------------------------------------
+# Remarques:
+# - Ne mettez pas les valeurs ci-dessus dans ce fichier. Configurez-les dans le dashboard Render.
+# - Si Render fournit DATABASE_URL pour Postgres managé, utilisez cette variable ou mappez-la sur SPRING_DATASOURCE_URL.
+# - Pour tester localement, exportez ces variables dans votre shell ou utilisez un .env local (ne pas committer).
+# -----------------------------------------

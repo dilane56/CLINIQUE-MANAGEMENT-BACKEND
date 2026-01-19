@@ -1,0 +1,90 @@
+name: Build and test Docker image
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: Build, test and smoke-test Docker image
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: clinique-backend
+      HOST_PORT: "9001"        # port exposé sur le runner (localhost)
+      CONTAINER_PORT: "8080"   # port sur lequel l'application écoute à l'intérieur du container
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Cache Maven local repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Build and run Maven tests
+        run: |
+          mvn -B -U -DskipTests=false clean package
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
+
+      - name: Run container and wait for health
+        run: |
+          docker run -d --name clinique-test -e PORT=${CONTAINER_PORT} -p ${HOST_PORT}:${CONTAINER_PORT} ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          echo "Waiting for application health endpoint on host port ${HOST_PORT} (forwarded to container ${CONTAINER_PORT})..."
+          RET=1
+          for i in $(seq 1 30); do
+            sleep 2
+            if curl -sS http://localhost:${HOST_PORT}/actuator/health | grep -q "UP"; then
+              echo "Application is up"
+              RET=0
+              break
+            fi
+            echo "Attempt $i/30: not up yet"
+          done
+          if [ $RET -ne 0 ]; then
+            echo "Application did not become healthy in time"
+            docker logs clinique-test || true
+            exit 1
+          fi
+
+      - name: Smoke tests
+        run: |
+          echo "Running smoke tests against container on host port ${HOST_PORT}..."
+          # Health
+          curl -fS http://localhost:${HOST_PORT}/actuator/health
+          # Exemple: vérifie un endpoint applicatif GET (adapter /api/endpoint si nécessaire)
+          # curl -fS http://localhost:${HOST_PORT}/api/ton-endpoint
+
+      - name: Save container logs (on failure)
+        if: failure()
+        run: |
+          echo "Saving container logs to file"
+          docker logs clinique-test > clinique-test-logs.txt || true
+
+      - name: Upload container logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: clinique-test-logs
+          path: clinique-test-logs.txt
+
+      - name: Tear down container
+        if: always()
+        run: |
+          echo "Container logs:"
+          docker logs clinique-test || true
+          docker stop clinique-test || true
+          docker rm clinique-test || true
