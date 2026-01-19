@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile pour Spring Boot
+# Multi-stage Dockerfile pour Spring Boot - Render
 # Build stage
 FROM maven:3.8.8-eclipse-temurin-17 AS build
 WORKDIR /app
@@ -19,7 +19,7 @@ RUN ./mvnw -B -DskipTests clean package
 
 # Runtime stage
 FROM eclipse-temurin:17-jre-alpine
-ARG PORT=8080
+ARG PORT=10000
 ENV PORT=${PORT}
 EXPOSE ${PORT}
 
@@ -32,8 +32,8 @@ COPY --from=build --chown=spring:spring /app/target/*.jar /app/app.jar
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/actuator/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/health || exit 1
 
-# Démarrer l'application
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dspring.profiles.active=prod -Dserver.port=${PORT} -jar /app/app.jar"]
+# Démarrer l'application avec le profil render
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dspring.profiles.active=render -Dserver.port=${PORT} -jar /app/app.jar"]
 

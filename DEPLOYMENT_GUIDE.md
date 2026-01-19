@@ -2,67 +2,15 @@
 
 ## 🚂 Déploiement sur Railway
 
-### 1. Prérequis
-- Compte Railway
-- Repository Git public/privé
-- Base de données PostgreSQL (Railway Postgres ou externe)
+### Profil utilisé : `railway`
+### Fichier de config : `application-railway.properties`
 
-### 2. Variables d'environnement à configurer
+### Variables d'environnement Railway :
 ```bash
-# Base de données (OBLIGATOIRE)
-SPRING_DATASOURCE_URL=postgresql://user:password@host:port/database
-SPRING_DATASOURCE_USERNAME=your_db_user
-SPRING_DATASOURCE_PASSWORD=your_db_password
-
-# JWT (OBLIGATOIRE)
-JWT_SECRET=your-super-secret-jwt-key-minimum-256-bits
-
-# Email (OBLIGATOIRE)
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-app-password
-
-# Optionnel
-SPRING_PROFILES_ACTIVE=prod
-JAVA_OPTS=-Xms256m -Xmx512m
-```
-
-### 3. Étapes de déploiement
-1. Connecter votre repo à Railway
-2. Railway détectera automatiquement le `nixpacks.toml`
-3. Configurer les variables d'environnement
-4. Déployer
-
-### 4. Health Check
-- URL: `https://your-app.railway.app/actuator/health`
-- Railway vérifiera automatiquement cette URL
-
----
-
-## 🎨 Déploiement sur Render
-
-### 1. Prérequis
-- Compte Render
-- Repository Git public
-- Base de données PostgreSQL (Render Postgres ou externe)
-
-### 2. Options de déploiement
-
-#### Option A: Web Service (Dockerfile)
-1. Créer un nouveau Web Service
-2. Connecter votre repository
-3. Choisir "Docker" comme environnement
-4. Dockerfile path: `Dockerfile`
-
-#### Option B: Utiliser render.yaml
-1. Pousser le fichier `render.yaml` dans votre repo
-2. Render détectera automatiquement la configuration
-
-### 3. Variables d'environnement Render
-```bash
-# Base de données
-SPRING_DATASOURCE_URL=postgresql://user:password@host:port/database
-SPRING_DATASOURCE_USERNAME=your_db_user
-SPRING_DATASOURCE_PASSWORD=your_db_password
+# Base de données (format JDBC)
+SPRING_DATASOURCE_URL=jdbc:postgresql://host:port/database
+SPRING_DATASOURCE_USERNAME=username
+SPRING_DATASOURCE_PASSWORD=password
 
 # JWT
 JWT_SECRET=your-super-secret-jwt-key
@@ -70,14 +18,27 @@ JWT_SECRET=your-super-secret-jwt-key
 # Email
 MAIL_USERNAME=your-email@gmail.com
 MAIL_PASSWORD=your-app-password
-
-# Render spécifique
-PORT=10000  # Render fournit automatiquement
 ```
 
-### 4. Health Check Render
-- URL: `https://your-app.onrender.com/actuator/health`
-- Timeout: 300 secondes (configuré dans render.yaml)
+---
+
+## 🎨 Déploiement sur Render
+
+### Profil utilisé : `render`
+### Fichier de config : `application-render.properties`
+
+### Variables d'environnement Render :
+```bash
+# Base de données (format PostgreSQL - Render fournit DATABASE_URL)
+DATABASE_URL=postgresql://user:pass@host:port/database
+
+# JWT
+JWT_SECRET=your-super-secret-jwt-key
+
+# Email
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+```
 
 ---
 
