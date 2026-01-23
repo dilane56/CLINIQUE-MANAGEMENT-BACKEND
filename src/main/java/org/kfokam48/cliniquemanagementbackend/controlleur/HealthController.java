@@ -17,6 +17,13 @@ public class HealthController {
         status.put("service", "CLINIQUE-MANAGEMENT-BACKEND");
         return ResponseEntity.ok(status);
     }
+    
+    @GetMapping("/actuator/health")
+    public ResponseEntity<Map<String, String>> actuatorHealth() {
+        Map<String, String> status = new HashMap<>();
+        status.put("status", "UP");
+        return ResponseEntity.ok(status);
+    }
 
     @GetMapping("/")
     public ResponseEntity<Map<String, String>> root() {
