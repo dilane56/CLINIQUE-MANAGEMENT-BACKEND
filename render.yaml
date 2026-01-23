@@ -1,5 +1,4 @@
 # Configuration Render pour deployment via Dockerfile
-# Remplacez <YOUR_GIT_REPO> par <username>/<repo> ou l'URL appropriée
 services:
   - type: web
     name: clinique-backend
@@ -9,33 +8,14 @@ services:
     dockerfilePath: Dockerfile
     autoDeploy: true
     plan: starter
-    # Optional: buildCommand si vous voulez forcer un build Maven explicite
     buildCommand: "./mvnw -B -DskipTests package"
     envVars:
       - key: SPRING_PROFILES_ACTIVE
-        value: prod
-      - key: APP_NAME
-        # Nom de l'application (non sensible)
-        value: clinique-backend
-      - key: TZ
-        # Fuseau horaire pour le container
-        value: Europe/Paris
+        value: render
       - key: JAVA_TOOL_OPTIONS
-        # Options JVM non sensibles par défaut; modifie si nécessaire
         value: "-Xms256m -Xmx512m"
-      - key: SPRING_LOGGING_LEVEL_ROOT
-        # Niveau de log par défaut
-        value: INFO
-      - key: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
-        # Endpoints Actuator exposés par défaut (non sensibles)
-        value: health,info,metrics,loggers
-      - key: SERVER_SERVLET_CONTEXT_PATH
-        # Préfixe d'API si tu veux exposer les endpoints sous /api
-        value: /api
-      - key: SPRING_OUTPUT_ANSI_ENABLED
-        # Permet la coloration ANSI dans les logs
-        value: ALWAYS
-    healthCheckPath: /actuator/health
+    # Health check disabled
+    healthCheckPath: null
 
 # -----------------------------------------
 # Variables sensibles (NE PAS COMMITTER LES VALEURS)
