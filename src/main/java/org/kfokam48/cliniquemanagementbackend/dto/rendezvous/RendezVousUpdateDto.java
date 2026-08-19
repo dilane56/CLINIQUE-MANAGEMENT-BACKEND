@@ -15,6 +15,7 @@ public class RendezVousUpdateDto {
     private Long medecinId; // Référence au Médecin
     private String motif; // Motif du rendez-vous
     //private Integer dureeEstimerRendezVousEnMin;
-    private Long typeRendezVousId; // Référence au Type de Rendez-vous
+    @NotNull(message = "Le type de rendez-vous ne doit pas être null")
+    private Long typeRendezVousId;
 
 }

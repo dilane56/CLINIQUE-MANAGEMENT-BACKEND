@@ -1,5 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.service.auth;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.validation.Valid;
@@ -24,6 +26,7 @@ import java.util.Date;
 @Service
 public class AuthService {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     @Value("${jwt.secret}")
     private String jwtSecretString; // La clé secrète lue depuis la configuration
@@ -54,20 +57,20 @@ public class AuthService {
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecretString);
         this.signingKey = Keys.hmacShaKeyFor(keyBytes);
         // Vous pouvez vérifier la longueur ici pour vous assurer qu'elle est correcte
-        System.out.println("Clé JWT chargée. Longueur (octets) : " + this.signingKey.getEncoded().length);
+        log.info("Clé JWT chargée. Longueur (octets) : {}", this.signingKey.getEncoded().length);
     }
 
     public LoginResponse authenticateUser(@Valid LoginRequest authRequest) {
         try {
             // Authentification
-            System.out.println("Authentification en cours...");
+            log.info("Tentative d'authentification pour : {}", authRequest.getEmail());
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword())
             );
             // Récupération des détails de l'utilisateur
             Utilisateur user = utilisateurRepository.findByEmail(authRequest.getEmail()).orElseThrow(()-> new RessourceNotFoundException("user not found"));
             UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getEmail());
-            System.out.println("Authentification réussie pour l'utilisateur : " + userDetails.getUsername());
+            log.info("Authentification réussie pour : {}", userDetails.getUsername());
 //            // Génération du token JWT
             String token = Jwts.builder()
                     .issuer("CLINIQUE-MANAGEMENT")
@@ -85,7 +88,7 @@ public class AuthService {
 
         } catch (Exception e) {
             // Gestion des erreurs avec un message explicite
-            System.out.println("Erreur d'authentification : " + e.getMessage());
+            log.warn("Échec d'authentification pour {} : {}", authRequest.getEmail(), e.getMessage());
             throw new AuthenticationFailedException("Identifiants invalides : vérifiez l'e-mail ou le mot de passe.");
         }
 

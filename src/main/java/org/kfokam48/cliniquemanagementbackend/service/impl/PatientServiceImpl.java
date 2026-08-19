@@ -11,6 +11,8 @@ import org.kfokam48.cliniquemanagementbackend.model.Patient;
 import org.kfokam48.cliniquemanagementbackend.repository.PatientRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
 import org.kfokam48.cliniquemanagementbackend.service.PatientService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ import java.util.Objects;
 @Service
 @Transactional
 public class PatientServiceImpl implements PatientService {
+    private static final Logger log = LoggerFactory.getLogger(PatientServiceImpl.class);
     private final PatientRepository patientRepository;
     private final PatientMapper patientMapper;
     private final UtilisateurRepository utilisateurRepository;
@@ -37,18 +40,21 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public PatientResponseDTO save(@Valid PatientDTO patientDto) {
+        log.debug("Création patient : {}", patientDto.getEmail());
         if (utilisateurRepository.existsByEmail(patientDto.getEmail())) {
             throw new ResourceAlreadyExistException("User already exists with this email");
         }
 
         Patient patient = patientMapper.patientDtoToPatient(patientDto);
         patientRepository.save(patient);
+        log.info("Patient créé avec succès : {}", patient.getEmail());
         notificationController.sendNotification(1L,"Nouveau Patient","Un nouveau patient a été ajouter",false);
         return patientMapper.patientToPatientResponseDTO(patient);
     }
 
     @Override
     public PatientResponseDTO findById(Long id) {
+        log.debug("Recherche patient id={}", id);
         return   patientMapper.patientToPatientResponseDTO(patientRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Patient not found")));
     }
@@ -77,6 +83,7 @@ public class PatientServiceImpl implements PatientService {
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Patient not found"));
         patientRepository.deleteById(id);
+        log.info("Patient supprimé id={}", id);
         return ResponseEntity.ok("Patient deleted successfully");
 
     }

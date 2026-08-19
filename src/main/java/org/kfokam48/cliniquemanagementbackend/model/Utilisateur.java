@@ -27,6 +27,8 @@ public abstract class Utilisateur {
     private String prenom;
     @Column(nullable = false)
     private String password;
+    @Size(min = 9, message = "Le numéro de téléphone doit contenir au moins 9 caractères")
+    @Column(length = 20)
     private String telephone;
     @Enumerated(EnumType.STRING)
     private UserStatus status ; // ACTIVE, INACTIVE, SUSPENDED
