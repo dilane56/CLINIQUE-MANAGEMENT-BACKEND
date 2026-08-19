@@ -36,10 +36,29 @@
     </appender>
 
     <!-- Logs de ton application en DEBUG -->
-    <logger name="${APP_PACKAGE}" level="DEBUG" additivity="false">
-        <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="FILE"/>
-    </logger>
+    <springProfile name="!render">
+        <logger name="${APP_PACKAGE}" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </logger>
+
+        <!-- Niveau global -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="render">
+        <logger name="${APP_PACKAGE}" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <!-- Niveau global en production (Render) : console uniquement -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
 
     <!-- Logs Spring Security -->
     <logger name="org.springframework.security" level="INFO"/>
@@ -50,11 +69,5 @@
 
     <!-- Logs WebSocket -->
     <logger name="org.springframework.web.socket" level="INFO"/>
-
-    <!-- Niveau global -->
-    <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="FILE"/>
-    </root>
 
 </configuration>
