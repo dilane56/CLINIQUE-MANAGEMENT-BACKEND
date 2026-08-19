@@ -1,6 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.model;
 import jakarta.persistence.*;
 
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import org.kfokam48.cliniquemanagementbackend.enums.Sexe;
