@@ -25,6 +25,8 @@ EXPOSE ${PORT}
 
 # Créer un utilisateur non-root pour la sécurité
 RUN addgroup -g 1001 -S spring && adduser -u 1001 -S spring -G spring
+# Créer dossier de logs et donner la propriété à l'utilisateur spring
+RUN mkdir -p /tmp/logs && chown -R 1001:1001 /tmp/logs
 USER spring:spring
 
 # Copier le jar produit
