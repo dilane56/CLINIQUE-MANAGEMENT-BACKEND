@@ -79,6 +79,7 @@ public class RendezVousServiceImpl implements RendezVousService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RendezVousResponseDTO findById(Long Id) {
         return rendezVousMapper.rendezVousToRendezVousResponseDto(
                 rendezVousRepository.findById(Id)
@@ -140,6 +141,7 @@ public class RendezVousServiceImpl implements RendezVousService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<RendezVousResponseDTO> findAll() {
         return rendezVousMapper.rendezVousListToRendezVousResponseDtoList(rendezVousRepository.findAll());
     }
@@ -153,6 +155,7 @@ public class RendezVousServiceImpl implements RendezVousService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<RendezVousResponseDTO> findByMedecinId(Long medecinId) {
         List<RendezVous> rendezVousList = rendezVousRepository.findByMedecinId(medecinId);
         return rendezVousList.stream()
@@ -180,6 +183,7 @@ public class RendezVousServiceImpl implements RendezVousService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<RendezVousResponseDTO> findRendezVousDuJourByMedecin(Long medecinId) {
         LocalDateTime debutJour = LocalDateTime.now().toLocalDate().atStartOfDay();
         LocalDateTime finJour = debutJour.plusDays(1).minusSeconds(1);
