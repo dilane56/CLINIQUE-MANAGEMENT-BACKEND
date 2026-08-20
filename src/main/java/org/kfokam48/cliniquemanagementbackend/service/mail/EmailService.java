@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Async;
 
 @Service
 public class EmailService {
@@ -15,6 +16,7 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String senderEmail;
 
+    @Async
     public void sendEmail(String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(senderEmail); // ton adresse d'envoi
@@ -23,6 +25,7 @@ public class EmailService {
         message.setText(text);
         mailSender.send(message);
     }
+    @Async
     public void sendMail(MailDTO mailDTO) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(senderEmail); // ton adresse d'envoi
