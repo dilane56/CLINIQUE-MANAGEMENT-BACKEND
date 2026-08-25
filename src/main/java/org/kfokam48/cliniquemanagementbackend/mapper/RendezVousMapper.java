@@ -1,17 +1,11 @@
 package org.kfokam48.cliniquemanagementbackend.mapper;
 
-
 import org.kfokam48.cliniquemanagementbackend.dto.*;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.MedecinInRendezVousDto;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.PatientInRendezVousDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.typeRendezVous.TypeRendezVousDTO;
-import org.kfokam48.cliniquemanagementbackend.exception.RessourceNotFoundException;
 import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
-import org.kfokam48.cliniquemanagementbackend.repository.MedecinRepository;
-import org.kfokam48.cliniquemanagementbackend.repository.PatientRepository;
-import org.kfokam48.cliniquemanagementbackend.repository.TypeRendezVousRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
@@ -19,36 +13,11 @@ import java.util.List;
 
 @Component
 public class RendezVousMapper {
-    private final PatientRepository patientRepository;
-    private final MedecinRepository medecinRepository;
-    private final TypeRendezVousRepository typeRendezVousRepository;
+
     private final ModelMapper modelMapper;
 
-    public RendezVousMapper(PatientRepository patientRepository, MedecinRepository medecinRepository, TypeRendezVousRepository typeRendezVousRepository, ModelMapper modelMapper) {
-        this.patientRepository = patientRepository;
-        this.medecinRepository = medecinRepository;
-        this.typeRendezVousRepository = typeRendezVousRepository;
+    public RendezVousMapper(ModelMapper modelMapper) {
         this.modelMapper = modelMapper;
-    }
-
-    public RendezVous rendezVousDtoToRendezvous (RendezVousDTO rendezVousDTO){
-        RendezVous rendezVous = new RendezVous();
-        rendezVous.setDateRendezVous(rendezVousDTO.getDateRendezVous());
-        rendezVous.setMotif(rendezVousDTO.getMotif());
-        rendezVous.setPatient(patientRepository.findById(rendezVousDTO.getPatientId()).orElseThrow(()->new RessourceNotFoundException("Patient not found")));
-
-        rendezVous.setMedecin(medecinRepository.findById(rendezVousDTO.getMedecinId())
-                .orElseThrow(() -> new RuntimeException("Medecin not found")));
-        rendezVous.setDateRendezVous(rendezVousDTO.getDateRendezVous());
-        rendezVous.setTypeRendezVous(typeRendezVousRepository.findById(rendezVousDTO.getTypeRendezVousId())
-                .orElseThrow(() -> new RessourceNotFoundException("Type de rendez-vous not found")));
-        rendezVous.setSecretaireId(rendezVousDTO.getSecretaireId());
-
-
-        return rendezVous;
-
-
-
     }
 
     public RendezVousResponseDTO rendezVousToRendezVousResponseDto (RendezVous rendezVous){

@@ -19,44 +19,49 @@ import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
 import org.kfokam48.cliniquemanagementbackend.repository.FactureRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.RendezVousRepository;
 import org.kfokam48.cliniquemanagementbackend.service.FactureService;
+import org.kfokam48.cliniquemanagementbackend.service.pdf.PdfService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.itextpdf.text.DocumentException;
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @Transactional
 public class FactureServiceImpl implements FactureService {
-     private final FactureRepository factureRepository;
-     private final RendezVousRepository rendezVousRepository;
+    private final FactureRepository factureRepository;
+    private final RendezVousRepository rendezVousRepository;
     private final FactureMapper factureMapper;
     private final LigneFactureMapper ligneFactureMapper;
     private final NotificationController notificationController;
+    private final PdfService pdfService;
 
-    public FactureServiceImpl(FactureRepository factureRepository, RendezVousRepository rendezVousRepository, FactureMapper factureMapper, LigneFactureMapper ligneFactureMapper, NotificationController notificationController) {
+    public FactureServiceImpl(FactureRepository factureRepository, RendezVousRepository rendezVousRepository, FactureMapper factureMapper, LigneFactureMapper ligneFactureMapper, NotificationController notificationController, PdfService pdfService) {
         this.factureRepository = factureRepository;
         this.rendezVousRepository = rendezVousRepository;
         this.factureMapper = factureMapper;
         this.ligneFactureMapper = ligneFactureMapper;
         this.notificationController = notificationController;
+        this.pdfService = pdfService;
     }
 
     @Override
     public FactureResponseDto save(@Valid FactureDTO factureDTO) {
-        // Vérifier que le rendez-vous existe et qu'il est terminé
         RendezVous rendezVous = rendezVousRepository.findById(factureDTO.getRendezVousId())
                 .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous not found with id: " + factureDTO.getRendezVousId()));
-        
+
         if (rendezVous.getStatutRendezVous() != StatutRendezVous.TERMINE) {
             throw new RendezVousNonTermineException("Impossible de créer une facture pour un rendez-vous qui n'est pas terminé. Statut actuel: " + rendezVous.getStatutRendezVous());
         }
-        
-        Facture facture = factureMapper.factureDtoToFacture(factureDTO);
+
+        Facture facture = buildFactureFromRendezVous(new Facture(), rendezVous, factureDTO.getLignesFacture());
         facture.setDateEmission(LocalDateTime.now());
         facture.setStatut(StatutFacture.NON_PAYEE);
+        facture.setMontantPayement(BigDecimal.ZERO);
         factureRepository.save(facture);
         return factureMapper.factureToFactureResponseDto(facture);
     }
@@ -76,46 +81,15 @@ public class FactureServiceImpl implements FactureService {
         Facture facture = factureRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Facture not found"));
 
-        // Récupérer le rendez-vous depuis la base de données pour éviter l'erreur TransientObjectException
         RendezVous rendezVous = rendezVousRepository.findById(factureDTO.getRendezVousId())
                 .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous not found with id: " + factureDTO.getRendezVousId()));
 
-        // Mettre à jour le rendez-vous de la facture
-        facture.setRendezVous(rendezVous);
-        BigDecimal total =rendezVous.getTypeRendezVous().getTarif();
-
-        // Gérer les lignes de facture : on remplace complètement la liste
-        if (factureDTO.getLignesFacture() != null) {
-            // Supprimer toutes les anciennes lignes (pour que la suppression soit effective en base, il faut orphanRemoval=true sur la relation)
-            facture.getLignes().clear();
-
-            // Ligne de base (consultation)
-            LigneFacture ligneConsult = new LigneFacture();
-            ligneConsult.setServiceName(rendezVous.getTypeRendezVous().getLibelle());
-            ligneConsult.setPrixUnitaire(rendezVous.getTypeRendezVous().getTarif());
-            ligneConsult.setQuantite(1);
-            ligneConsult.setPrixTotal(rendezVous.getTypeRendezVous().getTarif());
-            ligneConsult.setFacture(facture);
-            facture.getLignes().add(ligneConsult);
-
-
-            // Ajouter les nouvelles lignes
-            for (LigneFactureDTO ligneDTO : factureDTO.getLignesFacture()) {
-                LigneFacture ligne = ligneFactureMapper.ligneFactureDTOToLigneFacture(ligneDTO);
-                ligne.setFacture(facture);
-                total = total.add(ligne.getPrixTotal());
-                facture.getLignes().add(ligne);
-            }
-        }
-
-        // Mettre à jour d'autres champs si nécessaire (ex: statut, date, etc.)
+        facture.getLignes().clear();
+        buildFactureFromRendezVous(facture, rendezVous, factureDTO.getLignesFacture());
         facture.setStatut(StatutFacture.NON_PAYEE);
-        facture.setMontantTotal(total);
-        facture.setMontantRestant(total);
         facture.setMontantPayement(BigDecimal.ZERO);
         facture.setDateEmission(LocalDateTime.now());
-        facture.setDatePayement(null); // Réinitialiser la date de paiement
-        // Enregistrer la facture mise à jour
+        facture.setDatePayement(null);
 
         factureRepository.save(facture);
         return factureMapper.factureToFactureResponseDto(facture);
@@ -138,31 +112,65 @@ public class FactureServiceImpl implements FactureService {
     public FactureResponseDto updatePaiement(Long id, @Valid FacturePaiementUpdateDTO paiementUpdateDTO) {
         Facture facture = factureRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Facture not found with id: " + id));
-        
-        // Mettre à jour le montant du paiement
-        facture.setMontantPayement(paiementUpdateDTO.getMontantPaiement());
+
+        if (facture.getStatut() == StatutFacture.PAYEE) {
+            throw new IllegalStateException("Cette facture est déjà entièrement payée.");
+        }
+
+        // Accumulation du paiement
+        BigDecimal nouveauTotal = facture.getMontantPayement().add(paiementUpdateDTO.getMontantPaiement());
+        facture.setMontantPayement(nouveauTotal);
         facture.setDatePayement(LocalDateTime.now());
-        
-        // Calculer le montant restant
-        BigDecimal montantRestant = facture.getMontantTotal().subtract(facture.getMontantPayement());
-        facture.setMontantRestant(montantRestant);
-        
-        // Mettre à jour le statut en fonction du montant payé
-        if (facture.getMontantPayement().compareTo(facture.getMontantTotal()) >= 0) {
-            // Paiement complet ou supérieur
+
+        BigDecimal montantRestant = facture.getMontantTotal().subtract(nouveauTotal);
+
+        if (nouveauTotal.compareTo(facture.getMontantTotal()) >= 0) {
             facture.setStatut(StatutFacture.PAYEE);
             facture.setMontantRestant(BigDecimal.ZERO);
-        } else if (facture.getMontantPayement().compareTo(BigDecimal.ZERO) > 0) {
-            // Paiement partiel
-            facture.setStatut(StatutFacture.PARTIELLEMENT_PAYE);
         } else {
-            // Aucun paiement
-            facture.setStatut(StatutFacture.NON_PAYEE);
+            facture.setStatut(StatutFacture.PARTIELLEMENT_PAYE);
+            facture.setMontantRestant(montantRestant);
         }
-        
+
         factureRepository.save(facture);
-        notificationController.sendNotification(1L, "Facture", "La facture a été payée",false);
-        notificationController.sendNotification(facture.getRendezVous().getMedecin().getId(), "Facture", "La facture a été payée",false);
+        notificationController.sendNotification(1L, "Facture", "Un paiement a été enregistré sur la facture #" + id, false);
+        notificationController.sendNotification(facture.getRendezVous().getMedecin().getId(), "Facture", "Un paiement a été enregistré sur la facture #" + id, false);
         return factureMapper.factureToFactureResponseDto(facture);
+    }
+
+    @Override
+    public ByteArrayOutputStream generatePdf(Long id) throws DocumentException {
+        Facture facture = factureRepository.findById(id)
+                .orElseThrow(() -> new RessourceNotFoundException("Facture not found with id: " + id));
+        return pdfService.generateFacturePdf(facture);
+    }
+
+    private Facture buildFactureFromRendezVous(Facture facture, RendezVous rendezVous, List<LigneFactureDTO> lignesDTO) {
+        facture.setRendezVous(rendezVous);
+        BigDecimal total = rendezVous.getTypeRendezVous().getTarif();
+
+        List<LigneFacture> lignes = new ArrayList<>();
+
+        LigneFacture ligneConsult = new LigneFacture();
+        ligneConsult.setServiceName(rendezVous.getTypeRendezVous().getLibelle());
+        ligneConsult.setPrixUnitaire(rendezVous.getTypeRendezVous().getTarif());
+        ligneConsult.setQuantite(1);
+        ligneConsult.setPrixTotal(rendezVous.getTypeRendezVous().getTarif());
+        ligneConsult.setFacture(facture);
+        lignes.add(ligneConsult);
+
+        if (lignesDTO != null) {
+            for (LigneFactureDTO ligneDTO : lignesDTO) {
+                LigneFacture ligne = ligneFactureMapper.ligneFactureDTOToLigneFacture(ligneDTO);
+                ligne.setFacture(facture);
+                total = total.add(ligne.getPrixTotal());
+                lignes.add(ligne);
+            }
+        }
+
+        facture.getLignes().addAll(lignes);
+        facture.setMontantTotal(total);
+        facture.setMontantRestant(total);
+        return facture;
     }
 }
