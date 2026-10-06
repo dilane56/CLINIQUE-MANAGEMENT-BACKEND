@@ -81,12 +81,8 @@ public class AdministrateurServiceImpl implements AdministrateurService {
 
     @Override
     public Administrateur findByEmail(String email) {
-        Administrateur admin =administrateurRepository.findByEmail(email);
-        if(admin == null){
-            throw new RessourceNotFoundException("Administrateur not found");
-        }else{
-            return admin;
-        }
+        return administrateurRepository.findByEmail(email)
+                .orElseThrow(() -> new RessourceNotFoundException("Administrateur not found"));
     }
 
     @Override

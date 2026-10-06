@@ -71,6 +71,60 @@ GET /api/patients?page=0&size=20&sort=nom,asc
 - Les règles d'accès sont les mêmes avec ou sans pagination.
 - La liste complète sans `page` sera retirée à terme : migrer les écrans vers la version paginée.
 
+## 🔐 Droits d'accès par rôle
+
+Toutes les routes exigent un JWT (`Authorization: Bearer <token>`), sauf `/api/auth/**`, `/actuator/health`, `/` et, si activé, Swagger.
+
+Légende : ✅ autorisé · ❌ refusé · 👤 uniquement ses propres données (`@authz.isCurrentUser` / `@authz.owns...` : ressource rattachée, via son rendez-vous, au médecin connecté)
+
+| Ressource / action | ADMIN | SECRETAIRE | MEDECIN |
+|---|:-:|:-:|:-:|
+| **Administrateurs** (toutes actions) | ✅ | ❌ | ❌ |
+| **Utilisateurs** : lister, voir, contacts | ✅ | ✅ | ✅ |
+| **Utilisateurs** : supprimer | ✅ | ❌ | ❌ |
+| **Médecins** : créer, supprimer | ✅ | ❌ | ❌ |
+| **Médecins** : lister | ✅ | ✅ | ❌ |
+| **Médecins** : voir un médecin | ✅ | ✅ | ✅ |
+| **Médecins** : modifier | ✅ | ❌ | 👤 |
+| **Secrétaires** : créer, lister, supprimer | ✅ | ❌ | ✅ |
+| **Secrétaires** : voir | ✅ | 👤 | ✅ |
+| **Secrétaires** : modifier | ✅ | 👤 | ❌ |
+| **Patients** : créer | ✅ | ✅ | ❌ |
+| **Patients** : lister, voir, modifier | ✅ | ✅ | ✅ |
+| **Patients** : supprimer | ✅ | ✅ | ❌ |
+| **Patients** d'un médecin | ✅ | ✅ | 👤 |
+| **Rendez-vous** : créer | ✅ | ✅ | 👤 (pour lui-même) |
+| **Rendez-vous** : voir, modifier (sans le réattribuer), changer le statut | ✅ | ✅ | 👤 |
+| **Rendez-vous** : lister tout, supprimer | ✅ | ✅ | ❌ |
+| **Rendez-vous** d'un médecin / du jour | ✅ | ✅ | 👤 |
+| **Factures** : créer, lister, **paiement** | ✅ | ✅ | ❌ |
+| **Factures** : modifier (uniquement si aucun paiement, voir I19) | ✅ | ✅ | ❌ |
+| **Factures** : voir, PDF | ✅ | ✅ | 👤 |
+| **Factures** d'un médecin | ✅ | ✅ | 👤 |
+| **Factures** : supprimer | ✅ | ❌ | ❌ |
+| **Lignes de facture** : créer | — | — | uniquement avec la facture (`POST /api/factures`) |
+| **Lignes de facture** : modifier, supprimer (uniquement si aucun paiement, total recalculé, voir I19) | ✅ | ✅ | ❌ |
+| **Lignes de facture** : voir une ligne | ✅ | ✅ | 👤 |
+| **Lignes de facture** : lister toutes | ✅ | ✅ | ❌ |
+| **Prescriptions** : créer (sur son rendez-vous), modifier | ❌ | ❌ | 👤 |
+| **Prescriptions** : voir, imprimer (PDF) | ✅ | ✅ | 👤 |
+| **Prescriptions** : supprimer | ✅ | ❌ | 👤 |
+| **Prescriptions** : lister tout | ✅ | ✅ | ❌ |
+| **Prescriptions** d'un médecin | ✅ | ✅ | 👤 |
+| **Lignes de prescription** : créer | — | — | uniquement avec la prescription (`POST /api/prescriptions`) |
+| **Lignes de prescription** : modifier, supprimer | ❌ | ❌ | 👤 |
+| **Lignes de prescription** : voir une ligne | ✅ | ✅ | 👤 |
+| **Lignes de prescription** : lister toutes | ✅ | ✅ | ❌ |
+| **Types de rendez-vous** : lister | ✅ | ✅ | ✅ |
+| **Types de rendez-vous** : créer, modifier, supprimer | ✅ | ❌ | ❌ |
+| **Revenus** (revenus des médecins par service) | ✅ | ❌ | ❌ |
+| **Messages** (conversation, lu, liste) | 👤 | 👤 | 👤 |
+| **Notifications** : les siennes | ✅ (toutes) | 👤 | 👤 |
+| **Notifications** : marquer comme lue | 👤 | 👤 | 👤 |
+| **Notifications** : envoyer un e-mail libre | ✅ | ❌ | ❌ |
+
+Réponses : **401** sans token valide, **403** si le rôle ou la propriété ne le permet pas, **429** après 5 échecs de connexion en 15 minutes sur un même compte.
+
 ## 👥 Gestion des Utilisateurs
 
 ### Patients
@@ -144,7 +198,8 @@ Lister les rendez-vous d'un médecin
 #### PATCH /api/rendezvous/{id}/statut?statut={STATUT}
 Mettre à jour le statut d'un rendez-vous
 
-#### GET /api/rendezvous/medecin/{medecinId}/aujourd'hui
+#### GET /api/rendezvous/medecin/{medecinId}/aujourdhui
+(ancienne forme `/aujourd'hui` toujours acceptée)
 Récupérer les rendez-vous du jour pour un médecin
 
 ## 💰 Gestion des Factures

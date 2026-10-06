@@ -3,7 +3,7 @@ package org.kfokam48.cliniquemanagementbackend.service.impl;
 import org.kfokam48.cliniquemanagementbackend.dto.typeRendezVous.TypeRendezVousDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.typeRendezVous.TypeRendezVousResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.exception.RessourceNotFoundException;
-import org.kfokam48.cliniquemanagementbackend.mapper.TypeRencezVousMapper;
+import org.kfokam48.cliniquemanagementbackend.mapper.TypeRendezVousMapper;
 import org.kfokam48.cliniquemanagementbackend.model.TypeRendezVous;
 import org.kfokam48.cliniquemanagementbackend.repository.TypeRendezVousRepository;
 import org.kfokam48.cliniquemanagementbackend.service.TypeRendezVousService;
@@ -16,18 +16,18 @@ import java.util.List;
 public class TypeRendezVousServiceImpl implements TypeRendezVousService {
 
     private  final TypeRendezVousRepository typeRendezVousRepository;
-    private final TypeRencezVousMapper typeRencezVousMapper;
+    private final TypeRendezVousMapper typeRendezVousMapper;
 
-    public TypeRendezVousServiceImpl(TypeRendezVousRepository typeRendezVousRepository, TypeRencezVousMapper typeRencezVousMapper) {
+    public TypeRendezVousServiceImpl(TypeRendezVousRepository typeRendezVousRepository, TypeRendezVousMapper typeRendezVousMapper) {
         this.typeRendezVousRepository = typeRendezVousRepository;
-        this.typeRencezVousMapper = typeRencezVousMapper;
+        this.typeRendezVousMapper = typeRendezVousMapper;
     }
 
     @Override
     public TypeRendezVousResponseDTO ajouterTypeRendezVous(TypeRendezVousDTO dto) {
-        TypeRendezVous entity = typeRencezVousMapper.typeRendezVousDtoToTypeRendezVous(dto);
+        TypeRendezVous entity = typeRendezVousMapper.typeRendezVousDtoToTypeRendezVous(dto);
         TypeRendezVous savedEntity = typeRendezVousRepository.save(entity);
-        return typeRencezVousMapper.typeRendezVousToTypeRendezVousResponseDTO(savedEntity);
+        return typeRendezVousMapper.typeRendezVousToTypeRendezVousResponseDTO(savedEntity);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class TypeRendezVousServiceImpl implements TypeRendezVousService {
         entity.setDuree(dto.getDuree());
         entity.setTarif(dto.getTarif());
         typeRendezVousRepository.save(entity);
-        return typeRencezVousMapper.typeRendezVousToTypeRendezVousResponseDTO(entity);
+        return typeRendezVousMapper.typeRendezVousToTypeRendezVousResponseDTO(entity);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class TypeRendezVousServiceImpl implements TypeRendezVousService {
 
     @Override
     public List<TypeRendezVousResponseDTO> listerTypeRendezVous() {
-       return  typeRencezVousMapper.typeRendezVousListToTypeRendezVousResponseDTOList(
+       return  typeRendezVousMapper.typeRendezVousListToTypeRendezVousResponseDTOList(
                 typeRendezVousRepository.findAll()
         );
     }

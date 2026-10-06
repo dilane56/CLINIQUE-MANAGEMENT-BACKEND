@@ -1,6 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.config;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.kfokam48.cliniquemanagementbackend.enums.UserStatus;
 import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
 import org.springframework.context.event.EventListener;
@@ -14,6 +15,7 @@ import org.kfokam48.cliniquemanagementbackend.model.Utilisateur;
 import java.time.Instant;
 import java.time.LocalDateTime;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class WebSocketEventListener {
@@ -42,7 +44,7 @@ public class WebSocketEventListener {
                                 String.format("{\"userId\": %d, \"status\": \"EN_LIGNE\"}", user.getId()));
                     }
                 } catch (NumberFormatException e) {
-                    System.err.println("ID utilisateur non valide lors de la connexion WebSocket.");
+                    log.warn("ID utilisateur non valide lors de la connexion WebSocket.");
                 }
             }
         }
@@ -67,7 +69,7 @@ public class WebSocketEventListener {
                                     user.getId(), Instant.now().toString()));
                 }
             } catch (NumberFormatException e) {
-                System.err.println("ID utilisateur non valide lors de la déconnexion WebSocket.");
+                log.warn("ID utilisateur non valide lors de la déconnexion WebSocket.");
             }
         }
     }

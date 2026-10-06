@@ -1,6 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.kfokam48.cliniquemanagementbackend.config.WebSocketAuthInterceptor;
 import org.kfokam48.cliniquemanagementbackend.service.notification.NotificationService;
 import org.kfokam48.cliniquemanagementbackend.dto.message.MessageDTO;
@@ -17,6 +18,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import java.time.Instant;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class WebSocketController {
@@ -77,7 +79,7 @@ public class WebSocketController {
                         String.format("{\"userId\": %d, \"status\": \"EN_LIGNE\"}", user.getId()));
             }
         } catch (Exception e) {
-            System.err.println("Erreur lors de la mise à jour du statut utilisateur: " + e.getMessage());
+            log.warn("Erreur lors de la mise à jour du statut utilisateur: " + e.getMessage());
         }
     }
 

@@ -18,7 +18,7 @@ import java.util.Optional;
 
 @Repository
 public interface PatientRepository extends JpaRepository<Patient, Long> {
-    Patient findByEmail(String email);
+    Optional<Patient> findByEmail(String email);
 
     // Verrou en écriture (SELECT ... FOR UPDATE) : sérialise les réservations d'un même patient
     @Lock(LockModeType.PESSIMISTIC_WRITE)

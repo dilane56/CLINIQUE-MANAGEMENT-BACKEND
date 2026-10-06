@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @Repository
 public interface MedecinRepository extends JpaRepository<Medecin, Long> {
-    Medecin findByEmail(String email);
+    Optional<Medecin> findByEmail(String email);
 
     // Verrou en écriture (SELECT ... FOR UPDATE) : sérialise les réservations d'un même médecin
     @Lock(LockModeType.PESSIMISTIC_WRITE)

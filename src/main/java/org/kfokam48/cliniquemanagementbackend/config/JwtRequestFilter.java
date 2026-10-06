@@ -22,15 +22,15 @@ import java.io.IOException;
 import java.util.Map;
 
 @Component
-public class JwtRequestFillter extends OncePerRequestFilter {
+public class JwtRequestFilter extends OncePerRequestFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtRequestFillter.class);
+    private static final Logger logger = LoggerFactory.getLogger(JwtRequestFilter.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtService jwtService;
 
-    public JwtRequestFillter(CustomUserDetailsService userDetailsService, JwtService jwtService) {
+    public JwtRequestFilter(CustomUserDetailsService userDetailsService, JwtService jwtService) {
         this.userDetailsService = userDetailsService;
         this.jwtService = jwtService;
     }

@@ -29,14 +29,14 @@ public class AdministrateurController {
 
 
     @PostMapping("/create")
-    @PreAuthorize("hasRole('ADMIN')") // Accès pour les rôles ADMIN
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UtilisateurResponseDTO> createAdministrateur(@Valid @RequestBody AdministrateurDTO administrateurDTO) {
         Administrateur administrateur = administrateurService.save(administrateurDTO);
         return ResponseEntity.ok(utilisateurMapper.utilisateurToUtilisateurResponseDTO(administrateur));
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ADMIN')") // Accès pour les rôles ADMIN
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UtilisateurResponseDTO>> getAllAdministrateurs() {
         List<UtilisateurResponseDTO> administrateurs = administrateurService.findAll().stream()
                 .map(utilisateurMapper::utilisateurToUtilisateurResponseDTO)
@@ -46,13 +46,13 @@ public class AdministrateurController {
 
     // Variante paginée (?page=0&size=20&sort=...) ; sans "page", la liste complète ci-dessus reste servie
     @GetMapping(value = "/all", params = "page")
-    @PreAuthorize("hasRole('ADMIN')") // Accès pour les rôles ADMIN
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PageResponse<UtilisateurResponseDTO>> getAllAdministrateursPage(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
         return ResponseEntity.ok(PageResponse.of(administrateurService.findAll(pageable), admins -> admins.stream().map(utilisateurMapper::utilisateurToUtilisateurResponseDTO).toList()));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')") // Accès pour les rôles  ADMIN
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UtilisateurResponseDTO> getAdministrateurById(@PathVariable Long id) {
         Administrateur administrateur = administrateurService.findById(id);
         return ResponseEntity.ok(utilisateurMapper.utilisateurToUtilisateurResponseDTO(administrateur));

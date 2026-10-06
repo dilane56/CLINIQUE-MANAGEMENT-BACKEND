@@ -1,6 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.service.rendezvous;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.kfokam48.cliniquemanagementbackend.service.notification.NotificationService;
 import org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous;
 import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RendezVousSchedulerService {
@@ -29,14 +31,14 @@ public class RendezVousSchedulerService {
                 if (rdv.getMedecin() != null && rdv.getMedecin().getId() != null) {
                     notificationService.sendNotification(rdv.getMedecin().getId(), "Rendez-vous expiré", "Le rendez-vous de " + rdv.getPatient().getNom() + " a été expiré.", true);
                 }else{
-                    System.out.println("Le rendez-vous de " + rdv.getPatient().getNom() + " n'a pas de médecin assigné.");
+                    log.info("Le rendez-vous de " + rdv.getPatient().getNom() + " n'a pas de médecin assigné.");
                 }
                 if (rdv.getSecretaireId() != null) {
                     notificationService.sendNotification(rdv.getSecretaireId(), "Rendez-vous expiré", "Le rendez-vous de " + rdv.getPatient().getNom() + " a été expiré.", false);
                 }else{
-                    System.out.println("Le rendez-vous de " + rdv.getPatient().getNom() + " n'a pas de secrétaire assigné.");
+                    log.info("Le rendez-vous de " + rdv.getPatient().getNom() + " n'a pas de secrétaire assigné.");
                 }
-                System.out.println("Rendez-vous expiré : " + rdv.getId());
+                log.info("Rendez-vous expiré : " + rdv.getId());
             }
         }
     }
@@ -53,7 +55,7 @@ public class RendezVousSchedulerService {
                 if (rdv.getSecretaireId() != null) {
                     notificationService.sendNotification(rdv.getSecretaireId(), "Rendez-vous à reprogrammer", "Le rendez-vous de " + rdv.getPatient().getNom() + " doit être reprogrammé.", false);
                 }
-                System.out.println("Rendez-vous a reprogrammer : " + rdv.getId());
+                log.info("Rendez-vous a reprogrammer : " + rdv.getId());
             }
         }
     }
@@ -71,7 +73,7 @@ public class RendezVousSchedulerService {
                 if (rdv.getSecretaireId() != null) {
                     notificationService.sendNotification(rdv.getSecretaireId(), "Rendez-vous Terminer", "Le rendez-vous de " + rdv.getPatient().getNom() + " est terminé.", false);
                 }
-                System.out.println("Rendez-vous Terminer : " + rdv.getId());
+                log.info("Rendez-vous Terminer : " + rdv.getId());
             }
         }
     }

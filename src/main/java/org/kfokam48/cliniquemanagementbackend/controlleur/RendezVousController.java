@@ -87,7 +87,8 @@ public class RendezVousController {
         return ResponseEntity.ok(updatedRendezVous);
     }
 
-    @GetMapping("/medecin/{medecinId}/aujourd'hui")
+    // "/aujourdhui" (sans apostrophe) est la route à utiliser ; "/aujourd'hui" est conservée pour compatibilité
+    @GetMapping({"/medecin/{medecinId}/aujourdhui", "/medecin/{medecinId}/aujourd'hui"})
     @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.isCurrentUser(#medecinId))")
     public ResponseEntity<List<RendezVousResponseDTO>> getRendezVousDuJourByMedecin(@PathVariable Long medecinId) {
         List<RendezVousResponseDTO> rendezVousList = rendezVousService.findRendezVousDuJourByMedecin(medecinId);

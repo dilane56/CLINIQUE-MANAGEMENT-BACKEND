@@ -3,7 +3,7 @@ package org.kfokam48.cliniquemanagementbackend.service.notification;
 import org.springframework.data.domain.Pageable;
 import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import lombok.RequiredArgsConstructor;
-import org.kfokam48.cliniquemanagementbackend.dto.notification.NotifcationDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.notification.NotificationDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.notification.NotificationResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.mapper.NotificationMapper;
 import org.kfokam48.cliniquemanagementbackend.model.Notification;
@@ -37,7 +37,7 @@ public class NotificationService {
      * (Anciennement NotificationService, déplacé ici : I12.)
      */
     public void sendNotification(Long recepteurId, String title, String message, boolean sendMail) {
-        Notification notif = createnotifcation(recepteurId, title, message, sendMail);
+        Notification notif = createNotification(recepteurId, title, message, sendMail);
         messagingTemplate.convertAndSendToUser(
                 recepteurId.toString(),
                 "/notifications",
@@ -52,7 +52,7 @@ public class NotificationService {
     }
 
 
-    public Notification createnotifcation(Long recepteurId, String titre, String message, boolean sendMail ){
+    public Notification createNotification(Long recepteurId, String titre, String message, boolean sendMail ){
         Notification notif = Notification.builder()
                 .destinataireId(recepteurId)
                 .titre(titre)

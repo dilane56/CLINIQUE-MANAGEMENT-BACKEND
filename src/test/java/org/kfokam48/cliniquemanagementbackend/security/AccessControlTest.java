@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.Pageable;
-import org.kfokam48.cliniquemanagementbackend.config.JwtRequestFillter;
+import org.kfokam48.cliniquemanagementbackend.config.JwtRequestFilter;
 import org.kfokam48.cliniquemanagementbackend.config.SecurityConfig;
 import org.kfokam48.cliniquemanagementbackend.controlleur.FactureController;
 import org.kfokam48.cliniquemanagementbackend.controlleur.MedecinController;
@@ -68,7 +68,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "cors.allowed.headers=*",
         "cors.allow.credentials=true"
 })
-@Import({SecurityConfig.class, JwtRequestFillter.class, JwtService.class})
+@Import({SecurityConfig.class, JwtRequestFilter.class, JwtService.class})
 class AccessControlTest {
 
     private static final long MEDECIN_CONNECTE = 1L;
