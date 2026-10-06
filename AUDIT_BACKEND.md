@@ -189,7 +189,8 @@
   - Aussi corrigé : `modifierLigne` ne recalculait pas le `prixTotal` de la ligne elle-même.
   - Aussi corrigé : **`PUT /api/factures/{id}` remettait le montant payé à 0 et le statut à `NON_PAYEE`**, effaçant les paiements enregistrés → même règle `verifierModifiable()`.
   - Validation ajoutée sur `LigneFactureDTO` (service obligatoire, quantité ≥ 1, prix ≥ 0), y compris pour les lignes envoyées à la création de la facture.
-- [ ] **I22** (découvert pendant I18) — **Revenus mensuels faussés par les paiements par tranche** : `FactureRepository.sumRevenuByMoisAndAnnee` additionne `montantPayement` (**cumul** payé) des factures dont `datePayement` (date du **dernier** paiement) tombe dans le mois. Exemple : 5 000 FCFA payés en janvier puis 10 000 en février → janvier retombe à 0 et février affiche 15 000. De plus, les revenus sont **globaux**, alors que le besoin exprimé est de connaître les revenus **par médecin et par service**.
+- [x] **I22** (découvert pendant I18) — **Revenus mensuels faussés par les paiements par tranche** : `FactureRepository.sumRevenuByMoisAndAnnee` additionne `montantPayement` (**cumul** payé) des factures dont `datePayement` (date du **dernier** paiement) tombe dans le mois. Exemple : 5 000 FCFA payés en janvier puis 10 000 en février → janvier retombe à 0 et février affiche 15 000. De plus, les revenus sont **globaux**, alors que le besoin exprimé est de connaître les revenus **par médecin et par service**.
+  - Corrigé (`9f2a5dc`) : table `paiement` (migration **V4**, deux bases, avec reprise de l'existant) ; chaque `PUT /api/factures/{id}/paiement` enregistre un paiement daté ; revenus mensuels calculés depuis les paiements ; nouvel endpoint **`GET /api/revenus/medecins?debut&fin`** (ADMIN) : total encaissé par médecin et répartition **par service** au prorata des lignes de facture. Règles ajoutées : paiement refusé au-delà du reste à payer ou sur facture annulée ; suppression d'une facture ayant des paiements refusée (409). Tests : `RevenusPaiementsParTrancheTest` (H2 : 5 000 en janvier, 10 000 en février), `RevenuServiceTest`, `FactureMontantsTest`. Total 103 tests.
   - Correction proposée : nouvelle entité `Paiement` (facture, montant, date, mode) enregistrée à chaque `PUT /api/factures/{id}/paiement` (migration V4 dans les deux bases) ; revenus calculés depuis les paiements, avec un endpoint par médecin et par type de rendez-vous (service).
 - [x] **I18** — Un seul test (`CliniqueManagementBackendApplicationTests.contextLoads`). À ajouter au minimum :
   - Corrigé : **95 tests** (90 exécutés en local, 5 réservés à PostgreSQL et exécutés par la CI). Derniers ajouts (`5f8a257`) : `RendezVousStatutTest`, `RevenuServiceTest`.
@@ -286,7 +287,7 @@ Routes publiques (sans JWT) : `/`, `/actuator/health/**`, `/api/auth/**`, Swagge
 | **Lignes de prescription** : lister toutes | ✅ | ✅ | ❌ |
 | **Types de rendez-vous** : lister | ✅ | ✅ | ✅ |
 | **Types de rendez-vous** : créer, modifier, supprimer | ✅ | ❌ | ❌ |
-| **Revenus** (revenus des médecins par service) | ✅ | ❌ | ❌ |
+| **Revenus** : globaux et par médecin et par service (`/api/revenus/medecins`) | ✅ | ❌ | ❌ |
 | **Messages** (conversation, lu, liste) | 👤 | 👤 | 👤 |
 | **Notifications** : les siennes | ✅ (toutes) | 👤 | 👤 |
 | **Notifications** : marquer comme lue | 👤 | 👤 | 👤 |
@@ -350,3 +351,4 @@ Vérification : `src/test/java/.../security/AccessControlTest.java` (31 tests) e
 | I12, I13, I14 | 2026-10-06 | `c988c93`, `f31a450`, `d0194d8` | Plus de dépendance service → contrôleur ; services sans `ResponseEntity` ; contrôleurs sur les interfaces. 82 OK + 5 ignorés |
 | I15, I16 | 2026-10-06 | `374256b` | OpenPDF à la place d'iText (AGPL) ; pilote SQL Server stable. I17 reporté |
 | Lot final | 2026-10-06 | `780439a` … `5f8a257` | A1-A6, A8-A10, A12 (V3), I18 (95 tests). Nouveau point I22 (revenus et paiements par tranche) |
+| I22 | 2026-10-06 | `9f2a5dc` | Historique des paiements (V4), revenus à la date de chaque versement, revenus par médecin et par service. 98 OK + 5 ignorés (PostgreSQL) |
