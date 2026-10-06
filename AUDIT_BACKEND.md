@@ -173,9 +173,12 @@
 
 ### 2.4 Dépendances (`pom.xml`)
 
-- [ ] **I15** — `itextpdf 5.5.13.4` est sous licence **AGPL** → risque juridique en usage commercial ; envisager OpenPDF ou Apache PDFBox.
-- [ ] **I16** — `mssql-jdbc 13.5.1.jre11-preview` (version *preview*) alors que la cible est PostgreSQL → supprimer si inutile.
-- [ ] **I17** — ModelMapper coexiste avec des mappers manuels → choisir une approche unique (idéalement MapStruct, vérifié à la compilation).
+- [x] **I15** — `itextpdf 5.5.13.4` est sous licence **AGPL** → risque juridique en usage commercial ; envisager OpenPDF ou Apache PDFBox.
+  - Corrigé (`374256b`) : **OpenPDF 1.4.2** (LGPL/MPL) remplace iText 5 ; même API (`com.lowagie.text`), couleurs `java.awt.Color`. Test `PdfServiceTest` : facture et prescription générées et relues (accents compris). ⚠️ Rendu visuel à vérifier à l'œil.
+- [x] **I16** — `mssql-jdbc 13.5.1.jre11-preview` (version *preview*) alors que la cible est PostgreSQL → supprimer si inutile.
+  - Corrigé (`374256b`) : le pilote reste nécessaire (décision : SQL Server en dev, voir I8), mais passe de `13.5.1.jre11-preview` à la version **stable gérée par Spring Boot** (12.8.1), en scope `runtime`.
+- [~] **I17** — ModelMapper coexiste avec des mappers manuels → choisir une approche unique (idéalement MapStruct, vérifié à la compilation).
+  - Décision du propriétaire du projet : **reporté** (refonte large, sans effet fonctionnel, qui compliquerait la relecture de la pull request en cours).
 
 ### 2.5 Tests
 
@@ -332,3 +335,4 @@ Vérification : `src/test/java/.../security/AccessControlTest.java` (31 tests) e
 | I1-I4, I7, A7, A13 | 2026-10-06 | `6f91495` | CORS unique, Swagger désactivé en déploiement, détails de santé protégés, JWT 8 h, 401 en JSON, `@EnableMethodSecurity`, health réel. I5 sans objet (pas de notion de compte suspendu) |
 | I6 | 2026-10-06 | `50cca81` | Anti force brute par compte (5 échecs / 15 min → 429). Total 82 OK + 5 ignorés |
 | I12, I13, I14 | 2026-10-06 | `c988c93`, `f31a450`, `d0194d8` | Plus de dépendance service → contrôleur ; services sans `ResponseEntity` ; contrôleurs sur les interfaces. 82 OK + 5 ignorés |
+| I15, I16 | 2026-10-06 | `374256b` | OpenPDF à la place d'iText (AGPL) ; pilote SQL Server stable. I17 reporté |
