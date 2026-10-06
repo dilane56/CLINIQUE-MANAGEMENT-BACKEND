@@ -13,6 +13,7 @@
 - 🔴 **Critique** : bug bloquant ou faille de sécurité, à corriger en priorité
 - 🟠 **Important** : risque réel en production ou dette technique significative
 - 🟡 **Amélioration** : qualité, maintenabilité, propreté
+- `[~]` : point **sans objet** ou **volontairement non traité** (la raison est indiquée en dessous)
 
 ---
 
@@ -103,13 +104,19 @@
 
 ### 2.1 Sécurité / configuration
 
-- [ ] **I1** — CORS configuré deux fois (`config/SecurityConfig.java` et `config/WebConfig.java`) → n'en garder qu'une (un bean `CorsConfigurationSource`).
-- [ ] **I2** — Swagger (`springdoc.*.enabled=true`) actif dans tous les profils, y compris prod/render/railway → désactiver ou protéger en production.
-- [ ] **I3** — `management.endpoint.health.show-details=always` en production → passer à `when-authorized` ou `never`.
-- [ ] **I4** — JWT valide 24 h, sans refresh token ni mécanisme de révocation.
-- [ ] **I5** — `config/JwtRequestFillter.java` : le statut de l'utilisateur (`UserStatus`, ex. SUSPENDED/INACTIVE) n'est pas vérifié → un compte suspendu garde son accès tant que le token est valide (vérifier aussi `CustomUserDetails.isEnabled()` / `isAccountNonLocked()`).
+- [x] **I1** — CORS configuré deux fois (`config/SecurityConfig.java` et `config/WebConfig.java`) → n'en garder qu'une (un bean `CorsConfigurationSource`).
+  - Corrigé : `WebConfig` supprimé ; un seul bean `CorsConfigurationSource` dans `SecurityConfig`, utilisé par Spring Security et Spring MVC (`.cors(Customizer.withDefaults())`).
+- [x] **I2** — Swagger (`springdoc.*.enabled=true`) actif dans tous les profils, y compris prod/render/railway → désactiver ou protéger en production.
+  - Corrigé : Swagger désactivé par défaut sur `prod`, `railway`, `render` (`springdoc.*.enabled=${SWAGGER_ENABLED:false}`) ; activé en `dev`. Variable documentée dans `DEPLOYMENT_GUIDE.md`.
+- [x] **I3** — `management.endpoint.health.show-details=always` en production → passer à `when-authorized` ou `never`.
+  - Corrigé : `show-details=when-authorized` sur les profils de déploiement (`always` conservé en `dev`).
+- [x] **I4** — JWT valide 24 h, sans refresh token ni mécanisme de révocation.
+  - Décision du propriétaire du projet : **durée réduite à 8 h** (`jwt.expiration.milliseconds=28800000`, tous les profils), sans refresh token. Le frontend devra reconnecter l'utilisateur après 8 h.
+- [~] **I5** — `config/JwtRequestFillter.java` : le statut de l'utilisateur (`UserStatus`, ex. SUSPENDED/INACTIVE) n'est pas vérifié → un compte suspendu garde son accès tant que le token est valide (vérifier aussi `CustomUserDetails.isEnabled()` / `isAccountNonLocked()`).
+  - Sans objet : `UserStatus` (`EN_LIGNE`, `HORS_LIGNE`, `OCCUPÉ`) est un statut de **présence** pour le chat, pas un statut de compte ; il n'existe aucune notion de compte suspendu. Supprimer un utilisateur coupe déjà son accès (son token n'est plus accepté). Une désactivation de compte serait une nouvelle fonctionnalité.
 - [ ] **I6** — Pas de limitation de tentatives (rate limiting / anti brute-force) sur `/api/auth/login`.
-- [ ] **I7** — `JwtRequestFillter.sendUnauthorizedResponse` construit le JSON par concaténation de chaînes → utiliser `ObjectMapper`.
+- [x] **I7** — `JwtRequestFillter.sendUnauthorizedResponse` construit le JSON par concaténation de chaînes → utiliser `ObjectMapper`.
+  - Corrigé : réponse 401 sérialisée avec `ObjectMapper` (UTF-8). Test `invalidTokenReturnsJson401`.
 - [x] **I8** — `application.properties` (profil par défaut) contient une configuration **SQL Server** alors que les autres profils utilisent PostgreSQL → harmoniser.
   - Précision : c'est le profil `dev` (actif par défaut) qui utilise SQL Server ; `application.properties` pointe vers PostgreSQL mais est surchargé par `dev`.
   - **Décision du propriétaire du projet (I9) : garder SQL Server en développement local**, PostgreSQL pour tous les déploiements. Conséquence assumée : deux jeux de migrations Flyway à maintenir.
@@ -197,13 +204,15 @@
 - [ ] **A4** — Route `GET /api/rendezvous/medecin/{medecinId}/aujourd'hui` contient une apostrophe → renommer (ex. `/aujourdhui` ou `/today`) en coordination avec le frontend.
 - [ ] **A5** — Remplacer les `System.out.println` par le logger SLF4J.
 - [ ] **A6** — Fichiers parasites versionnés : `pom-fixed.xml`, `prescription.pdf` → supprimer du dépôt si inutiles.
-- [ ] **A7** — `@EnableGlobalMethodSecurity` (déprécié) → `@EnableMethodSecurity`.
+- [x] **A7** — `@EnableGlobalMethodSecurity` (déprécié) → `@EnableMethodSecurity`.
+  - Corrigé : `@EnableMethodSecurity(securedEnabled = true)`.
 - [ ] **A8** — Commentaires `@PreAuthorize` incohérents avec la règle réelle (ex. « MEDECIN, ADMIN et SECRETAIRE » alors que seul ADMIN/SECRETAIRE est autorisé) → aligner après la revue des droits.
 - [ ] **A9** (partiel) — `DefaultUserInitializer` : `AdministrateurRepository.findByEmail` renvoie `null` au lieu d'`Optional` → l'initialiseur utilise désormais `UtilisateurRepository.existsByEmail` (couvre aussi un email déjà pris par un médecin ou une secrétaire). `AdministrateurRepository.findByEmail` reste à harmoniser ailleurs.
 - [x] **A11** (découvert pendant C7b) — Création isolée de lignes **sans les rattacher à leur parent** (le DTO n'a pas d'identifiant de parent) : lignes orphelines.
   - [x] `POST /api/lignes-prescription` **supprimé** (les lignes sont toujours créées avec la prescription, confirmé par le propriétaire du projet), ainsi que `LignePrescriptionService.ajouterLigne`.
   - [x] `POST /api/lignes-facture` **supprimé** (les lignes sont toujours créées avec la facture, confirmé par le propriétaire du projet), ainsi que `LigneFactureService.ajouterLigne`.
-- [ ] **A13** (découvert pendant I21) — `HealthController` déclare `/health` et `/actuator/health` qui renvoient **toujours `UP`** sans rien vérifier. `/actuator/health` est masqué par le vrai endpoint Actuator (prioritaire), mais le `HEALTHCHECK` du Dockerfile appelle `/health` : le conteneur se déclare sain même si la base est indisponible. Supprimer ces deux méthodes et faire pointer le `HEALTHCHECK` vers `/actuator/health`.
+- [x] **A13** (découvert pendant I21) — `HealthController` déclare `/health` et `/actuator/health` qui renvoient **toujours `UP`** sans rien vérifier. `/actuator/health` est masqué par le vrai endpoint Actuator (prioritaire), mais le `HEALTHCHECK` du Dockerfile appelle `/health` : le conteneur se déclare sain même si la base est indisponible. Supprimer ces deux méthodes et faire pointer le `HEALTHCHECK` vers `/actuator/health`.
+  - Corrigé : routes `/health` et `/actuator/health` de `HealthController` supprimées (seule `/` reste) ; `HEALTHCHECK` du Dockerfile et `healthcheckPath` de `railway.toml` pointent vers `/actuator/health` (état réel, base comprise).
 - [ ] **A12** (découvert pendant I9) — Noms de colonnes incohérents imposés par les entités, figés dans `V1__schema_initial.sql` : `secretarire_id` (faute) dans `medecin_secretaire`, et `utilisateurs_id` (administrateur, medecin) contre `utilisateur_id` (secretaire). À renommer via une migration V3 (les deux bases) en même temps que les annotations `@JoinColumn` / `@PrimaryKeyJoinColumn`.
 - [ ] **A10** — Matrice des droits (qui peut faire quoi par rôle) à documenter dans le README une fois les points C3–C8 corrigés (voir section 4 ci-dessous).
 
@@ -316,3 +325,4 @@ Vérification : `src/test/java/.../security/AccessControlTest.java` (31 tests) e
 | I8 | 2026-10-06 | (aucun) | Décision : SQL Server conservé en dev, PostgreSQL en déploiement |
 | I11 (partiel) | 2026-10-06 | `5b401f9` | Pagination progressive sur 13 endpoints (`params = "page"`), max 100, tri inconnu → 400. Reste : migration du frontend puis suppression des listes non paginées. Tests : +4 web, +3 H2. Total 76/76 OK |
 | I21 | 2026-10-06 | `f0d1bca` | CI avec PostgreSQL 16, vrais tests de fumée (login admin, lecture paginée), `PostgreSqlIntegrationTest` (V1 + V2 sur vrai PostgreSQL). Local : 76 OK + 5 ignorés (nécessitent PostgreSQL). ⚠️ Workflow pas encore exécuté sur GitHub. Nouveau point A13 |
+| I1-I4, I7, A7, A13 | 2026-10-06 | `6f91495` | CORS unique, Swagger désactivé en déploiement, détails de santé protégés, JWT 8 h, 401 en JSON, `@EnableMethodSecurity`, health réel. I5 sans objet (pas de notion de compte suspendu) |
