@@ -114,7 +114,8 @@
   - Décision du propriétaire du projet : **durée réduite à 8 h** (`jwt.expiration.milliseconds=28800000`, tous les profils), sans refresh token. Le frontend devra reconnecter l'utilisateur après 8 h.
 - [~] **I5** — `config/JwtRequestFillter.java` : le statut de l'utilisateur (`UserStatus`, ex. SUSPENDED/INACTIVE) n'est pas vérifié → un compte suspendu garde son accès tant que le token est valide (vérifier aussi `CustomUserDetails.isEnabled()` / `isAccountNonLocked()`).
   - Sans objet : `UserStatus` (`EN_LIGNE`, `HORS_LIGNE`, `OCCUPÉ`) est un statut de **présence** pour le chat, pas un statut de compte ; il n'existe aucune notion de compte suspendu. Supprimer un utilisateur coupe déjà son accès (son token n'est plus accepté). Une désactivation de compte serait une nouvelle fonctionnalité.
-- [ ] **I6** — Pas de limitation de tentatives (rate limiting / anti brute-force) sur `/api/auth/login`.
+- [x] **I6** — Pas de limitation de tentatives (rate limiting / anti brute-force) sur `/api/auth/login`.
+  - Corrigé (`50cca81`) : `LoginAttemptService` — 5 échecs en 15 min pour un même e-mail → 429 + `Retry-After` ; succès = remise à zéro. Limite **par compte** (pas par IP : derrière le proxy de l'hébergeur, toutes les requêtes ont la même IP ; une limite par IP se règle au niveau du proxy). Compteurs en mémoire, propres à chaque instance. Test `LoginAttemptServiceTest` (5).
 - [x] **I7** — `JwtRequestFillter.sendUnauthorizedResponse` construit le JSON par concaténation de chaînes → utiliser `ObjectMapper`.
   - Corrigé : réponse 401 sérialisée avec `ObjectMapper` (UTF-8). Test `invalidTokenReturnsJson401`.
 - [x] **I8** — `application.properties` (profil par défaut) contient une configuration **SQL Server** alors que les autres profils utilisent PostgreSQL → harmoniser.
@@ -326,3 +327,4 @@ Vérification : `src/test/java/.../security/AccessControlTest.java` (31 tests) e
 | I11 (partiel) | 2026-10-06 | `5b401f9` | Pagination progressive sur 13 endpoints (`params = "page"`), max 100, tri inconnu → 400. Reste : migration du frontend puis suppression des listes non paginées. Tests : +4 web, +3 H2. Total 76/76 OK |
 | I21 | 2026-10-06 | `f0d1bca` | CI avec PostgreSQL 16, vrais tests de fumée (login admin, lecture paginée), `PostgreSqlIntegrationTest` (V1 + V2 sur vrai PostgreSQL). Local : 76 OK + 5 ignorés (nécessitent PostgreSQL). ⚠️ Workflow pas encore exécuté sur GitHub. Nouveau point A13 |
 | I1-I4, I7, A7, A13 | 2026-10-06 | `6f91495` | CORS unique, Swagger désactivé en déploiement, détails de santé protégés, JWT 8 h, 401 en JSON, `@EnableMethodSecurity`, health réel. I5 sans objet (pas de notion de compte suspendu) |
+| I6 | 2026-10-06 | `50cca81` | Anti force brute par compte (5 échecs / 15 min → 429). Total 82 OK + 5 ignorés |
