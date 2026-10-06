@@ -132,6 +132,7 @@
 
 ### 2.5 Tests
 
+- [ ] **I19** (découvert pendant A11) — `PUT` / `DELETE /api/lignes-facture/{id}` modifient ou suppriment une ligne **sans recalculer `montantTotal` ni `montantRestant` de la facture**, y compris sur une facture déjà payée ou partiellement payée. Les montants de la facture deviennent faux (et donc les revenus). À décider : recalculer la facture à chaque modification de ligne, ou interdire la modification des lignes d'une facture non `NON_PAYEE` (et passer par `PUT /api/factures/{id}`).
 - [ ] **I18** — Un seul test (`CliniqueManagementBackendApplicationTests.contextLoads`). À ajouter au minimum :
   - [ ] Tests unitaires `RendezVousServiceImpl` (chevauchements patient/médecin, mise à jour, changement de statut)
   - [ ] Tests unitaires facturation / revenus
@@ -157,9 +158,9 @@
 - [ ] **A7** — `@EnableGlobalMethodSecurity` (déprécié) → `@EnableMethodSecurity`.
 - [ ] **A8** — Commentaires `@PreAuthorize` incohérents avec la règle réelle (ex. « MEDECIN, ADMIN et SECRETAIRE » alors que seul ADMIN/SECRETAIRE est autorisé) → aligner après la revue des droits.
 - [ ] **A9** (partiel) — `DefaultUserInitializer` : `AdministrateurRepository.findByEmail` renvoie `null` au lieu d'`Optional` → l'initialiseur utilise désormais `UtilisateurRepository.existsByEmail` (couvre aussi un email déjà pris par un médecin ou une secrétaire). `AdministrateurRepository.findByEmail` reste à harmoniser ailleurs.
-- [ ] **A11** (partiel ; découvert pendant C7b) — Création isolée de lignes **sans les rattacher à leur parent** (le DTO n'a pas d'identifiant de parent) : lignes orphelines.
+- [x] **A11** (découvert pendant C7b) — Création isolée de lignes **sans les rattacher à leur parent** (le DTO n'a pas d'identifiant de parent) : lignes orphelines.
   - [x] `POST /api/lignes-prescription` **supprimé** (les lignes sont toujours créées avec la prescription, confirmé par le propriétaire du projet), ainsi que `LignePrescriptionService.ajouterLigne`.
-  - [ ] `POST /api/lignes-facture` : même défaut (`LigneFactureServiceImpl.ajouterLigne` n'associe aucune facture). À supprimer si les lignes sont toujours créées avec la facture, sinon ajouter `factureId`.
+  - [x] `POST /api/lignes-facture` **supprimé** (les lignes sont toujours créées avec la facture, confirmé par le propriétaire du projet), ainsi que `LigneFactureService.ajouterLigne`.
 - [ ] **A10** — Matrice des droits (qui peut faire quoi par rôle) à documenter dans le README une fois les points C3–C8 corrigés (voir section 4 ci-dessous).
 
 ---
@@ -196,7 +197,8 @@ Routes publiques (sans JWT) : `/`, `/health`, `/actuator/health/**`, `/api/auth/
 | **Factures** : voir, PDF | ✅ | ✅ | 👤 |
 | **Factures** d'un médecin | ✅ | ✅ | 👤 |
 | **Factures** : supprimer | ✅ | ❌ | ❌ |
-| **Lignes de facture** : créer, modifier, supprimer | ✅ | ✅ | ❌ |
+| **Lignes de facture** : créer | — | — | uniquement avec la facture (`POST /api/factures`) |
+| **Lignes de facture** : modifier, supprimer (voir I19) | ✅ | ✅ | ❌ |
 | **Lignes de facture** : voir une ligne | ✅ | ✅ | 👤 |
 | **Lignes de facture** : lister toutes | ✅ | ✅ | ❌ |
 | **Prescriptions** : créer (sur son rendez-vous), modifier | ❌ | ❌ | 👤 |
@@ -258,4 +260,5 @@ Vérification : `src/test/java/.../security/AccessControlTest.java` (31 tests) e
 | C14 | 2026-10-06 | `71b38a6` | `POST /api/notifications/send` réservé à l'ADMIN ; `@Valid @RequestBody` + validation de `MailDTO` (email valide, sujet ≤ 200, message ≤ 5000). ⚠️ Le corps doit maintenant être du JSON |
 | C7b | 2026-10-06 | `dd7e4fe` | `@authz.ownsRendezVous/ownsFacture/ownsPrescription/ownsLignePrescription/ownsLigneFacture` (requêtes `existsById...Medecin_Id`). Un médecin ne crée un rendez-vous que pour lui-même, ne le réattribue pas, ne crée une prescription que sur son rendez-vous. Listes complètes des lignes : ADMIN/SECRETAIRE. ⚠️ Requêtes dérivées validées au démarrage de Spring Data uniquement (tests unitaires avec mocks) |
 | Tests | 2026-10-06 | `dd7e4fe` | `AccessControlTest` (31) + `AuthorizationServiceTest` (4) + autres : 49/49 OK |
-| A11 (prescriptions) | 2026-10-06 | `2da3f00` | `POST /api/lignes-prescription` et `ajouterLigne` supprimés. Lignes de facture : en attente de décision |
+| A11 (prescriptions) | 2026-10-06 | `2da3f00` | `POST /api/lignes-prescription` et `ajouterLigne` supprimés |
+| A11 (factures) | 2026-10-06 | `662ca7f` | `POST /api/lignes-facture` et `ajouterLigne` supprimés. Nouveau point I19 (totaux de facture non recalculés) |
