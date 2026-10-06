@@ -8,6 +8,7 @@
 <body>
     <h1>Test WebSocket Chat</h1>
     <div>
+        <label>Token JWT: <input type="text" id="token" placeholder="token obtenu via /api/auth/login"></label>
         <label>Votre ID: <input type="number" id="userId" value="1"></label>
         <label>Destinataire ID: <input type="number" id="recipientId" value="2"></label>
         <button onclick="connect()">Se connecter</button>
@@ -30,7 +31,8 @@
             const socket = new SockJS('http://localhost:8080/ws-chat');
             stompClient = Stomp.over(socket);
             
-            stompClient.connect({}, function (frame) {
+            const token = document.getElementById('token').value;
+            stompClient.connect({ Authorization: 'Bearer ' + token }, function (frame) {
                 console.log('Connecté: ' + frame);
                 document.getElementById('status').textContent = 'Connecté';
                 

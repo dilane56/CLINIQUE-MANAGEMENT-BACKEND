@@ -24,6 +24,14 @@ Ce système de messagerie en temps réel utilise WebSocket avec STOMP pour perme
 - **Envoi de message** : `/app/chat.send`
 - **Rejoindre le chat** : `/app/chat.join`
 
+## Sécurité
+
+- **Connexion** : un JWT valide est obligatoire dans l'en-tête STOMP `Authorization: Bearer <token>` du `CONNECT`.
+- **Abonnements autorisés** : `/topic/**` et uniquement **ses propres** files `/user/{sonId}/queue/**`. S'abonner à la file d'un autre utilisateur est refusé.
+- **Envois autorisés** : uniquement vers `/app/**`.
+- **Expéditeur** : `expediteurId` (et l'identifiant envoyé à `/app/chat.join`) est ignoré et remplacé par l'utilisateur authentifié.
+- **Origines** : celles de `CORS_ALLOWED_ORIGINS`.
+
 ## Utilisation côté client
 
 ### Connexion WebSocket
@@ -33,7 +41,9 @@ Ce système de messagerie en temps réel utilise WebSocket avec STOMP pour perme
 const socket = new SockJS('http://localhost:8080/ws-chat');
 const stompClient = Stomp.over(socket);
 
-stompClient.connect({}, function (frame) {
+// Le token JWT obtenu via POST /api/auth/login est OBLIGATOIRE :
+// sans token valide, la connexion est refusée (trame ERROR).
+stompClient.connect({ Authorization: 'Bearer ' + token }, function (frame) {
     console.log('Connecté: ' + frame);
     
     // S'abonner aux messages privés

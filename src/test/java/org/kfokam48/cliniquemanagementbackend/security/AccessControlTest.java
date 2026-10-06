@@ -20,6 +20,7 @@ import org.kfokam48.cliniquemanagementbackend.mapper.UtilisateurMapper;
 import org.kfokam48.cliniquemanagementbackend.service.FactureService;
 import org.kfokam48.cliniquemanagementbackend.service.auth.AuthorizationService;
 import org.kfokam48.cliniquemanagementbackend.service.auth.CustomUserDetailsService;
+import org.kfokam48.cliniquemanagementbackend.service.auth.JwtService;
 import org.kfokam48.cliniquemanagementbackend.service.impl.MedecinServiceImpl;
 import org.kfokam48.cliniquemanagementbackend.service.impl.PatientServiceImpl;
 import org.kfokam48.cliniquemanagementbackend.service.impl.RendezVousServiceImpl;
@@ -59,7 +60,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "cors.allowed.headers=*",
         "cors.allow.credentials=true"
 })
-@Import({SecurityConfig.class, JwtRequestFillter.class})
+@Import({SecurityConfig.class, JwtRequestFillter.class, JwtService.class})
 class AccessControlTest {
 
     private static final long MEDECIN_CONNECTE = 1L;

@@ -1,6 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
 
 import lombok.RequiredArgsConstructor;
+import org.kfokam48.cliniquemanagementbackend.config.WebSocketAuthInterceptor;
 import org.kfokam48.cliniquemanagementbackend.controlleur.notification.NotificationController;
 import org.kfokam48.cliniquemanagementbackend.dto.message.MessageDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.message.MessageResponseDTO;
@@ -27,6 +28,8 @@ public class WebSocketController {
 
     @MessageMapping("/chat.send")
     public void sendMessage(@Payload MessageDTO chatMessage, SimpMessageHeaderAccessor headerAccessor) {
+        // L'expéditeur est toujours l'utilisateur authentifié de la session (impossible d'usurper un autre compte)
+        chatMessage.setExpediteurId(sessionUserId(headerAccessor));
         try {
             Message savedMessage = chatService.sendMessages(chatMessage);
             MessageResponseDTO messageResponse = chatService.convertToResponseDTO(savedMessage);
@@ -57,10 +60,9 @@ public class WebSocketController {
 
     @MessageMapping("/chat.join")
     public void addUser(@Payload String userId, SimpMessageHeaderAccessor headerAccessor) {
-        headerAccessor.getSessionAttributes().put("user_id", userId);
-
+        // L'identifiant envoyé par le client est ignoré : seul l'utilisateur authentifié au CONNECT peut se déclarer en ligne
         try {
-            Long userIdLong = Long.parseLong(userId);
+            Long userIdLong = sessionUserId(headerAccessor);
             Utilisateur user = utilisateurRepository.findById(userIdLong).orElse(null);
 
             if (user != null) {
@@ -77,5 +79,11 @@ public class WebSocketController {
         } catch (Exception e) {
             System.err.println("Erreur lors de la mise à jour du statut utilisateur: " + e.getMessage());
         }
+    }
+
+    // Identifiant posé dans la session par WebSocketAuthInterceptor lors du CONNECT
+    private Long sessionUserId(SimpMessageHeaderAccessor headerAccessor) {
+        return Long.valueOf(headerAccessor.getSessionAttributes()
+                .get(WebSocketAuthInterceptor.USER_ID_ATTRIBUTE).toString());
     }
 }
