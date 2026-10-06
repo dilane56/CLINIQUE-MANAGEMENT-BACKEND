@@ -4,7 +4,7 @@ package org.kfokam48.cliniquemanagementbackend.service.impl;
 import org.springframework.data.domain.Pageable;
 import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
-import org.kfokam48.cliniquemanagementbackend.controlleur.notification.NotificationController;
+import org.kfokam48.cliniquemanagementbackend.service.notification.NotificationService;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureResponseDto;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FacturePaiementUpdateDTO;
@@ -39,15 +39,15 @@ public class FactureServiceImpl implements FactureService {
     private final RendezVousRepository rendezVousRepository;
     private final FactureMapper factureMapper;
     private final LigneFactureMapper ligneFactureMapper;
-    private final NotificationController notificationController;
+    private final NotificationService notificationService;
     private final PdfService pdfService;
 
-    public FactureServiceImpl(FactureRepository factureRepository, RendezVousRepository rendezVousRepository, FactureMapper factureMapper, LigneFactureMapper ligneFactureMapper, NotificationController notificationController, PdfService pdfService) {
+    public FactureServiceImpl(FactureRepository factureRepository, RendezVousRepository rendezVousRepository, FactureMapper factureMapper, LigneFactureMapper ligneFactureMapper, NotificationService notificationService, PdfService pdfService) {
         this.factureRepository = factureRepository;
         this.rendezVousRepository = rendezVousRepository;
         this.factureMapper = factureMapper;
         this.ligneFactureMapper = ligneFactureMapper;
-        this.notificationController = notificationController;
+        this.notificationService = notificationService;
         this.pdfService = pdfService;
     }
 
@@ -137,8 +137,8 @@ public class FactureServiceImpl implements FactureService {
         }
 
         factureRepository.save(facture);
-        notificationController.sendNotificationToAdmins("Facture", "Un paiement a été enregistré sur la facture #" + id);
-        notificationController.sendNotification(facture.getRendezVous().getMedecin().getId(), "Facture", "Un paiement a été enregistré sur la facture #" + id, false);
+        notificationService.sendNotificationToAdmins("Facture", "Un paiement a été enregistré sur la facture #" + id);
+        notificationService.sendNotification(facture.getRendezVous().getMedecin().getId(), "Facture", "Un paiement a été enregistré sur la facture #" + id, false);
         return factureMapper.factureToFactureResponseDto(facture);
     }
 

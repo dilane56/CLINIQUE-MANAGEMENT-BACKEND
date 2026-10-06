@@ -2,7 +2,7 @@ package org.kfokam48.cliniquemanagementbackend.rendezvous;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.kfokam48.cliniquemanagementbackend.controlleur.notification.NotificationController;
+import org.kfokam48.cliniquemanagementbackend.service.notification.NotificationService;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousDTO;
 import org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous;
 import org.kfokam48.cliniquemanagementbackend.mapper.RendezVousMapper;
@@ -38,12 +38,12 @@ class RendezVousNotificationTest {
     private final PatientRepository patientRepository = mock(PatientRepository.class);
     private final TypeRendezVousRepository typeRendezVousRepository = mock(TypeRendezVousRepository.class);
     private final SecretaireRepository secretaireRepository = mock(SecretaireRepository.class);
-    private final NotificationController notificationController = mock(NotificationController.class);
+    private final NotificationService notificationService = mock(NotificationService.class);
     private final EmailService emailService = mock(EmailService.class);
 
     private final RendezVousServiceImpl service = new RendezVousServiceImpl(rendezVousRepository,
             mock(RendezVousMapper.class), patientRepository, medecinRepository, typeRendezVousRepository,
-            secretaireRepository, notificationController, emailService);
+            secretaireRepository, notificationService, emailService);
 
     private Medecin medecin;
     private Patient patient;
@@ -80,8 +80,8 @@ class RendezVousNotificationTest {
         service.save(demande(null));
 
         verify(emailService).sendEmail(eq("patient@test.com"), anyString(), contains("Dr Martin"));
-        verify(notificationController).sendNotification(eq(MEDECIN_ID), anyString(), anyString(), anyBoolean());
-        verify(notificationController, never()).sendNotification(eq(PATIENT_ID), anyString(), anyString(), anyBoolean());
+        verify(notificationService).sendNotification(eq(MEDECIN_ID), anyString(), anyString(), anyBoolean());
+        verify(notificationService, never()).sendNotification(eq(PATIENT_ID), anyString(), anyString(), anyBoolean());
     }
 
     @Test
@@ -93,7 +93,7 @@ class RendezVousNotificationTest {
         service.updateStatut(50L, StatutRendezVous.CONFIRME);
 
         verify(emailService).sendEmail(eq("patient@test.com"), anyString(), contains("CONFIRME"));
-        verify(notificationController, never()).sendNotification(eq(PATIENT_ID), anyString(), anyString(), anyBoolean());
+        verify(notificationService, never()).sendNotification(eq(PATIENT_ID), anyString(), anyString(), anyBoolean());
     }
 
     @Test

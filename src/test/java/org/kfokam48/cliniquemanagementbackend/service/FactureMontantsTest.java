@@ -2,7 +2,7 @@ package org.kfokam48.cliniquemanagementbackend.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.kfokam48.cliniquemanagementbackend.controlleur.notification.NotificationController;
+import org.kfokam48.cliniquemanagementbackend.service.notification.NotificationService;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.lignefacture.LigneFactureDTO;
 import org.kfokam48.cliniquemanagementbackend.enums.StatutFacture;
@@ -129,7 +129,7 @@ class FactureMontantsTest {
         when(factureRepository.findById(1L)).thenReturn(Optional.of(facture));
 
         FactureServiceImpl factureService = new FactureServiceImpl(factureRepository, mock(RendezVousRepository.class),
-                mock(FactureMapper.class), new LigneFactureMapper(), mock(NotificationController.class), mock(PdfService.class));
+                mock(FactureMapper.class), new LigneFactureMapper(), mock(NotificationService.class), mock(PdfService.class));
         FactureDTO factureDTO = new FactureDTO();
         factureDTO.setRendezVousId(5L);
 

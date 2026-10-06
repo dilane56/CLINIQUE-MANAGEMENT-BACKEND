@@ -3,7 +3,7 @@ package org.kfokam48.cliniquemanagementbackend.service.impl;
 import org.springframework.data.domain.Pageable;
 import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
-import org.kfokam48.cliniquemanagementbackend.controlleur.notification.NotificationController;
+import org.kfokam48.cliniquemanagementbackend.service.notification.NotificationService;
 import org.kfokam48.cliniquemanagementbackend.dto.patient.PatientDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.patient.PatientResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.exception.ResourceAlreadyExistException;
@@ -31,13 +31,13 @@ public class PatientServiceImpl implements PatientService {
     private final PatientMapper patientMapper;
     private final UtilisateurRepository utilisateurRepository;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    private final NotificationController notificationController ;
+    private final NotificationService notificationService ;
 
-    public PatientServiceImpl(PatientRepository patientRepository, PatientMapper patientMapper, UtilisateurRepository utilisateurRepository, NotificationController notificationController) {
+    public PatientServiceImpl(PatientRepository patientRepository, PatientMapper patientMapper, UtilisateurRepository utilisateurRepository, NotificationService notificationService) {
         this.patientRepository = patientRepository;
         this.patientMapper = patientMapper;
         this.utilisateurRepository = utilisateurRepository;
-        this.notificationController = notificationController;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class PatientServiceImpl implements PatientService {
         Patient patient = patientMapper.patientDtoToPatient(patientDto);
         patientRepository.save(patient);
         log.info("Patient créé avec succès : {}", patient.getEmail());
-        notificationController.sendNotificationToAdmins("Nouveau patient", "Un nouveau patient a été ajouté");
+        notificationService.sendNotificationToAdmins("Nouveau patient", "Un nouveau patient a été ajouté");
         return patientMapper.patientToPatientResponseDTO(patient);
     }
 

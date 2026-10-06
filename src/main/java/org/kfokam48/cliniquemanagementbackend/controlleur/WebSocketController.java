@@ -2,7 +2,7 @@ package org.kfokam48.cliniquemanagementbackend.controlleur;
 
 import lombok.RequiredArgsConstructor;
 import org.kfokam48.cliniquemanagementbackend.config.WebSocketAuthInterceptor;
-import org.kfokam48.cliniquemanagementbackend.controlleur.notification.NotificationController;
+import org.kfokam48.cliniquemanagementbackend.service.notification.NotificationService;
 import org.kfokam48.cliniquemanagementbackend.dto.message.MessageDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.message.MessageResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.enums.UserStatus;
@@ -24,7 +24,7 @@ public class WebSocketController {
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatService chatService;
     private final UtilisateurRepository utilisateurRepository;
-    private final NotificationController notificationController;
+    private final NotificationService notificationService;
 
     @MessageMapping("/chat.send")
     public void sendMessage(@Payload MessageDTO chatMessage, SimpMessageHeaderAccessor headerAccessor) {
@@ -40,7 +40,7 @@ public class WebSocketController {
                     "/queue/messages",
                     messageResponse
             );
-            notificationController.sendNotification(savedMessage.getDestinataire().getId(), "Nouveau message", "Vous avez un nouveau message de " + savedMessage.getExpediteur().getNom(),false);
+            notificationService.sendNotification(savedMessage.getDestinataire().getId(), "Nouveau message", "Vous avez un nouveau message de " + savedMessage.getExpediteur().getNom(),false);
 
             // Envoi à l'expéditeur pour confirmation
             messagingTemplate.convertAndSendToUser(
@@ -71,7 +71,7 @@ public class WebSocketController {
                 utilisateurRepository.save(user);
 
                 // Notifier tous les utilisateurs du changement de statut
-               notificationController.sendNotification(user.getId(), "Statut mis à jour", "Votre statut a été mis à jour à EN_LIGNE", false);
+               notificationService.sendNotification(user.getId(), "Statut mis à jour", "Votre statut a été mis à jour à EN_LIGNE", false);
                 // Utilisation de DTO pour un formatage plus propre et plus sûr
                 messagingTemplate.convertAndSend("/topic/status",
                         String.format("{\"userId\": %d, \"status\": \"EN_LIGNE\"}", user.getId()));

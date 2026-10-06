@@ -8,9 +8,11 @@ import org.kfokam48.cliniquemanagementbackend.dto.notification.NotificationRespo
 import org.kfokam48.cliniquemanagementbackend.mapper.NotificationMapper;
 import org.kfokam48.cliniquemanagementbackend.model.Notification;
 import org.kfokam48.cliniquemanagementbackend.model.Utilisateur;
+import org.kfokam48.cliniquemanagementbackend.repository.AdministrateurRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.NotificationRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
 import org.kfokam48.cliniquemanagementbackend.service.mail.EmailService;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,6 +26,30 @@ public class NotificationService {
     private final NotificationMapper notificationMapper;
     private final UtilisateurRepository utilisateurRepository;
     private final EmailService emailService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final AdministrateurRepository administrateurRepository;
+
+    /**
+     * Notifie un membre du personnel (Utilisateur) : enregistrement, envoi temps réel (STOMP)
+     * et e-mail optionnel. Ne jamais passer l'identifiant d'un patient : les patients ne sont pas
+     * des utilisateurs, la notification partirait chez le membre du personnel qui a le même
+     * identifiant. Pour un patient, envoyer un e-mail à Patient.email.
+     * (Anciennement NotificationService, déplacé ici : I12.)
+     */
+    public void sendNotification(Long recepteurId, String title, String message, boolean sendMail) {
+        Notification notif = createnotifcation(recepteurId, title, message, sendMail);
+        messagingTemplate.convertAndSendToUser(
+                recepteurId.toString(),
+                "/notifications",
+                convertToNotificationResponseDTO(notif)
+        );
+    }
+
+    // Notifie tous les administrateurs
+    public void sendNotificationToAdmins(String title, String message) {
+        administrateurRepository.findAll()
+                .forEach(admin -> sendNotification(admin.getId(), title, message, false));
+    }
 
 
     public Notification createnotifcation(Long recepteurId, String titre, String message, boolean sendMail ){

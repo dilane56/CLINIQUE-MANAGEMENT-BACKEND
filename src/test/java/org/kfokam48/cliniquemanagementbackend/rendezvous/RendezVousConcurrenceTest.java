@@ -2,7 +2,7 @@ package org.kfokam48.cliniquemanagementbackend.rendezvous;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.kfokam48.cliniquemanagementbackend.controlleur.notification.NotificationController;
+import org.kfokam48.cliniquemanagementbackend.service.notification.NotificationService;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousDTO;
 import org.kfokam48.cliniquemanagementbackend.mapper.MapperConfig;
 import org.kfokam48.cliniquemanagementbackend.mapper.RendezVousMapper;
@@ -61,7 +61,7 @@ class RendezVousConcurrenceTest {
     @Autowired private PatientRepository patientRepository;
     @Autowired private TypeRendezVousRepository typeRendezVousRepository;
 
-    @MockitoBean private NotificationController notificationController;
+    @MockitoBean private NotificationService notificationService;
     @MockitoBean private EmailService emailService;
 
     @AfterEach
@@ -99,7 +99,7 @@ class RendezVousConcurrenceTest {
                 Thread.sleep(1500);
             }
             return null;
-        }).when(notificationController).sendNotification(anyLong(), anyString(), anyString(), anyBoolean());
+        }).when(notificationService).sendNotification(anyLong(), anyString(), anyString(), anyBoolean());
 
         ExecutorService executor = Executors.newFixedThreadPool(2);
         try {
