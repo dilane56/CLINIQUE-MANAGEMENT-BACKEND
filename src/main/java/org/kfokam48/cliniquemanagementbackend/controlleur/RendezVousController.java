@@ -22,7 +22,7 @@ public class RendezVousController {
         this.rendezVousService = rendezVousService;
     }
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.isCurrentUser(#rendezVousDTO.medecinId))")
     public ResponseEntity<RendezVousResponseDTO> createRendezVous(@Valid @RequestBody RendezVousDTO rendezVousDTO) {
         RendezVousResponseDTO rendezVous = rendezVousService.save(rendezVousDTO);
         return ResponseEntity.ok(rendezVous);
@@ -36,14 +36,14 @@ public class RendezVousController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.ownsRendezVous(#id))")
     public ResponseEntity<RendezVousResponseDTO> getRendezVousById(@PathVariable Long id) {
         RendezVousResponseDTO rendezVous = rendezVousService.findById(id);
         return ResponseEntity.ok(rendezVous);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.ownsRendezVous(#id) and @authz.isCurrentUser(#rendezVousDTO.medecinId))")
     public ResponseEntity<RendezVousResponseDTO> updateRendezVous(@PathVariable Long id, @Valid @RequestBody RendezVousUpdateDto rendezVousDTO) {
         RendezVousResponseDTO updatedRendezVous = rendezVousService.update(id, rendezVousDTO);
         return ResponseEntity.ok(updatedRendezVous);
@@ -63,7 +63,7 @@ public class RendezVousController {
     }
 
     @PatchMapping("/{id}/statut")
-    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.ownsRendezVous(#id))")
     public ResponseEntity<RendezVousResponseDTO> updateStatutRendezVous(@PathVariable Long id, @RequestParam("statut") StatutRendezVous statut) {
         RendezVousResponseDTO updatedRendezVous = rendezVousService.updateStatut(id, statut);
         return ResponseEntity.ok(updatedRendezVous);

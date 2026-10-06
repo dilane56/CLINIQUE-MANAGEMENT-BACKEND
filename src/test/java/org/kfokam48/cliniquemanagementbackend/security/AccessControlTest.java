@@ -233,6 +233,76 @@ class AccessControlTest {
         mockMvc.perform(put("/api/notifications/9/read")).andExpect(status().isForbidden());
     }
 
+    // --- C7b : contrôle de propriété sur les routes par identifiant ---
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void medecinCanViewOwnRendezVous() throws Exception {
+        when(authz.ownsRendezVous(10L)).thenReturn(true);
+        mockMvc.perform(get("/api/rendezvous/10")).andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void medecinCannotViewOtherMedecinRendezVous() throws Exception {
+        when(authz.ownsRendezVous(11L)).thenReturn(false);
+        mockMvc.perform(get("/api/rendezvous/11")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void medecinCannotReassignRendezVousToAnotherMedecin() throws Exception {
+        when(authz.ownsRendezVous(10L)).thenReturn(true);
+        when(authz.isCurrentUser(AUTRE_MEDECIN)).thenReturn(false);
+        mockMvc.perform(put("/api/rendezvous/10")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"dateRendezVous\":\"2026-11-02T10:00:00\",\"patientId\":3,"
+                                + "\"medecinId\":" + AUTRE_MEDECIN + ",\"typeRendezVousId\":1}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void medecinCannotChangeStatusOfOtherMedecinRendezVous() throws Exception {
+        when(authz.ownsRendezVous(11L)).thenReturn(false);
+        mockMvc.perform(patch("/api/rendezvous/11/statut").param("statut", "TERMINE"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void medecinCannotViewOtherMedecinFacture() throws Exception {
+        when(authz.ownsFacture(7L)).thenReturn(false);
+        mockMvc.perform(get("/api/factures/7")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void medecinCannotViewOtherMedecinPrescription() throws Exception {
+        when(authz.ownsPrescription(4L)).thenReturn(false);
+        mockMvc.perform(get("/api/prescriptions/4")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void medecinCanViewOwnPrescription() throws Exception {
+        when(authz.ownsPrescription(4L)).thenReturn(true);
+        mockMvc.perform(get("/api/prescriptions/4")).andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void medecinCannotDeleteOtherMedecinPrescription() throws Exception {
+        when(authz.ownsPrescription(4L)).thenReturn(false);
+        mockMvc.perform(delete("/api/prescriptions/4")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "SECRETAIRE")
+    void secretaireStillViewsAnyRendezVous() throws Exception {
+        mockMvc.perform(get("/api/rendezvous/11")).andExpect(status().isOk());
+    }
+
     // --- C14 : envoi d'e-mail libre réservé à l'admin ---
 
     private static final String MAIL_VALIDE =

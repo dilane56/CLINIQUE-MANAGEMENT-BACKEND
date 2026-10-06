@@ -38,7 +38,7 @@ public class FactureController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.ownsFacture(#id))")
     public ResponseEntity<FactureResponseDto> getFactureById(@PathVariable Long id) {
         return ResponseEntity.ok(factureService.findById(id));
     }
@@ -68,7 +68,7 @@ public class FactureController {
     }
 
     @GetMapping("/{id}/pdf")
-    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.ownsFacture(#id))")
     public ResponseEntity<byte[]> generateFacturePdf(@PathVariable Long id) throws DocumentException {
         ByteArrayOutputStream pdfOutputStream = factureService.generatePdf(id);
         HttpHeaders headers = new HttpHeaders();

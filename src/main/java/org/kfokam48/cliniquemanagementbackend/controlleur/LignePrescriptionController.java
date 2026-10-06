@@ -22,25 +22,25 @@ public class LignePrescriptionController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('MEDECIN')")
+    @PreAuthorize("hasRole('MEDECIN') and @authz.ownsLignePrescription(#id)")
     public LignePrescriptionResponseDTO modifier(@PathVariable Long id, @RequestBody LignePrescriptionUpdateDTO dto) {
         return service.modifierLigne(id, dto);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('MEDECIN')")
+    @PreAuthorize("hasRole('MEDECIN') and @authz.ownsLignePrescription(#id)")
     public void supprimer(@PathVariable Long id) {
         service.supprimerLigne(id);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.ownsLignePrescription(#id))")
     public LignePrescriptionResponseDTO getLigne(@PathVariable Long id) {
         return service.getLigne(id);
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public List<LignePrescriptionResponseDTO> lister() {
         return service.listerLignes();
     }

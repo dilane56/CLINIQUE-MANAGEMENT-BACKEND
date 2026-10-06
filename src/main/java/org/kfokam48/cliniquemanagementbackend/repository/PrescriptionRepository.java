@@ -13,4 +13,7 @@ import java.util.List;
 public interface PrescriptionRepository extends JpaRepository<Prescription, Long> {
     @Query("SELECT p FROM Prescription p WHERE p.rendezVous.medecin.id = :medecinId")
     List<Prescription> findByMedecinId(@Param("medecinId") Long medecinId);
+
+    // Contrôle de propriété (@authz) : cette prescription appartient-elle à ce médecin ?
+    boolean existsByIdAndRendezVous_Medecin_Id(Long id, Long medecinId);
 }

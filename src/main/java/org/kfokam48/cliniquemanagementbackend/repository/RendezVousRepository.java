@@ -20,4 +20,7 @@ public interface RendezVousRepository extends JpaRepository<RendezVous, Long> {
     boolean existsByPatientIdAndDateRendezVousBetweenAndIdNot(Long patientId, LocalDateTime startOfDay, LocalDateTime endOfDay, Long id);
     List<RendezVous> findAllByStatutRendezVous(StatutRendezVous statutRendezVous);
 
+    // Contrôle de propriété (@authz) : ce rendez-vous appartient-il à ce médecin ?
+    boolean existsByIdAndMedecin_Id(Long id, Long medecinId);
+
 }

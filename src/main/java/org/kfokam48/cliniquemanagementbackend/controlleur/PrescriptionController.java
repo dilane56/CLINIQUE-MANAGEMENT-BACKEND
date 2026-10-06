@@ -38,7 +38,7 @@ public class PrescriptionController {
 
     // Endpoint pour créer une nouvelle prescription
     @PostMapping
-    @PreAuthorize("hasRole('MEDECIN')")
+    @PreAuthorize("hasRole('MEDECIN') and @authz.ownsRendezVous(#prescriptionDTO.rendezVousId)")
     public ResponseEntity<PrescriptionResponseDTO> createPrescription(@RequestBody @Valid PrescriptionDTO prescriptionDTO) {
         PrescriptionResponseDTO prescription = prescriptionService.save(prescriptionDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(prescription);
@@ -46,7 +46,7 @@ public class PrescriptionController {
 
     // Endpoint pour récupérer une prescription par son ID
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.ownsPrescription(#id))")
     public ResponseEntity<PrescriptionResponseDTO> getPrescriptionById(@PathVariable Long id) {
         PrescriptionResponseDTO prescription = prescriptionService.findById(id);
         return ResponseEntity.ok(prescription);
@@ -54,7 +54,7 @@ public class PrescriptionController {
 
     // Endpoint pour mettre à jour une prescription existante
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('MEDECIN')")
+    @PreAuthorize("hasRole('MEDECIN') and @authz.ownsPrescription(#id) and @authz.ownsRendezVous(#prescriptionDTO.rendezVousId)")
     public ResponseEntity<PrescriptionResponseDTO> updatePrescription(@PathVariable Long id, @RequestBody @Valid PrescriptionUpdateDTO prescriptionDTO) {
         PrescriptionResponseDTO updatedPrescription = prescriptionService.update(id, prescriptionDTO);
         return ResponseEntity.ok(updatedPrescription);
@@ -70,13 +70,13 @@ public class PrescriptionController {
 
     // Endpoint pour supprimer une prescription par son ID
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN')")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('MEDECIN') and @authz.ownsPrescription(#id))")
     public ResponseEntity<String> deletePrescription(@PathVariable Long id) {
         return prescriptionService.deleteById(id);
     }
 
     @GetMapping("/{id}/pdf")
-    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.ownsPrescription(#id))")
     public ResponseEntity<byte[]> generatePrescriptionPdf(@PathVariable Long id) throws DocumentException, FileNotFoundException {
         Prescription prescription = prescriptionRepository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Prescription not found"));
         if (prescription == null) {

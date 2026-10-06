@@ -33,13 +33,13 @@ public class LigneFactureController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.ownsLigneFacture(#id))")
     public LigneFactureResponseDTO getLigne(@PathVariable Long id) {
         return service.getLigne(id);
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public List<LigneFactureResponseDTO> lister() {
         return service.listerLignes();
     }
