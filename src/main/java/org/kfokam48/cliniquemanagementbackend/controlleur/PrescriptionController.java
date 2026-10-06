@@ -12,7 +12,7 @@ import org.kfokam48.cliniquemanagementbackend.dto.prescription.PrescriptionUpdat
 import org.kfokam48.cliniquemanagementbackend.exception.RessourceNotFoundException;
 import org.kfokam48.cliniquemanagementbackend.model.Prescription;
 import org.kfokam48.cliniquemanagementbackend.repository.PrescriptionRepository;
-import org.kfokam48.cliniquemanagementbackend.service.impl.PrescriptionServiceImpl;
+import org.kfokam48.cliniquemanagementbackend.service.PrescriptionService;
 import org.kfokam48.cliniquemanagementbackend.service.pdf.PdfService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -27,11 +27,11 @@ import java.util.List;
 @RequestMapping("/api/prescriptions")
 public class PrescriptionController {
 
-    private final PrescriptionServiceImpl prescriptionService;
+    private final PrescriptionService prescriptionService;
     private final PdfService pdfService;
     private final PrescriptionRepository prescriptionRepository;
 
-    public PrescriptionController(PrescriptionServiceImpl prescriptionService, PdfService pdfService, PrescriptionRepository prescriptionRepository) {
+    public PrescriptionController(PrescriptionService prescriptionService, PdfService pdfService, PrescriptionRepository prescriptionRepository) {
         this.prescriptionService = prescriptionService;
         this.pdfService = pdfService;
 

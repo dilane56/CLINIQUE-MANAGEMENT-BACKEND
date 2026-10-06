@@ -9,7 +9,7 @@ import org.kfokam48.cliniquemanagementbackend.dto.medecin.MedecinDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.medecin.MedecinResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.mapper.MedecinMapper;
 import org.kfokam48.cliniquemanagementbackend.model.Medecin;
-import org.kfokam48.cliniquemanagementbackend.service.impl.MedecinServiceImpl;
+import org.kfokam48.cliniquemanagementbackend.service.MedecinService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +19,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/medecins")
 public class MedecinController {
-    private final MedecinServiceImpl medecinService;
+    private final MedecinService medecinService;
     private final MedecinMapper medecinMapper;
 
-    public MedecinController(MedecinServiceImpl medecinService, MedecinMapper medecinMapper) {
+    public MedecinController(MedecinService medecinService, MedecinMapper medecinMapper) {
         this.medecinService = medecinService;
         this.medecinMapper = medecinMapper;
     }

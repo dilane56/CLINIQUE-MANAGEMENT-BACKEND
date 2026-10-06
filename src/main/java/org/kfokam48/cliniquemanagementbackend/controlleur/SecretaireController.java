@@ -8,7 +8,7 @@ import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.dto.secretaire.SecretaireDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.secretaire.SecretaireResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.model.Secretaire;
-import org.kfokam48.cliniquemanagementbackend.service.impl.SecretaireServiceImpl;
+import org.kfokam48.cliniquemanagementbackend.service.SecretaireService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,9 +18,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/secretaires")
 public class SecretaireController {
-    private final SecretaireServiceImpl secretaireService;
+    private final SecretaireService secretaireService;
 
-    public SecretaireController(SecretaireServiceImpl secretaireService) {
+    public SecretaireController(SecretaireService secretaireService) {
         this.secretaireService = secretaireService;
     }
     @PostMapping

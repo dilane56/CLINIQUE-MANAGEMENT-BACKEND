@@ -8,7 +8,7 @@ import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.dto.patient.PatientDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.patient.PatientResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.model.Patient;
-import org.kfokam48.cliniquemanagementbackend.service.impl.PatientServiceImpl;
+import org.kfokam48.cliniquemanagementbackend.service.PatientService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,9 +18,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/patients")
 public class PatientController {
-    private final PatientServiceImpl patientService;
+    private final PatientService patientService;
 
-    public PatientController(PatientServiceImpl patientService) {
+    public PatientController(PatientService patientService) {
         this.patientService = patientService;
     }
     @PostMapping

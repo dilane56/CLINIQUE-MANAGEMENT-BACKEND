@@ -9,7 +9,7 @@ import org.kfokam48.cliniquemanagementbackend.dto.AdministrateurDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.mapper.UtilisateurMapper;
 import org.kfokam48.cliniquemanagementbackend.model.Administrateur;
-import org.kfokam48.cliniquemanagementbackend.service.impl.AdministrateurServiceImpl;
+import org.kfokam48.cliniquemanagementbackend.service.AdministrateurService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +19,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/administrateurs")
 public class AdministrateurController {
-    private final AdministrateurServiceImpl administrateurService;
+    private final AdministrateurService administrateurService;
     private final UtilisateurMapper utilisateurMapper;
 
-    public AdministrateurController(AdministrateurServiceImpl administrateurService, UtilisateurMapper utilisateurMapper) {
+    public AdministrateurController(AdministrateurService administrateurService, UtilisateurMapper utilisateurMapper) {
         this.administrateurService = administrateurService;
         this.utilisateurMapper = utilisateurMapper;
     }

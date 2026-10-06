@@ -10,7 +10,7 @@ import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurRespons
 import org.kfokam48.cliniquemanagementbackend.mapper.UtilisateurMapper;
 import org.kfokam48.cliniquemanagementbackend.model.Utilisateur;
 
-import org.kfokam48.cliniquemanagementbackend.service.impl.UtilisateurServiceImpl;
+import org.kfokam48.cliniquemanagementbackend.service.UtilisateurService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,10 +20,10 @@ import java.util.List;
 @RequestMapping("/api/utilisateurs") // URL de base pour le contrôleur
 public class UtilisateurController {
 
-    private final UtilisateurServiceImpl utilisateurService;
+    private final UtilisateurService utilisateurService;
     private final UtilisateurMapper utilisateurMapper;
 
-    public UtilisateurController(UtilisateurServiceImpl utilisateurService, UtilisateurMapper utilisateurMapper) {
+    public UtilisateurController(UtilisateurService utilisateurService, UtilisateurMapper utilisateurMapper) {
         this.utilisateurService = utilisateurService;
         this.utilisateurMapper = utilisateurMapper;
     }

@@ -10,7 +10,7 @@ import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousUpdateDto;
 import org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous;
-import org.kfokam48.cliniquemanagementbackend.service.impl.RendezVousServiceImpl;
+import org.kfokam48.cliniquemanagementbackend.service.RendezVousService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,9 +19,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/rendezvous")
 public class RendezVousController {
-    private final RendezVousServiceImpl rendezVousService;
+    private final RendezVousService rendezVousService;
 
-    public RendezVousController(RendezVousServiceImpl rendezVousService) {
+    public RendezVousController(RendezVousService rendezVousService) {
         this.rendezVousService = rendezVousService;
     }
     @PostMapping
