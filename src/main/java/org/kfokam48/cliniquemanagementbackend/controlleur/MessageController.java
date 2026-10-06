@@ -1,4 +1,5 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import lombok.RequiredArgsConstructor;
 import org.kfokam48.cliniquemanagementbackend.dto.message.MessageResponseDTO;
@@ -16,6 +17,7 @@ public class MessageController {
     private final ChatService chatService;
 
     @GetMapping("/conversation/{user1Id}/{user2Id}")
+    @PreAuthorize("@authz.isCurrentUser(#user1Id) or @authz.isCurrentUser(#user2Id)")
     public ResponseEntity<List<MessageResponseDTO>> getConversation(
             @PathVariable Long user1Id,
             @PathVariable Long user2Id) {
@@ -28,6 +30,7 @@ public class MessageController {
     }
 
     @PostMapping("/mark-as-read/{senderId}/{recipientId}")
+    @PreAuthorize("@authz.isCurrentUser(#senderId) or @authz.isCurrentUser(#recipientId)")
     public ResponseEntity<Void> markMessagesAsRead(
             @PathVariable Long senderId,
             @PathVariable Long recipientId) {
@@ -41,6 +44,7 @@ public class MessageController {
 
     // Le reste des méthodes REST, comme getUserConversations
     @GetMapping("/conversations/{userId}")
+    @PreAuthorize("@authz.isCurrentUser(#userId)")
     public ResponseEntity<?> getUserConversations(@PathVariable Long userId) {
         try {
             return ResponseEntity.ok(chatService.getUserConversations(userId));

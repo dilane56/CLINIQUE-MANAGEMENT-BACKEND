@@ -1,4 +1,5 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.itextpdf.text.DocumentException;
 import jakarta.validation.Valid;
@@ -25,41 +26,49 @@ public class FactureController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public ResponseEntity<FactureResponseDto> createFacture(@Valid @RequestBody FactureDTO factureDTO) {
         return ResponseEntity.ok(factureService.save(factureDTO));
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public ResponseEntity<List<FactureResponseDto>> getAllFactures() {
         return ResponseEntity.ok(factureService.findAll());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public ResponseEntity<FactureResponseDto> getFactureById(@PathVariable Long id) {
         return ResponseEntity.ok(factureService.findById(id));
     }
 
     @GetMapping("/medecin/{medecinId}")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.isCurrentUser(#medecinId))")
     public ResponseEntity<List<FactureResponseDto>> getFacturesByMedecin(@PathVariable Long medecinId) {
         return ResponseEntity.ok(factureService.findByMedecinId(medecinId));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public ResponseEntity<FactureResponseDto> updateFacture(@PathVariable Long id, @Valid @RequestBody FactureDTO factureDTO) {
         return ResponseEntity.ok(factureService.update(id, factureDTO));
     }
 
     @PutMapping("/{id}/paiement")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public ResponseEntity<FactureResponseDto> updatePaiementFacture(@PathVariable Long id, @Valid @RequestBody FacturePaiementUpdateDTO paiementUpdateDTO) {
         return ResponseEntity.ok(factureService.updatePaiement(id, paiementUpdateDTO));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteFacture(@PathVariable Long id) {
         return factureService.deleteById(id);
     }
 
     @GetMapping("/{id}/pdf")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public ResponseEntity<byte[]> generateFacturePdf(@PathVariable Long id) throws DocumentException {
         ByteArrayOutputStream pdfOutputStream = factureService.generatePdf(id);
         HttpHeaders headers = new HttpHeaders();

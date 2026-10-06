@@ -1,4 +1,5 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.Contact;
@@ -28,6 +29,7 @@ public class UtilisateurController {
 
     // Endpoint pour récupérer un utilisateur par ID
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public ResponseEntity<UtilisateurResponseDTO> getUtilisateurById(@PathVariable Long id) {
         Utilisateur utilisateur = utilisateurService.findById(id);
         return new ResponseEntity<>(utilisateurMapper.utilisateurToUtilisateurResponseDTO(utilisateur), HttpStatus.OK);
@@ -36,18 +38,21 @@ public class UtilisateurController {
 
     // Endpoint pour supprimer un utilisateur par ID
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteUtilisateur(@PathVariable Long id) {
         return utilisateurService.deleteById(id);
     }
 
     // Endpoint pour récupérer tous les utilisateurs
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public ResponseEntity<List<UtilisateurResponseDTO>> getAllUtilisateurs() {
         List<UtilisateurResponseDTO> utilisateurs = utilisateurService.findAll();
         return new ResponseEntity<>(utilisateurs, HttpStatus.OK);
     }
 
     @GetMapping("/contacts")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public ResponseEntity<List<Contact>> getAllContacts() {
         List<Contact> contacts = utilisateurService.findAllContacts();
         return new ResponseEntity<>(contacts, HttpStatus.OK);

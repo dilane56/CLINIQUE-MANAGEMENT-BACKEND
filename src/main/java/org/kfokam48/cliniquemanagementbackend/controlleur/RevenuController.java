@@ -1,4 +1,5 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import org.kfokam48.cliniquemanagementbackend.dto.RevenuDTO;
 import org.kfokam48.cliniquemanagementbackend.service.RevenuService;
@@ -16,6 +17,7 @@ public class RevenuController {
     private RevenuService revenuService;
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RevenuDTO> getRevenuMensuel() {
         RevenuDTO revenus = revenuService.getRevenuMensuel();
         return ResponseEntity.ok(revenus);

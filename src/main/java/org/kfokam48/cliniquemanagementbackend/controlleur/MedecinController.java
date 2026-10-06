@@ -33,21 +33,21 @@ public class MedecinController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('SECRETAIRE')") // Accès pour les rôles MEDECIN et ADMIN
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public ResponseEntity<List<MedecinResponseDTO>> getAllMedecins() {
         List<MedecinResponseDTO> medecins = medecinService.findAll();
         return ResponseEntity.ok(medecins);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('MEDECIN') or hasRole('ADMIN') or hasRole('SECRETARE')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public ResponseEntity<MedecinResponseDTO> getMedecinById(@PathVariable Long id) {
         MedecinResponseDTO medecin = medecinService.findById(id);
         return ResponseEntity.ok(medecin);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('MEDECIN') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('MEDECIN') and @authz.isCurrentUser(#id))")
     public ResponseEntity<MedecinResponseDTO> updateMedecin(@PathVariable Long id,@Valid @RequestBody MedecinDTO medecinDTO) {
         MedecinResponseDTO updatedMedecin = medecinService.update(id, medecinDTO);
         return ResponseEntity.ok(updatedMedecin);

@@ -49,18 +49,21 @@ public class AdministrateurController {
     }
 
     @PutMapping("/update/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UtilisateurResponseDTO> updateAdministrateur(@PathVariable Long id,@Valid @RequestBody AdministrateurDTO administrateurDTO) {
         Administrateur updatedAdministrateur = administrateurService.update(id, administrateurDTO);
         return ResponseEntity.ok(utilisateurMapper.utilisateurToUtilisateurResponseDTO(updatedAdministrateur));
     }
 
     @GetMapping("/email/{email}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UtilisateurResponseDTO> getAdministrateurByEmail(@PathVariable String email) {
         Administrateur administrateur = administrateurService.findByEmail(email);
         return ResponseEntity.ok(utilisateurMapper.utilisateurToUtilisateurResponseDTO(administrateur));
     }
 
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteAdministrateur(@PathVariable Long id) {
         return administrateurService.deleteById(id);
     }

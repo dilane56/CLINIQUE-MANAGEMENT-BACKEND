@@ -1,4 +1,5 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import org.kfokam48.cliniquemanagementbackend.dto.ligneprescription.LignePrescriptionDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.ligneprescription.LignePrescriptionResponseDTO;
@@ -15,26 +16,31 @@ public class LignePrescriptionController {
     private LignePrescriptionService service;
 
     @PostMapping
+    @PreAuthorize("hasRole('MEDECIN')")
     public LignePrescriptionResponseDTO ajouter(@RequestBody LignePrescriptionDTO dto) {
         return service.ajouterLigne(dto);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('MEDECIN')")
     public LignePrescriptionResponseDTO modifier(@PathVariable Long id, @RequestBody LignePrescriptionUpdateDTO dto) {
         return service.modifierLigne(id, dto);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('MEDECIN')")
     public void supprimer(@PathVariable Long id) {
         service.supprimerLigne(id);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public LignePrescriptionResponseDTO getLigne(@PathVariable Long id) {
         return service.getLigne(id);
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public List<LignePrescriptionResponseDTO> lister() {
         return service.listerLignes();
     }

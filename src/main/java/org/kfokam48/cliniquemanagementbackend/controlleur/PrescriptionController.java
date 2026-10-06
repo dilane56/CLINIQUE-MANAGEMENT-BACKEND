@@ -1,4 +1,5 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.itextpdf.text.DocumentException;
 import jakarta.validation.Valid;
@@ -37,6 +38,7 @@ public class PrescriptionController {
 
     // Endpoint pour créer une nouvelle prescription
     @PostMapping
+    @PreAuthorize("hasRole('MEDECIN')")
     public ResponseEntity<PrescriptionResponseDTO> createPrescription(@RequestBody @Valid PrescriptionDTO prescriptionDTO) {
         PrescriptionResponseDTO prescription = prescriptionService.save(prescriptionDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(prescription);
@@ -44,6 +46,7 @@ public class PrescriptionController {
 
     // Endpoint pour récupérer une prescription par son ID
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public ResponseEntity<PrescriptionResponseDTO> getPrescriptionById(@PathVariable Long id) {
         PrescriptionResponseDTO prescription = prescriptionService.findById(id);
         return ResponseEntity.ok(prescription);
@@ -51,6 +54,7 @@ public class PrescriptionController {
 
     // Endpoint pour mettre à jour une prescription existante
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('MEDECIN')")
     public ResponseEntity<PrescriptionResponseDTO> updatePrescription(@PathVariable Long id, @RequestBody @Valid PrescriptionUpdateDTO prescriptionDTO) {
         PrescriptionResponseDTO updatedPrescription = prescriptionService.update(id, prescriptionDTO);
         return ResponseEntity.ok(updatedPrescription);
@@ -58,6 +62,7 @@ public class PrescriptionController {
 
     // Endpoint pour récupérer toutes les prescriptions
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public ResponseEntity<List<PrescriptionResponseDTO>> getAllPrescriptions() {
         List<PrescriptionResponseDTO> prescriptions = prescriptionService.findAll();
         return ResponseEntity.ok(prescriptions);
@@ -65,11 +70,13 @@ public class PrescriptionController {
 
     // Endpoint pour supprimer une prescription par son ID
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN')")
     public ResponseEntity<String> deletePrescription(@PathVariable Long id) {
         return prescriptionService.deleteById(id);
     }
 
     @GetMapping("/{id}/pdf")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public ResponseEntity<byte[]> generatePrescriptionPdf(@PathVariable Long id) throws DocumentException, FileNotFoundException {
         Prescription prescription = prescriptionRepository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Prescription not found"));
         if (prescription == null) {
@@ -87,6 +94,7 @@ public class PrescriptionController {
 
     // Endpoint pour récupérer toutes les prescriptions d'un médecin spécifique
     @GetMapping("/medecin/{medecinId}")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.isCurrentUser(#medecinId))")
     public ResponseEntity<List<PrescriptionResponseDTO>> getPrescriptionsByMedecinId(@PathVariable Long medecinId) {
         List<PrescriptionResponseDTO> prescriptions = prescriptionService.findByMedecinId(medecinId);
         return ResponseEntity.ok(prescriptions);

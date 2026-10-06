@@ -1,4 +1,5 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 
 import jakarta.validation.Valid;
@@ -21,47 +22,55 @@ public class RendezVousController {
         this.rendezVousService = rendezVousService;
     }
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public ResponseEntity<RendezVousResponseDTO> createRendezVous(@Valid @RequestBody RendezVousDTO rendezVousDTO) {
         RendezVousResponseDTO rendezVous = rendezVousService.save(rendezVousDTO);
         return ResponseEntity.ok(rendezVous);
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public ResponseEntity<List<RendezVousResponseDTO>> getAllRendezVous() {
         List<RendezVousResponseDTO> rendezVousList = rendezVousService.findAll();
         return ResponseEntity.ok(rendezVousList);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public ResponseEntity<RendezVousResponseDTO> getRendezVousById(@PathVariable Long id) {
         RendezVousResponseDTO rendezVous = rendezVousService.findById(id);
         return ResponseEntity.ok(rendezVous);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public ResponseEntity<RendezVousResponseDTO> updateRendezVous(@PathVariable Long id, @Valid @RequestBody RendezVousUpdateDto rendezVousDTO) {
         RendezVousResponseDTO updatedRendezVous = rendezVousService.update(id, rendezVousDTO);
         return ResponseEntity.ok(updatedRendezVous);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public ResponseEntity<String> deleteRendezVous(@PathVariable Long id) {
         return rendezVousService.deleteById(id);
     }
 
     @GetMapping("/medecin/{medecinId}")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.isCurrentUser(#medecinId))")
     public ResponseEntity<List<RendezVousResponseDTO>> getRendezVousByMedecin(@PathVariable Long medecinId) {
         List<RendezVousResponseDTO> rendezVousList = rendezVousService.findByMedecinId(medecinId);
         return ResponseEntity.ok(rendezVousList);
     }
 
     @PatchMapping("/{id}/statut")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public ResponseEntity<RendezVousResponseDTO> updateStatutRendezVous(@PathVariable Long id, @RequestParam("statut") StatutRendezVous statut) {
         RendezVousResponseDTO updatedRendezVous = rendezVousService.updateStatut(id, statut);
         return ResponseEntity.ok(updatedRendezVous);
     }
 
     @GetMapping("/medecin/{medecinId}/aujourd'hui")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.isCurrentUser(#medecinId))")
     public ResponseEntity<List<RendezVousResponseDTO>> getRendezVousDuJourByMedecin(@PathVariable Long medecinId) {
         List<RendezVousResponseDTO> rendezVousList = rendezVousService.findRendezVousDuJourByMedecin(medecinId);
         return ResponseEntity.ok(rendezVousList);

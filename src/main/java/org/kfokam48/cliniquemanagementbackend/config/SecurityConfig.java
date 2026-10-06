@@ -61,17 +61,17 @@ public class SecurityConfig {
                         })
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // Seules ces routes sont publiques : tout le reste exige un JWT,
+                        // et les droits par rôle sont définis par @PreAuthorize dans les contrôleurs
                         .requestMatchers(
+                                "/",
+                                "/health",
+                                "/actuator/health/**",
                                 "/api/auth/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-resources/**",
                                 "/webjars/**",
-                                "/api/secretaires",
-                                "/api/patient",
-                                "/api/administrateurs/create",
-                                "/api/medecins",
-                                "/api/utilisateurs",
                                 "/ws-chat/**"
                         ).permitAll()
                         .anyRequest().authenticated())

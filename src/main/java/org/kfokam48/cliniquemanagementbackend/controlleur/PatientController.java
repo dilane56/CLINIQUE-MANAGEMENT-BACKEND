@@ -21,42 +21,42 @@ public class PatientController {
         this.patientService = patientService;
     }
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('SECRETAIRE')") // Accès pour les rôles MEDECIN, ADMIN et SECRETAIRE
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public ResponseEntity<PatientResponseDTO> createPatient(@Valid @RequestBody PatientDTO patientDto) {
         PatientResponseDTO patient = patientService.save(patientDto);
         return ResponseEntity.ok(patient);
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('MEDECIN') or hasRole('ADMIN') or hasRole('SECRETAIRE')") // Accès pour les rôles MEDECIN, ADMIN et SECRETAIRE
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public ResponseEntity<List<PatientResponseDTO>> getAllPatients() {
         List<PatientResponseDTO> patients = patientService.findAll();
         return ResponseEntity.ok(patients);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('MEDECIN') or hasRole('ADMIN') or hasRole('SECRETAIRE')") // Accès pour les rôles MEDECIN, ADMIN et SECRETAIRE et PATIENT
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public ResponseEntity<PatientResponseDTO> getPatientById(@PathVariable Long id) {
         PatientResponseDTO patient = patientService.findById(id);
         return ResponseEntity.ok(patient);
     }
 
     @GetMapping("/medecin/{medecinId}")
-    @PreAuthorize("hasRole('MEDECIN') or hasRole('ADMIN') or hasRole('SECRETAIRE')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.isCurrentUser(#medecinId))")
     public ResponseEntity<List<PatientResponseDTO>> getPatientsByMedecinId(@PathVariable Long medecinId) {
         List<PatientResponseDTO> patients = patientService.findByMedecinId(medecinId);
         return ResponseEntity.ok(patients);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('MEDECIN') or hasRole('ADMIN') or hasRole('SECRETAIRE') or hasRole('PATIENT')") // Accès pour les rôles MEDECIN, ADMIN et SECRETAIRE et PATIENT
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public ResponseEntity<PatientResponseDTO> updatePatient(@PathVariable Long id,@Valid @RequestBody PatientDTO patientDto) {
         PatientResponseDTO updatedPatient = patientService.update(id, patientDto);
         return ResponseEntity.ok(updatedPatient);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('MEDECIN') or hasRole('ADMIN') or hasRole('SECRETAIRE')") // Accès pour les rôles MEDECIN, ADMIN et SECRETAIRE
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')") // Un médecin ne peut pas supprimer de patient
     public ResponseEntity<String> deletePatient(@PathVariable Long id) {
         return patientService.deleteById(id);
     }
