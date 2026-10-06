@@ -4,6 +4,7 @@ package org.kfokam48.cliniquemanagementbackend.controlleur;
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.dto.medecin.MedecinDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.medecin.MedecinResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.mapper.MedecinMapper;
 import org.kfokam48.cliniquemanagementbackend.model.Medecin;
 import org.kfokam48.cliniquemanagementbackend.service.impl.MedecinServiceImpl;
 import org.springframework.http.ResponseEntity;
@@ -16,17 +17,19 @@ import java.util.List;
 @RequestMapping("/api/medecins")
 public class MedecinController {
     private final MedecinServiceImpl medecinService;
+    private final MedecinMapper medecinMapper;
 
-    public MedecinController(MedecinServiceImpl medecinService) {
+    public MedecinController(MedecinServiceImpl medecinService, MedecinMapper medecinMapper) {
         this.medecinService = medecinService;
+        this.medecinMapper = medecinMapper;
     }
 
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Medecin> createMedecin(@Valid @RequestBody MedecinDTO medecinDTO) {
+    public ResponseEntity<MedecinResponseDTO> createMedecin(@Valid @RequestBody MedecinDTO medecinDTO) {
         Medecin medecin = medecinService.save(medecinDTO);
-        return ResponseEntity.ok(medecin);
+        return ResponseEntity.ok(medecinMapper.medecinToMedecinResponseDto(medecin));
     }
 
     @GetMapping

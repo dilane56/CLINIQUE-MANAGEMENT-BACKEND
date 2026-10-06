@@ -3,6 +3,7 @@ package org.kfokam48.cliniquemanagementbackend.controlleur;
 
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.Contact;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurResponseDTO;
+import org.kfokam48.cliniquemanagementbackend.mapper.UtilisateurMapper;
 import org.kfokam48.cliniquemanagementbackend.model.Utilisateur;
 
 import org.kfokam48.cliniquemanagementbackend.service.impl.UtilisateurServiceImpl;
@@ -16,18 +17,20 @@ import java.util.List;
 public class UtilisateurController {
 
     private final UtilisateurServiceImpl utilisateurService;
+    private final UtilisateurMapper utilisateurMapper;
 
-    public UtilisateurController(UtilisateurServiceImpl utilisateurService) {
+    public UtilisateurController(UtilisateurServiceImpl utilisateurService, UtilisateurMapper utilisateurMapper) {
         this.utilisateurService = utilisateurService;
+        this.utilisateurMapper = utilisateurMapper;
     }
 
 
 
     // Endpoint pour récupérer un utilisateur par ID
     @GetMapping("/{id}")
-    public ResponseEntity<Utilisateur> getUtilisateurById(@PathVariable Long id) {
+    public ResponseEntity<UtilisateurResponseDTO> getUtilisateurById(@PathVariable Long id) {
         Utilisateur utilisateur = utilisateurService.findById(id);
-        return new ResponseEntity<>(utilisateur, HttpStatus.OK);
+        return new ResponseEntity<>(utilisateurMapper.utilisateurToUtilisateurResponseDTO(utilisateur), HttpStatus.OK);
     }
 
 
