@@ -31,6 +31,8 @@ services:
 # MAIL_USERNAME
 # MAIL_PASSWORD
 # JWT_SECRET
+# DEFAULT_ADMIN_EMAIL     # email du premier administrateur
+# DEFAULT_ADMIN_PASSWORD  # mot de passe du premier administrateur (8 caractères min.)
 # SENTRY_DSN
 # STRIPE_API_KEY
 # AWS_ACCESS_KEY_ID

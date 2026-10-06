@@ -15,6 +15,10 @@ SPRING_DATASOURCE_PASSWORD=password
 # JWT
 JWT_SECRET=your-super-secret-jwt-key
 
+# Administrateur initial (créé au premier démarrage)
+DEFAULT_ADMIN_EMAIL=admin@votre-clinique.com
+DEFAULT_ADMIN_PASSWORD=un-mot-de-passe-fort
+
 # Email
 MAIL_USERNAME=your-email@gmail.com
 MAIL_PASSWORD=your-app-password
@@ -40,6 +44,10 @@ DATABASE_URL=postgresql://user:pass@host:port/database
 
 # JWT
 JWT_SECRET=your-super-secret-jwt-key
+
+# Administrateur initial (créé au premier démarrage)
+DEFAULT_ADMIN_EMAIL=admin@votre-clinique.com
+DEFAULT_ADMIN_PASSWORD=un-mot-de-passe-fort
 
 # Email
 MAIL_USERNAME=your-email@gmail.com
@@ -117,6 +125,7 @@ railway variables
 - `JWT_SECRET`
 - `SPRING_DATASOURCE_PASSWORD`
 - `MAIL_PASSWORD`
+- `DEFAULT_ADMIN_PASSWORD`
 - Toute clé API
 
 ### Bonnes pratiques

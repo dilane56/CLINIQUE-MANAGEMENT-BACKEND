@@ -35,13 +35,9 @@ Connexion utilisateur
   "motDePasse": "password"
 }
 ```
-Default user:
-```json
-{
-  "email": "admin@gmail.com",
-  "password": "password"
-}
-```
+Administrateur initial : il est créé au premier démarrage à partir des variables d'environnement
+`DEFAULT_ADMIN_EMAIL` et `DEFAULT_ADMIN_PASSWORD` (8 caractères minimum).
+Si elles ne sont pas définies, aucun administrateur n'est créé et un avertissement apparaît dans les logs.
 **Réponse:**
 ```json
 {
