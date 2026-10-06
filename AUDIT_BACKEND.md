@@ -157,7 +157,9 @@
 - [ ] **A7** — `@EnableGlobalMethodSecurity` (déprécié) → `@EnableMethodSecurity`.
 - [ ] **A8** — Commentaires `@PreAuthorize` incohérents avec la règle réelle (ex. « MEDECIN, ADMIN et SECRETAIRE » alors que seul ADMIN/SECRETAIRE est autorisé) → aligner après la revue des droits.
 - [ ] **A9** (partiel) — `DefaultUserInitializer` : `AdministrateurRepository.findByEmail` renvoie `null` au lieu d'`Optional` → l'initialiseur utilise désormais `UtilisateurRepository.existsByEmail` (couvre aussi un email déjà pris par un médecin ou une secrétaire). `AdministrateurRepository.findByEmail` reste à harmoniser ailleurs.
-- [ ] **A11** (découvert pendant C7b) — `POST /api/lignes-prescription` crée une ligne **sans la rattacher à une prescription** (`LignePrescriptionDTO` n'a pas de `prescriptionId`) : la ligne est orpheline, et le médecin ne peut plus ensuite la consulter ni la modifier. Ajouter `prescriptionId` (avec le contrôle `@authz.ownsPrescription`), ou supprimer cet endpoint si les lignes sont toujours créées avec la prescription. Même question pour `POST /api/lignes-facture`.
+- [ ] **A11** (partiel ; découvert pendant C7b) — Création isolée de lignes **sans les rattacher à leur parent** (le DTO n'a pas d'identifiant de parent) : lignes orphelines.
+  - [x] `POST /api/lignes-prescription` **supprimé** (les lignes sont toujours créées avec la prescription, confirmé par le propriétaire du projet), ainsi que `LignePrescriptionService.ajouterLigne`.
+  - [ ] `POST /api/lignes-facture` : même défaut (`LigneFactureServiceImpl.ajouterLigne` n'associe aucune facture). À supprimer si les lignes sont toujours créées avec la facture, sinon ajouter `factureId`.
 - [ ] **A10** — Matrice des droits (qui peut faire quoi par rôle) à documenter dans le README une fois les points C3–C8 corrigés (voir section 4 ci-dessous).
 
 ---
@@ -202,7 +204,7 @@ Routes publiques (sans JWT) : `/`, `/health`, `/actuator/health/**`, `/api/auth/
 | **Prescriptions** : supprimer | ✅ | ❌ | 👤 |
 | **Prescriptions** : lister tout | ✅ | ✅ | ❌ |
 | **Prescriptions** d'un médecin | ✅ | ✅ | 👤 |
-| **Lignes de prescription** : créer (voir A11) | ❌ | ❌ | ✅ |
+| **Lignes de prescription** : créer | — | — | uniquement avec la prescription (`POST /api/prescriptions`) |
 | **Lignes de prescription** : modifier, supprimer | ❌ | ❌ | 👤 |
 | **Lignes de prescription** : voir une ligne | ✅ | ✅ | 👤 |
 | **Lignes de prescription** : lister toutes | ✅ | ✅ | ❌ |
@@ -256,3 +258,4 @@ Vérification : `src/test/java/.../security/AccessControlTest.java` (31 tests) e
 | C14 | 2026-10-06 | `71b38a6` | `POST /api/notifications/send` réservé à l'ADMIN ; `@Valid @RequestBody` + validation de `MailDTO` (email valide, sujet ≤ 200, message ≤ 5000). ⚠️ Le corps doit maintenant être du JSON |
 | C7b | 2026-10-06 | `dd7e4fe` | `@authz.ownsRendezVous/ownsFacture/ownsPrescription/ownsLignePrescription/ownsLigneFacture` (requêtes `existsById...Medecin_Id`). Un médecin ne crée un rendez-vous que pour lui-même, ne le réattribue pas, ne crée une prescription que sur son rendez-vous. Listes complètes des lignes : ADMIN/SECRETAIRE. ⚠️ Requêtes dérivées validées au démarrage de Spring Data uniquement (tests unitaires avec mocks) |
 | Tests | 2026-10-06 | `dd7e4fe` | `AccessControlTest` (31) + `AuthorizationServiceTest` (4) + autres : 49/49 OK |
+| A11 (prescriptions) | 2026-10-06 | `2da3f00` | `POST /api/lignes-prescription` et `ajouterLigne` supprimés. Lignes de facture : en attente de décision |
