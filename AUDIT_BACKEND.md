@@ -110,11 +110,20 @@
 - [ ] **I5** — `config/JwtRequestFillter.java` : le statut de l'utilisateur (`UserStatus`, ex. SUSPENDED/INACTIVE) n'est pas vérifié → un compte suspendu garde son accès tant que le token est valide (vérifier aussi `CustomUserDetails.isEnabled()` / `isAccountNonLocked()`).
 - [ ] **I6** — Pas de limitation de tentatives (rate limiting / anti brute-force) sur `/api/auth/login`.
 - [ ] **I7** — `JwtRequestFillter.sendUnauthorizedResponse` construit le JSON par concaténation de chaînes → utiliser `ObjectMapper`.
-- [ ] **I8** — `application.properties` (profil par défaut) contient une configuration **SQL Server** alors que les autres profils utilisent PostgreSQL → harmoniser.
+- [x] **I8** — `application.properties` (profil par défaut) contient une configuration **SQL Server** alors que les autres profils utilisent PostgreSQL → harmoniser.
+  - Précision : c'est le profil `dev` (actif par défaut) qui utilise SQL Server ; `application.properties` pointe vers PostgreSQL mais est surchargé par `dev`.
+  - **Décision du propriétaire du projet (I9) : garder SQL Server en développement local**, PostgreSQL pour tous les déploiements. Conséquence assumée : deux jeux de migrations Flyway à maintenir.
+- [ ] **I21** (découvert pendant I9) — Le smoke test Docker de la CI (`.github/workflows/docker-build-and-test.yml`) lance le conteneur avec seulement `PORT` : ni base de données ni `JWT_SECRET`. L'application ne peut pas démarrer ainsi (et, depuis I9, Flyway exige une base au démarrage). Ajouter un service PostgreSQL à la CI (`services: postgres`) et les variables nécessaires.
 
 ### 2.2 Données / persistance
 
-- [ ] **I9** — `spring.jpa.hibernate.ddl-auto=update` dans **tous** les profils → introduire **Flyway** (ou Liquibase) et passer à `validate` en production.
+- [x] **I9** — `spring.jpa.hibernate.ddl-auto=update` dans **tous** les profils → introduire **Flyway** (ou Liquibase) et passer à `validate` en production.
+  - Flyway (`flyway-core`, `flyway-database-postgresql`, `flyway-sqlserver`) ; `spring.flyway.locations=classpath:db/migration/{vendor}` ; `ddl-auto=validate` dans **tous** les profils.
+  - `V1__schema_initial.sql` pour PostgreSQL et SQL Server : généré par Hibernate à partir des entités pour chaque dialecte, puis relu (contraintes nommées lisiblement, index sur rendez-vous, factures, prescriptions, notifications, messages).
+  - `V2__contrainte_chevauchement_rendez_vous.sql` (**PostgreSQL uniquement**) : contrainte d'exclusion `btree_gist` sur (médecin, créneau `[début, fin)`) hors statuts libérant le créneau → seconde barrière derrière le verrou de I10. Violation renvoyée en **409** par `GlobalExceptionHandler` (nouveau gestionnaire `DataIntegrityViolationException`, message générique sans détail SQL).
+  - Tests : `FlywayMigrationPostgreSqlTest` et `FlywayMigrationSqlServerTest` appliquent les migrations sur H2 (modes de compatibilité) puis valident le schéma contre les entités. Vérifié : un renommage de colonne fait échouer le test.
+  - ⚠️ **Non vérifié sur une vraie base** (pas de PostgreSQL ni de Docker sur le poste, SQL Server local inaccessible sans identifiants) : V1 sur SQL Server et PostgreSQL réels, et surtout **V2** (H2 ne supporte pas `EXCLUDE USING gist`). À vérifier au premier démarrage.
+  - Documentation : section « Schéma de base de données (Flyway) » dans `DEPLOYMENT_GUIDE.md`.
 - [x] **I10** — Aucun verrou optimiste (`@Version`) ni contrainte en base → deux réservations simultanées peuvent passer le contrôle de chevauchement dans `RendezVousServiceImpl` (race condition). Ajouter `@Version` et/ou un verrou / contrainte d'exclusion.
   - **Concurrence** : médecin puis patient lus avec `SELECT ... FOR UPDATE` (`findByIdForUpdate`, `PESSIMISTIC_WRITE`) dans la transaction de réservation → deux réservations du même médecin (ou du même patient) sont sérialisées ; la seconde voit la première. Ordre de verrouillage fixe (médecin puis patient) contre les interblocages. Fonctionne sans changement de schéma.
   - **Bug de détection corrigé (découvert pendant I10)** : l'ancienne requête (`existsByMedecinAndDateRendezVousBetween`) ne testait que le **début** des rendez-vous existants → un rendez-vous 10h30 était accepté alors qu'un autre occupait 10h00-10h45. Nouvelle règle : chevauchement si `existant.debut < nouveau.fin` **et** `existant.fin > nouveau.debut`. Les rendez-vous qui se suivent (10h00-10h30 puis 10h30) ne sont plus refusés à tort.
@@ -179,6 +188,7 @@
 - [x] **A11** (découvert pendant C7b) — Création isolée de lignes **sans les rattacher à leur parent** (le DTO n'a pas d'identifiant de parent) : lignes orphelines.
   - [x] `POST /api/lignes-prescription` **supprimé** (les lignes sont toujours créées avec la prescription, confirmé par le propriétaire du projet), ainsi que `LignePrescriptionService.ajouterLigne`.
   - [x] `POST /api/lignes-facture` **supprimé** (les lignes sont toujours créées avec la facture, confirmé par le propriétaire du projet), ainsi que `LigneFactureService.ajouterLigne`.
+- [ ] **A12** (découvert pendant I9) — Noms de colonnes incohérents imposés par les entités, figés dans `V1__schema_initial.sql` : `secretarire_id` (faute) dans `medecin_secretaire`, et `utilisateurs_id` (administrateur, medecin) contre `utilisateur_id` (secretaire). À renommer via une migration V3 (les deux bases) en même temps que les annotations `@JoinColumn` / `@PrimaryKeyJoinColumn`.
 - [ ] **A10** — Matrice des droits (qui peut faire quoi par rôle) à documenter dans le README une fois les points C3–C8 corrigés (voir section 4 ci-dessous).
 
 ---
@@ -286,3 +296,5 @@ Vérification : `src/test/java/.../security/AccessControlTest.java` (31 tests) e
 | C15 | 2026-10-06 | (aucun) | Accepté : annuaire du personnel visible par tout le personnel. Aucun changement de code |
 | I10 | 2026-10-06 | `e391e82` | Verrou `FOR UPDATE` médecin puis patient ; requête de chevauchement corrigée (début ET fin) ; statuts annulés libèrent le créneau. Tests H2 : chevauchement (8) + concurrence (1, échoue sans le verrou). Total 63/63 OK. Nouveau point I20 |
 | I20 | 2026-10-06 | `4440a26` | E-mail direct au patient (3 endroits), notification à tous les admins (2 endroits avec `1L`), contrôle de `secretaireId`. Test : `RendezVousNotificationTest` (4). Total 67/67 OK |
+| I9 | 2026-10-06 | `33380e2` | Flyway (`db/migration/{vendor}`), V1 PostgreSQL + SQL Server, V2 contrainte d'exclusion (PostgreSQL), `ddl-auto=validate` partout, 409 sur violation de contrainte. Tests : `FlywayMigration*Test` (2). Total 69/69 OK. ⚠️ Non vérifié sur vraies bases. Nouveaux points I21, A12 |
+| I8 | 2026-10-06 | (aucun) | Décision : SQL Server conservé en dev, PostgreSQL en déploiement |
