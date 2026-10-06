@@ -189,39 +189,52 @@
   - Aussi corrigé : `modifierLigne` ne recalculait pas le `prixTotal` de la ligne elle-même.
   - Aussi corrigé : **`PUT /api/factures/{id}` remettait le montant payé à 0 et le statut à `NON_PAYEE`**, effaçant les paiements enregistrés → même règle `verifierModifiable()`.
   - Validation ajoutée sur `LigneFactureDTO` (service obligatoire, quantité ≥ 1, prix ≥ 0), y compris pour les lignes envoyées à la création de la facture.
-- [ ] **I18** — Un seul test (`CliniqueManagementBackendApplicationTests.contextLoads`). À ajouter au minimum :
-  - [ ] Tests unitaires `RendezVousServiceImpl` (chevauchements patient/médecin, mise à jour, changement de statut) — partiel : chevauchements et concurrence couverts (I10), changement de statut non couvert
-  - [ ] Tests unitaires facturation / revenus
+- [ ] **I22** (découvert pendant I18) — **Revenus mensuels faussés par les paiements par tranche** : `FactureRepository.sumRevenuByMoisAndAnnee` additionne `montantPayement` (**cumul** payé) des factures dont `datePayement` (date du **dernier** paiement) tombe dans le mois. Exemple : 5 000 FCFA payés en janvier puis 10 000 en février → janvier retombe à 0 et février affiche 15 000. De plus, les revenus sont **globaux**, alors que le besoin exprimé est de connaître les revenus **par médecin et par service**.
+  - Correction proposée : nouvelle entité `Paiement` (facture, montant, date, mode) enregistrée à chaque `PUT /api/factures/{id}/paiement` (migration V4 dans les deux bases) ; revenus calculés depuis les paiements, avec un endpoint par médecin et par type de rendez-vous (service).
+- [x] **I18** — Un seul test (`CliniqueManagementBackendApplicationTests.contextLoads`). À ajouter au minimum :
+  - Corrigé : **95 tests** (90 exécutés en local, 5 réservés à PostgreSQL et exécutés par la CI). Derniers ajouts (`5f8a257`) : `RendezVousStatutTest`, `RevenuServiceTest`.
+  - [x] Tests unitaires `RendezVousServiceImpl` : chevauchements et concurrence (I10), notifications (I20), changement de statut (`RendezVousStatutTest`)
+  - [x] Tests unitaires facturation / revenus : montants et paiements (`FactureMontantsTest`), revenus (`RevenuServiceTest`), PDF (`PdfServiceTest`)
   - [x] Tests de sécurité `@WebMvcTest` + `@WithMockUser` pour **chaque règle d'accès** (points C3 à C8)
   - [x] Test vérifiant l'absence du champ `password` dans les réponses (point C2)
-  - [ ] Tests d'intégration avec Testcontainers PostgreSQL
+  - [x] Tests d'intégration PostgreSQL — via le service PostgreSQL de la CI (`PostgreSqlIntegrationTest`, `contextLoads`) plutôt que Testcontainers (pas de Docker sur le poste de développement)
 
 ---
 
 ## 🟡 3. Améliorations / propreté
 
-- [ ] **A1** — Doublons WebSocket : `WebSocketEventListner.java` (racine) et `config/WebSocketEventListener.java` → n'en garder qu'un.
-- [ ] **A2** — `ChatHandler.java` à la racine du package → déplacer dans un package dédié (`websocket` / `chat`).
-- [ ] **A3** — Fautes de frappe dans les noms :
-  - [ ] `JwtRequestFillter` → `JwtRequestFilter`
-  - [ ] `WebSocketEventListner` → `WebSocketEventListener`
-  - [ ] `TypeRencezVousMapper` → `TypeRendezVousMapper`
-  - [ ] `NotifcationDTO` → `NotificationDTO`
-  - [ ] package `controlleur` → `controller` (optionnel, impact large)
-- [ ] **A4** — Route `GET /api/rendezvous/medecin/{medecinId}/aujourd'hui` contient une apostrophe → renommer (ex. `/aujourdhui` ou `/today`) en coordination avec le frontend.
-- [ ] **A5** — Remplacer les `System.out.println` par le logger SLF4J.
-- [ ] **A6** — Fichiers parasites versionnés : `pom-fixed.xml`, `prescription.pdf` → supprimer du dépôt si inutiles.
+- [x] **A1** — Doublons WebSocket : `WebSocketEventListner.java` (racine) et `config/WebSocketEventListener.java` → n'en garder qu'un.
+  - Corrigé (`780439a`) : `WebSocketEventListner` supprimé (il ne faisait qu'un log de déconnexion, déjà géré par `config/WebSocketEventListener`).
+- [x] **A2** — `ChatHandler.java` à la racine du package → déplacer dans un package dédié (`websocket` / `chat`).
+  - Corrigé (`780439a`) : `ChatHandler` **supprimé** plutôt que déplacé : handler jamais enregistré sur aucun endpoint (code mort), qui aurait diffusé chaque message à toutes les sessions.
+- [x] **A3** — Fautes de frappe dans les noms :
+  - Corrigé (`780439a`) pour les classes ; le renommage du package `controlleur` est **reporté** (décision du propriétaire du projet).
+  - [x] `JwtRequestFillter` → `JwtRequestFilter`
+  - [x] `WebSocketEventListner` → supprimé (voir A1)
+  - [x] `TypeRencezVousMapper` → `TypeRendezVousMapper`
+  - [x] `NotifcationDTO` → `NotificationDTO` (et `createnotifcation` → `createNotification`)
+  - [~] package `controlleur` → `controller` : reporté (impact large)
+- [x] **A4** — Route `GET /api/rendezvous/medecin/{medecinId}/aujourd'hui` contient une apostrophe → renommer (ex. `/aujourdhui` ou `/today`) en coordination avec le frontend.
+  - Corrigé (`780439a`) : route `/medecin/{medecinId}/aujourdhui` ajoutée ; `/aujourd'hui` reste acceptée pour compatibilité (à retirer une fois le frontend migré). README mis à jour.
+- [x] **A5** — Remplacer les `System.out.println` par le logger SLF4J.
+  - Corrigé (`780439a`) : `System.out` / `System.err` remplacés par SLF4J (`@Slf4j`) dans `WebSocketEventListener`, `WebSocketController`, `RendezVousSchedulerService`.
+- [x] **A6** — Fichiers parasites versionnés : `pom-fixed.xml`, `prescription.pdf` → supprimer du dépôt si inutiles.
+  - Corrigé (`780439a`) : `pom-fixed.xml` et `prescription.pdf` supprimés du dépôt (aucune référence ; récupérables dans l'historique git).
 - [x] **A7** — `@EnableGlobalMethodSecurity` (déprécié) → `@EnableMethodSecurity`.
   - Corrigé : `@EnableMethodSecurity(securedEnabled = true)`.
-- [ ] **A8** — Commentaires `@PreAuthorize` incohérents avec la règle réelle (ex. « MEDECIN, ADMIN et SECRETAIRE » alors que seul ADMIN/SECRETAIRE est autorisé) → aligner après la revue des droits.
-- [ ] **A9** (partiel) — `DefaultUserInitializer` : `AdministrateurRepository.findByEmail` renvoie `null` au lieu d'`Optional` → l'initialiseur utilise désormais `UtilisateurRepository.existsByEmail` (couvre aussi un email déjà pris par un médecin ou une secrétaire). `AdministrateurRepository.findByEmail` reste à harmoniser ailleurs.
+- [x] **A8** — Commentaires `@PreAuthorize` incohérents avec la règle réelle (ex. « MEDECIN, ADMIN et SECRETAIRE » alors que seul ADMIN/SECRETAIRE est autorisé) → aligner après la revue des droits.
+  - Corrigé : les commentaires trompeurs ont été remplacés lors de C3-C8 ; les commentaires redondants restants sont retirés (`780439a`).
+- [x] **A9** — `DefaultUserInitializer` : `AdministrateurRepository.findByEmail` renvoie `null` au lieu d'`Optional` → l'initialiseur utilise désormais `UtilisateurRepository.existsByEmail` (couvre aussi un email déjà pris par un médecin ou une secrétaire). `AdministrateurRepository.findByEmail` reste à harmoniser ailleurs.
+  - Corrigé (`780439a`) : `findByEmail` renvoie `Optional` dans `AdministrateurRepository`, `MedecinRepository`, `PatientRepository`, `SecretaireRepository` (comme `UtilisateurRepository`).
 - [x] **A11** (découvert pendant C7b) — Création isolée de lignes **sans les rattacher à leur parent** (le DTO n'a pas d'identifiant de parent) : lignes orphelines.
   - [x] `POST /api/lignes-prescription` **supprimé** (les lignes sont toujours créées avec la prescription, confirmé par le propriétaire du projet), ainsi que `LignePrescriptionService.ajouterLigne`.
   - [x] `POST /api/lignes-facture` **supprimé** (les lignes sont toujours créées avec la facture, confirmé par le propriétaire du projet), ainsi que `LigneFactureService.ajouterLigne`.
 - [x] **A13** (découvert pendant I21) — `HealthController` déclare `/health` et `/actuator/health` qui renvoient **toujours `UP`** sans rien vérifier. `/actuator/health` est masqué par le vrai endpoint Actuator (prioritaire), mais le `HEALTHCHECK` du Dockerfile appelle `/health` : le conteneur se déclare sain même si la base est indisponible. Supprimer ces deux méthodes et faire pointer le `HEALTHCHECK` vers `/actuator/health`.
   - Corrigé : routes `/health` et `/actuator/health` de `HealthController` supprimées (seule `/` reste) ; `HEALTHCHECK` du Dockerfile et `healthcheckPath` de `railway.toml` pointent vers `/actuator/health` (état réel, base comprise).
-- [ ] **A12** (découvert pendant I9) — Noms de colonnes incohérents imposés par les entités, figés dans `V1__schema_initial.sql` : `secretarire_id` (faute) dans `medecin_secretaire`, et `utilisateurs_id` (administrateur, medecin) contre `utilisateur_id` (secretaire). À renommer via une migration V3 (les deux bases) en même temps que les annotations `@JoinColumn` / `@PrimaryKeyJoinColumn`.
-- [ ] **A10** — Matrice des droits (qui peut faire quoi par rôle) à documenter dans le README une fois les points C3–C8 corrigés (voir section 4 ci-dessous).
+- [x] **A12** (découvert pendant I9) — Noms de colonnes incohérents imposés par les entités, figés dans `V1__schema_initial.sql` : `secretarire_id` (faute) dans `medecin_secretaire`, et `utilisateurs_id` (administrateur, medecin) contre `utilisateur_id` (secretaire). À renommer via une migration V3 (les deux bases) en même temps que les annotations `@JoinColumn` / `@PrimaryKeyJoinColumn`.
+  - Corrigé (`8565d09`) : migration **V3** (PostgreSQL et SQL Server) : `secretarire_id` → `secretaire_id`, `utilisateurs_id` → `utilisateur_id` ; annotations des entités mises à jour. Tests de migration H2 étendus à V1-V3 ; test PostgreSQL de la CI vérifie V1, V2, V3.
+- [x] **A10** — Matrice des droits (qui peut faire quoi par rôle) à documenter dans le README une fois les points C3–C8 corrigés (voir section 4 ci-dessous).
+  - Corrigé (`780439a`) : section « Droits d'accès par rôle » du README (matrice de la section 4, codes 401 / 403 / 429).
 
 ---
 
@@ -231,7 +244,7 @@ Légende : ✅ autorisé · ❌ refusé · 👤 uniquement ses propres données 
 Règles fixées par le propriétaire du projet : **la secrétaire met à jour les factures (paiement par tranche)** ; **un médecin ne peut pas supprimer de patient** ; **la secrétaire consulte et imprime les prescriptions sans les modifier** ; **les revenus (revenus générés par les médecins à travers les services) sont réservés à l'admin, le médecin ne voit pas ses revenus** ; **seul le destinataire marque sa notification comme lue**.
 Les autres règles sont des choix par défaut validés implicitement ; à revoir si un écran du frontend reçoit un 403 inattendu.
 
-Routes publiques (sans JWT) : `/`, `/health`, `/actuator/health/**`, `/api/auth/**`, Swagger, `/ws-chat/**` (le WebSocket sera sécurisé avec C10).
+Routes publiques (sans JWT) : `/`, `/actuator/health/**`, `/api/auth/**`, Swagger, `/ws-chat/**` ; le WebSocket exige un JWT au `CONNECT` STOMP (C10).
 
 | Ressource / action | ADMIN | SECRETAIRE | MEDECIN |
 |---|:-:|:-:|:-:|
@@ -336,3 +349,4 @@ Vérification : `src/test/java/.../security/AccessControlTest.java` (31 tests) e
 | I6 | 2026-10-06 | `50cca81` | Anti force brute par compte (5 échecs / 15 min → 429). Total 82 OK + 5 ignorés |
 | I12, I13, I14 | 2026-10-06 | `c988c93`, `f31a450`, `d0194d8` | Plus de dépendance service → contrôleur ; services sans `ResponseEntity` ; contrôleurs sur les interfaces. 82 OK + 5 ignorés |
 | I15, I16 | 2026-10-06 | `374256b` | OpenPDF à la place d'iText (AGPL) ; pilote SQL Server stable. I17 reporté |
+| Lot final | 2026-10-06 | `780439a` … `5f8a257` | A1-A6, A8-A10, A12 (V3), I18 (95 tests). Nouveau point I22 (revenus et paiements par tranche) |
