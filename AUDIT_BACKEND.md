@@ -157,13 +157,14 @@
 - [ ] **A7** — `@EnableGlobalMethodSecurity` (déprécié) → `@EnableMethodSecurity`.
 - [ ] **A8** — Commentaires `@PreAuthorize` incohérents avec la règle réelle (ex. « MEDECIN, ADMIN et SECRETAIRE » alors que seul ADMIN/SECRETAIRE est autorisé) → aligner après la revue des droits.
 - [ ] **A9** (partiel) — `DefaultUserInitializer` : `AdministrateurRepository.findByEmail` renvoie `null` au lieu d'`Optional` → l'initialiseur utilise désormais `UtilisateurRepository.existsByEmail` (couvre aussi un email déjà pris par un médecin ou une secrétaire). `AdministrateurRepository.findByEmail` reste à harmoniser ailleurs.
+- [ ] **A11** (découvert pendant C7b) — `POST /api/lignes-prescription` crée une ligne **sans la rattacher à une prescription** (`LignePrescriptionDTO` n'a pas de `prescriptionId`) : la ligne est orpheline, et le médecin ne peut plus ensuite la consulter ni la modifier. Ajouter `prescriptionId` (avec le contrôle `@authz.ownsPrescription`), ou supprimer cet endpoint si les lignes sont toujours créées avec la prescription. Même question pour `POST /api/lignes-facture`.
 - [ ] **A10** — Matrice des droits (qui peut faire quoi par rôle) à documenter dans le README une fois les points C3–C8 corrigés (voir section 4 ci-dessous).
 
 ---
 
 ## 🔐 4. Matrice des droits appliquée (C3 → C8)
 
-Légende : ✅ autorisé · ❌ refusé · 👤 uniquement ses propres données (`@authz.isCurrentUser`)
+Légende : ✅ autorisé · ❌ refusé · 👤 uniquement ses propres données (`@authz.isCurrentUser` / `@authz.owns...` : ressource rattachée, via son rendez-vous, au médecin connecté)
 Règles fixées par le propriétaire du projet : **la secrétaire met à jour les factures (paiement par tranche)** ; **un médecin ne peut pas supprimer de patient** ; **la secrétaire consulte et imprime les prescriptions sans les modifier** ; **les revenus (revenus générés par les médecins à travers les services) sont réservés à l'admin, le médecin ne voit pas ses revenus** ; **seul le destinataire marque sa notification comme lue**.
 Les autres règles sont des choix par défaut validés implicitement ; à revoir si un écran du frontend reçoit un 403 inattendu.
 
@@ -185,37 +186,41 @@ Routes publiques (sans JWT) : `/`, `/health`, `/actuator/health/**`, `/api/auth/
 | **Patients** : lister, voir, modifier | ✅ | ✅ | ✅ |
 | **Patients** : supprimer | ✅ | ✅ | ❌ |
 | **Patients** d'un médecin | ✅ | ✅ | 👤 |
-| **Rendez-vous** : créer, voir, modifier, changer le statut | ✅ | ✅ | ✅ |
+| **Rendez-vous** : créer | ✅ | ✅ | 👤 (pour lui-même) |
+| **Rendez-vous** : voir, modifier (sans le réattribuer), changer le statut | ✅ | ✅ | 👤 |
 | **Rendez-vous** : lister tout, supprimer | ✅ | ✅ | ❌ |
 | **Rendez-vous** d'un médecin / du jour | ✅ | ✅ | 👤 |
 | **Factures** : créer, lister, modifier, **paiement** | ✅ | ✅ | ❌ |
-| **Factures** : voir, PDF | ✅ | ✅ | ✅ |
+| **Factures** : voir, PDF | ✅ | ✅ | 👤 |
 | **Factures** d'un médecin | ✅ | ✅ | 👤 |
 | **Factures** : supprimer | ✅ | ❌ | ❌ |
 | **Lignes de facture** : créer, modifier, supprimer | ✅ | ✅ | ❌ |
-| **Lignes de facture** : voir | ✅ | ✅ | ✅ |
-| **Prescriptions** : créer, modifier | ❌ | ❌ | ✅ |
-| **Prescriptions** : voir, imprimer (PDF) | ✅ | ✅ | ✅ |
-| **Prescriptions** : supprimer | ✅ | ❌ | ✅ |
+| **Lignes de facture** : voir une ligne | ✅ | ✅ | 👤 |
+| **Lignes de facture** : lister toutes | ✅ | ✅ | ❌ |
+| **Prescriptions** : créer (sur son rendez-vous), modifier | ❌ | ❌ | 👤 |
+| **Prescriptions** : voir, imprimer (PDF) | ✅ | ✅ | 👤 |
+| **Prescriptions** : supprimer | ✅ | ❌ | 👤 |
 | **Prescriptions** : lister tout | ✅ | ✅ | ❌ |
 | **Prescriptions** d'un médecin | ✅ | ✅ | 👤 |
-| **Lignes de prescription** : écrire | ❌ | ❌ | ✅ |
-| **Lignes de prescription** : voir | ✅ | ✅ | ✅ |
+| **Lignes de prescription** : créer (voir A11) | ❌ | ❌ | ✅ |
+| **Lignes de prescription** : modifier, supprimer | ❌ | ❌ | 👤 |
+| **Lignes de prescription** : voir une ligne | ✅ | ✅ | 👤 |
+| **Lignes de prescription** : lister toutes | ✅ | ✅ | ❌ |
 | **Types de rendez-vous** : lister | ✅ | ✅ | ✅ |
 | **Types de rendez-vous** : créer, modifier, supprimer | ✅ | ❌ | ❌ |
 | **Revenus** (revenus des médecins par service) | ✅ | ❌ | ❌ |
 | **Messages** (conversation, lu, liste) | 👤 | 👤 | 👤 |
 | **Notifications** : les siennes | ✅ (toutes) | 👤 | 👤 |
 | **Notifications** : marquer comme lue | 👤 | 👤 | 👤 |
-| **Notifications** : envoyer un mail (voir C14) | ✅ | ✅ | ✅ |
+| **Notifications** : envoyer un e-mail libre | ✅ | ❌ | ❌ |
 
-Vérification : `src/test/java/.../security/AccessControlTest.java` (19 tests).
+Vérification : `src/test/java/.../security/AccessControlTest.java` (31 tests) et `AuthorizationServiceTest` (4 tests).
 
 ### Points résiduels identifiés pendant C3 → C8
 
-- [ ] **C7b** — Le contrôle de propriété ne couvre que les routes `/medecin/{medecinId}`. Les routes par identifiant de ressource (`GET /api/factures/{id}`, `/api/rendezvous/{id}`, `/api/prescriptions/{id}`, PDF…) ne vérifient pas que la ressource appartient au médecin connecté. Il faut une vérification dans le service (ex. `@authz.ownsRendezVous(#id)`).
+- [x] **C7b** — Le contrôle de propriété ne couvre que les routes `/medecin/{medecinId}`. Les routes par identifiant de ressource (`GET /api/factures/{id}`, `/api/rendezvous/{id}`, `/api/prescriptions/{id}`, PDF…) ne vérifient pas que la ressource appartient au médecin connecté. Il faut une vérification dans le service (ex. `@authz.ownsRendezVous(#id)`).
 - [x] **C13** — `PUT /api/notifications/{id}/read` : n'importe quel membre du personnel peut marquer comme lue la notification d'un autre utilisateur.
-- [ ] **C14** — `POST /api/notifications/send` : tout utilisateur connecté peut envoyer un e-mail arbitraire depuis l'adresse de la clinique (relais de mail) ; de plus `MailDTO` n'a pas `@RequestBody`. Restreindre à ADMIN ou supprimer si inutilisé.
+- [x] **C14** — `POST /api/notifications/send` : tout utilisateur connecté peut envoyer un e-mail arbitraire depuis l'adresse de la clinique (relais de mail) ; de plus `MailDTO` n'a pas `@RequestBody`. Restreindre à ADMIN ou supprimer si inutilisé.
 - [ ] **C15** — `GET /api/utilisateurs/{id}` et la liste exposent l'e-mail et le téléphone de tout le personnel à tout le personnel : acceptable pour l'annuaire interne / le chat, à confirmer.
 
 ---
@@ -248,3 +253,6 @@ Vérification : `src/test/java/.../security/AccessControlTest.java` (19 tests).
 | C12 | 2026-10-06 | `913a1ed` | `@Enumerated(EnumType.STRING)` sur `Utilisateur.role` et `Patient.sexe`. Base locale à recréer (ou script SQL du point C12). Tests 21/21 OK |
 | C9 | 2026-10-06 | `ce81b9e` | Admin initial lu depuis `DEFAULT_ADMIN_EMAIL` / `DEFAULT_ADMIN_PASSWORD` (8 car. min.) ; sinon aucun admin créé + avertissement. README, `DEPLOYMENT_GUIDE.md`, `render.yaml` mis à jour. Test : `DefaultUserInitializerTest` (4). Total 25/25 OK |
 | C10, C11, C16 | 2026-10-06 | `0f85b91` | Nouveau `service/auth/JwtService` (validation JWT partagée, utilisée par `JwtRequestFillter`). `WebSocketAuthInterceptor` enregistré : JWT obligatoire au CONNECT, contrôle SUBSCRIBE/SEND. Origines WebSocket = `cors.allowed.origins`. `WebSocketController` : expéditeur = utilisateur de la session. ⚠️ Frontend : envoyer `{ Authorization: 'Bearer ' + token }` au `connect`. Doc : `WEBSOCKET_README.md`, `websocket-client-example.html`. Test : `WebSocketAuthInterceptorTest` (8). Total 33/33 OK |
+| C14 | 2026-10-06 | `71b38a6` | `POST /api/notifications/send` réservé à l'ADMIN ; `@Valid @RequestBody` + validation de `MailDTO` (email valide, sujet ≤ 200, message ≤ 5000). ⚠️ Le corps doit maintenant être du JSON |
+| C7b | 2026-10-06 | `dd7e4fe` | `@authz.ownsRendezVous/ownsFacture/ownsPrescription/ownsLignePrescription/ownsLigneFacture` (requêtes `existsById...Medecin_Id`). Un médecin ne crée un rendez-vous que pour lui-même, ne le réattribue pas, ne crée une prescription que sur son rendez-vous. Listes complètes des lignes : ADMIN/SECRETAIRE. ⚠️ Requêtes dérivées validées au démarrage de Spring Data uniquement (tests unitaires avec mocks) |
+| Tests | 2026-10-06 | `dd7e4fe` | `AccessControlTest` (31) + `AuthorizationServiceTest` (4) + autres : 49/49 OK |
