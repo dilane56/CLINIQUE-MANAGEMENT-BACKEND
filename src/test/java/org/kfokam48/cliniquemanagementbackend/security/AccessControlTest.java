@@ -391,4 +391,13 @@ class AccessControlTest {
         mockMvc.perform(get("/api/rendezvous/medecin/" + AUTRE_MEDECIN).param("page", "0"))
                 .andExpect(status().isForbidden());
     }
+
+    // --- I7 : réponse 401 du filtre JWT en JSON valide ---
+
+    @Test
+    void invalidTokenReturnsJson401() throws Exception {
+        mockMvc.perform(get("/api/patients").header("Authorization", "Bearer faux.token.jwt"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").isString());
+    }
 }

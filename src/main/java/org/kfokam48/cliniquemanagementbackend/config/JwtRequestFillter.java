@@ -1,5 +1,6 @@
 package org.kfokam48.cliniquemanagementbackend.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.security.SignatureException; // Pour une gestion plus spécifique des erreurs de signature
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,11 +19,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Component
 public class JwtRequestFillter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtRequestFillter.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtService jwtService;
@@ -98,7 +101,9 @@ public class JwtRequestFillter extends OncePerRequestFilter {
             response.resetBuffer();
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\": \"" + message + "\"}");
+            response.setCharacterEncoding("UTF-8");
+            // Sérialisation JSON (échappement correct), et non plus concaténation de chaînes
+            OBJECT_MAPPER.writeValue(response.getWriter(), Map.of("error", message));
         }
     }
 }

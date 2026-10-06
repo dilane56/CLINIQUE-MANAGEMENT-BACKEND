@@ -19,6 +19,9 @@ JWT_SECRET=your-super-secret-jwt-key
 DEFAULT_ADMIN_EMAIL=admin@votre-clinique.com
 DEFAULT_ADMIN_PASSWORD=un-mot-de-passe-fort
 
+# Swagger (désactivé par défaut en déploiement ; true pour l'activer ponctuellement)
+# SWAGGER_ENABLED=false
+
 # Email
 MAIL_USERNAME=your-email@gmail.com
 MAIL_PASSWORD=your-app-password
@@ -48,6 +51,9 @@ JWT_SECRET=your-super-secret-jwt-key
 # Administrateur initial (créé au premier démarrage)
 DEFAULT_ADMIN_EMAIL=admin@votre-clinique.com
 DEFAULT_ADMIN_PASSWORD=un-mot-de-passe-fort
+
+# Swagger (désactivé par défaut en déploiement ; true pour l'activer ponctuellement)
+# SWAGGER_ENABLED=false
 
 # Email
 MAIL_USERNAME=your-email@gmail.com
@@ -137,7 +143,7 @@ railway variables
 ### Endpoints disponibles après déploiement
 - API: `https://your-app/api/`
 - Health: `https://your-app/actuator/health`
-- Swagger: `https://your-app/swagger-ui.html`
+- Swagger: `https://your-app/swagger-ui.html` (uniquement si `SWAGGER_ENABLED=true`)
 
 ### Métriques
 - Railway: Dashboard intégré
