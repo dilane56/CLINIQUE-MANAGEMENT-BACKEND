@@ -113,7 +113,15 @@
 - [x] **I8** — `application.properties` (profil par défaut) contient une configuration **SQL Server** alors que les autres profils utilisent PostgreSQL → harmoniser.
   - Précision : c'est le profil `dev` (actif par défaut) qui utilise SQL Server ; `application.properties` pointe vers PostgreSQL mais est surchargé par `dev`.
   - **Décision du propriétaire du projet (I9) : garder SQL Server en développement local**, PostgreSQL pour tous les déploiements. Conséquence assumée : deux jeux de migrations Flyway à maintenir.
-- [ ] **I21** (découvert pendant I9) — Le smoke test Docker de la CI (`.github/workflows/docker-build-and-test.yml`) lance le conteneur avec seulement `PORT` : ni base de données ni `JWT_SECRET`. L'application ne peut pas démarrer ainsi (et, depuis I9, Flyway exige une base au démarrage). Ajouter un service PostgreSQL à la CI (`services: postgres`) et les variables nécessaires.
+- [x] **I21** (découvert pendant I9) — Le smoke test Docker de la CI (`.github/workflows/docker-build-and-test.yml`) lance le conteneur avec seulement `PORT` : ni base de données ni `JWT_SECRET`. L'application ne peut pas démarrer ainsi (et, depuis I9, Flyway exige une base au démarrage). Ajouter un service PostgreSQL à la CI (`services: postgres`) et les variables nécessaires.
+  - Autres blocages trouvés : `mvn package` exécutait `contextLoads` avec le profil `dev` (**SQL Server**) → échec avant même l'étape Docker ; le Dockerfile force le profil `render` (`sslmode=require`) ; l'indicateur de santé du mail aurait mis le statut à `DOWN`.
+  - CI : service **PostgreSQL 16** ; variables `SPRING_PROFILES_ACTIVE=prod`, `SPRING_DATASOURCE_*` (qui priment aussi sur le profil `render` du conteneur), `MAIL_*`, `MANAGEMENT_HEALTH_MAIL_ENABLED=false`, `DEFAULT_ADMIN_*` ; `JWT_SECRET` aléatoire masqué généré à chaque exécution ; conteneur en `--network host`.
+  - Tests de fumée réels : santé `UP` (base comprise), route protégée refusée sans token, **connexion de l'admin initial**, lecture paginée authentifiée, types de rendez-vous initialisés.
+  - Nouveau `PostgreSqlIntegrationTest` : **Flyway V1 + V2 sur un vrai PostgreSQL** et contrainte d'exclusion (chevauchement refusé, rendez-vous consécutifs et annulés acceptés) — les points I9/I10 non vérifiables sur H2.
+  - `contextLoads` et `PostgreSqlIntegrationTest` ne s'exécutent que si `SPRING_DATASOURCE_URL` est défini → `mvn test` passe désormais en local sans base (ils étaient en échec).
+  - Tests H2 rendus indépendants du profil actif (`H2Dialect` explicite) : sous le profil `prod` de la CI, le test de concurrence échouait (dialecte PostgreSQL sur H2). Vérifié en simulant l'environnement de la CI en local.
+  - ⚠️ **Le workflow n'a pas encore tourné sur GitHub** : il s'exécutera à l'ouverture de la pull request vers `main`. YAML validé localement.
+  - Au passage : README, l'exemple de connexion utilisait `motDePasse` au lieu de `password`.
 
 ### 2.2 Données / persistance
 
@@ -195,6 +203,7 @@
 - [x] **A11** (découvert pendant C7b) — Création isolée de lignes **sans les rattacher à leur parent** (le DTO n'a pas d'identifiant de parent) : lignes orphelines.
   - [x] `POST /api/lignes-prescription` **supprimé** (les lignes sont toujours créées avec la prescription, confirmé par le propriétaire du projet), ainsi que `LignePrescriptionService.ajouterLigne`.
   - [x] `POST /api/lignes-facture` **supprimé** (les lignes sont toujours créées avec la facture, confirmé par le propriétaire du projet), ainsi que `LigneFactureService.ajouterLigne`.
+- [ ] **A13** (découvert pendant I21) — `HealthController` déclare `/health` et `/actuator/health` qui renvoient **toujours `UP`** sans rien vérifier. `/actuator/health` est masqué par le vrai endpoint Actuator (prioritaire), mais le `HEALTHCHECK` du Dockerfile appelle `/health` : le conteneur se déclare sain même si la base est indisponible. Supprimer ces deux méthodes et faire pointer le `HEALTHCHECK` vers `/actuator/health`.
 - [ ] **A12** (découvert pendant I9) — Noms de colonnes incohérents imposés par les entités, figés dans `V1__schema_initial.sql` : `secretarire_id` (faute) dans `medecin_secretaire`, et `utilisateurs_id` (administrateur, medecin) contre `utilisateur_id` (secretaire). À renommer via une migration V3 (les deux bases) en même temps que les annotations `@JoinColumn` / `@PrimaryKeyJoinColumn`.
 - [ ] **A10** — Matrice des droits (qui peut faire quoi par rôle) à documenter dans le README une fois les points C3–C8 corrigés (voir section 4 ci-dessous).
 
@@ -306,3 +315,4 @@ Vérification : `src/test/java/.../security/AccessControlTest.java` (31 tests) e
 | I9 | 2026-10-06 | `33380e2` | Flyway (`db/migration/{vendor}`), V1 PostgreSQL + SQL Server, V2 contrainte d'exclusion (PostgreSQL), `ddl-auto=validate` partout, 409 sur violation de contrainte. Tests : `FlywayMigration*Test` (2). Total 69/69 OK. ⚠️ Non vérifié sur vraies bases. Nouveaux points I21, A12 |
 | I8 | 2026-10-06 | (aucun) | Décision : SQL Server conservé en dev, PostgreSQL en déploiement |
 | I11 (partiel) | 2026-10-06 | `5b401f9` | Pagination progressive sur 13 endpoints (`params = "page"`), max 100, tri inconnu → 400. Reste : migration du frontend puis suppression des listes non paginées. Tests : +4 web, +3 H2. Total 76/76 OK |
+| I21 | 2026-10-06 | `f0d1bca` | CI avec PostgreSQL 16, vrais tests de fumée (login admin, lecture paginée), `PostgreSqlIntegrationTest` (V1 + V2 sur vrai PostgreSQL). Local : 76 OK + 5 ignorés (nécessitent PostgreSQL). ⚠️ Workflow pas encore exécuté sur GitHub. Nouveau point A13 |
