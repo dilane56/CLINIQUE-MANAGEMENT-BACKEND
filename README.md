@@ -117,7 +117,7 @@ Légende : ✅ autorisé · ❌ refusé · 👤 uniquement ses propres données 
 | **Lignes de prescription** : lister toutes | ✅ | ✅ | ❌ |
 | **Types de rendez-vous** : lister | ✅ | ✅ | ✅ |
 | **Types de rendez-vous** : créer, modifier, supprimer | ✅ | ❌ | ❌ |
-| **Revenus** (revenus des médecins par service) | ✅ | ❌ | ❌ |
+| **Revenus** : globaux et par médecin et par service (`/api/revenus/medecins`) | ✅ | ❌ | ❌ |
 | **Messages** (conversation, lu, liste) | 👤 | 👤 | 👤 |
 | **Notifications** : les siennes | ✅ (toutes) | 👤 | 👤 |
 | **Notifications** : marquer comme lue | 👤 | 👤 | 👤 |
@@ -220,25 +220,47 @@ Lister les factures d'un médecin
 Mettre à jour une facture
 
 #### PUT /api/factures/{id}/paiement
-Mettre à jour le paiement d'une facture
+Enregistrer un paiement (complet ou par tranche) : `{ "montantPaiement": 5000 }`.
+Chaque paiement est historisé à sa date. Refusé (400) s'il dépasse le reste à payer, ou si la facture est payée ou annulée.
 
 #### DELETE /api/factures/{id}
-Supprimer une facture
+Supprimer une facture (refusé avec 409 si des paiements ont été enregistrés : l'historique des revenus est conservé)
 
 #### GET /api/factures/{id}/pdf
 Générer et télécharger le PDF d'une facture
 
-## 📊 Statistiques
+## 📊 Statistiques (ADMIN)
+
+Les revenus sont calculés à partir des **paiements encaissés, à leur date** : un paiement par tranche compte dans le mois de chaque versement.
 
 #### GET /api/revenus
-Récupérer les statistiques de revenus
+Revenus du mois en cours, du mois précédent, et évolution en %.
 **Réponse:**
 ```json
 {
   "revenuMensuel": 125000.50,
   "revenuMoisPrecedent": 115000.75,
-  "pourcentageEvolution": 8.2
+  "pourcentageEvolution": 8.7
 }
+```
+
+#### GET /api/revenus/medecins?debut=2030-01-01&fin=2030-01-31
+Revenus encaissés **par médecin et par service** sur la période (dates incluses ; par défaut le mois en cours), du médecin qui a le plus encaissé au moins.
+Un paiement partiel est réparti entre les services de sa facture au prorata de leur montant.
+**Réponse:**
+```json
+[
+  {
+    "medecinId": 7,
+    "nom": "Martin",
+    "prenom": "Paul",
+    "totalEncaisse": 5000.00,
+    "services": [
+      { "service": "Consultation générale", "montantEncaisse": 3333.33 },
+      { "service": "Pansement", "montantEncaisse": 1666.67 }
+    ]
+  }
+]
 ```
 
 ## 🔔 Notifications

@@ -1,0 +1,23 @@
+-- I22 : historique des paiements. Chaque versement (complet ou tranche) est une ligne, à sa date
+-- réelle ; les revenus sont calculés à partir de cette table.
+-- Doit rester équivalent à db/migration/postgresql/V4__table_paiement.sql.
+
+CREATE TABLE paiement (
+    id            BIGINT IDENTITY NOT NULL,
+    facture_id    BIGINT         NOT NULL,
+    montant       NUMERIC(38, 2) NOT NULL,
+    date_paiement DATETIME2(6)   NOT NULL,
+    CONSTRAINT pk_paiement PRIMARY KEY (id),
+    CONSTRAINT fk_paiement_facture FOREIGN KEY (facture_id) REFERENCES facture (id)
+);
+
+CREATE INDEX ix_paiement_date ON paiement (date_paiement);
+CREATE INDEX ix_paiement_facture ON paiement (facture_id);
+
+-- Reprise de l'existant : avant cette migration, seul le cumul payé et la date du dernier
+-- versement étaient conservés. Ce cumul devient un paiement unique à cette date (meilleure
+-- approximation possible ; le détail des tranches passées n'existe plus).
+INSERT INTO paiement (facture_id, montant, date_paiement)
+SELECT id, montant_payement, date_payement
+FROM facture
+WHERE montant_payement > 0 AND date_payement IS NOT NULL;

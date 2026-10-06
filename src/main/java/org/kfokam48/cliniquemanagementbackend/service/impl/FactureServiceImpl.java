@@ -19,6 +19,8 @@ import org.kfokam48.cliniquemanagementbackend.model.Facture;
 import org.kfokam48.cliniquemanagementbackend.model.LigneFacture;
 import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
 import org.kfokam48.cliniquemanagementbackend.repository.FactureRepository;
+import org.kfokam48.cliniquemanagementbackend.repository.PaiementRepository;
+import org.kfokam48.cliniquemanagementbackend.model.Paiement;
 import org.kfokam48.cliniquemanagementbackend.repository.RendezVousRepository;
 import org.kfokam48.cliniquemanagementbackend.service.FactureService;
 import org.kfokam48.cliniquemanagementbackend.service.pdf.PdfService;
@@ -40,14 +42,16 @@ public class FactureServiceImpl implements FactureService {
     private final LigneFactureMapper ligneFactureMapper;
     private final NotificationService notificationService;
     private final PdfService pdfService;
+    private final PaiementRepository paiementRepository;
 
-    public FactureServiceImpl(FactureRepository factureRepository, RendezVousRepository rendezVousRepository, FactureMapper factureMapper, LigneFactureMapper ligneFactureMapper, NotificationService notificationService, PdfService pdfService) {
+    public FactureServiceImpl(FactureRepository factureRepository, RendezVousRepository rendezVousRepository, FactureMapper factureMapper, LigneFactureMapper ligneFactureMapper, NotificationService notificationService, PdfService pdfService, PaiementRepository paiementRepository) {
         this.factureRepository = factureRepository;
         this.rendezVousRepository = rendezVousRepository;
         this.factureMapper = factureMapper;
         this.ligneFactureMapper = ligneFactureMapper;
         this.notificationService = notificationService;
         this.pdfService = pdfService;
+        this.paiementRepository = paiementRepository;
     }
 
     @Override
@@ -118,11 +122,26 @@ public class FactureServiceImpl implements FactureService {
         if (facture.getStatut() == StatutFacture.PAYEE) {
             throw new IllegalStateException("Cette facture est déjà entièrement payée.");
         }
+        if (facture.getStatut() == StatutFacture.ANNULEE) {
+            throw new IllegalStateException("Impossible d'enregistrer un paiement sur une facture annulée.");
+        }
+
+        // Un paiement ne peut pas dépasser le reste à payer (sinon les revenus seraient gonflés)
+        BigDecimal montant = paiementUpdateDTO.getMontantPaiement();
+        BigDecimal resteAPayer = facture.getMontantTotal().subtract(facture.getMontantPayement());
+        if (montant.compareTo(resteAPayer) > 0) {
+            throw new IllegalArgumentException("Le paiement (" + montant + " FCFA) dépasse le reste à payer ("
+                    + resteAPayer + " FCFA).");
+        }
+
+        // Historique : chaque versement (complet ou tranche) est enregistré à sa date (I22)
+        LocalDateTime maintenant = LocalDateTime.now();
+        paiementRepository.save(new Paiement(facture, montant, maintenant));
 
         // Accumulation du paiement
-        BigDecimal nouveauTotal = facture.getMontantPayement().add(paiementUpdateDTO.getMontantPaiement());
+        BigDecimal nouveauTotal = facture.getMontantPayement().add(montant);
         facture.setMontantPayement(nouveauTotal);
-        facture.setDatePayement(LocalDateTime.now());
+        facture.setDatePayement(maintenant);
 
         BigDecimal montantRestant = facture.getMontantTotal().subtract(nouveauTotal);
 

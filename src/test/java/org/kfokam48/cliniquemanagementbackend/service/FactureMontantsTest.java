@@ -1,5 +1,11 @@
 package org.kfokam48.cliniquemanagementbackend.service;
 
+import org.mockito.ArgumentCaptor;
+import org.kfokam48.cliniquemanagementbackend.dto.facture.FacturePaiementUpdateDTO;
+import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
+import org.kfokam48.cliniquemanagementbackend.model.Medecin;
+import org.kfokam48.cliniquemanagementbackend.model.Paiement;
+import org.kfokam48.cliniquemanagementbackend.repository.PaiementRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.kfokam48.cliniquemanagementbackend.service.notification.NotificationService;
@@ -129,7 +135,8 @@ class FactureMontantsTest {
         when(factureRepository.findById(1L)).thenReturn(Optional.of(facture));
 
         FactureServiceImpl factureService = new FactureServiceImpl(factureRepository, mock(RendezVousRepository.class),
-                mock(FactureMapper.class), new LigneFactureMapper(), mock(NotificationService.class), mock(PdfService.class));
+                mock(FactureMapper.class), new LigneFactureMapper(), mock(NotificationService.class), mock(PdfService.class),
+                mock(PaiementRepository.class));
         FactureDTO factureDTO = new FactureDTO();
         factureDTO.setRendezVousId(5L);
 
@@ -137,5 +144,63 @@ class FactureMontantsTest {
                 .isInstanceOf(IllegalStateException.class);
         assertThat(facture.getMontantPayement()).isEqualByComparingTo("10000");
         assertThat(facture.getStatut()).isEqualTo(StatutFacture.PARTIELLEMENT_PAYE);
+    }
+
+    // --- I22 : chaque paiement est historisé ; pas de trop-perçu ni de paiement sur facture annulée ---
+
+    private FactureServiceImpl serviceDePaiement(PaiementRepository paiementRepository) {
+        when(factureRepository.findById(1L)).thenReturn(Optional.of(facture));
+        Medecin medecin = new Medecin();
+        medecin.setId(7L);
+        RendezVous rendezVous = new RendezVous();
+        rendezVous.setMedecin(medecin);
+        facture.setRendezVous(rendezVous);
+        return new FactureServiceImpl(factureRepository, mock(RendezVousRepository.class), mock(FactureMapper.class),
+                new LigneFactureMapper(), mock(NotificationService.class), mock(PdfService.class), paiementRepository);
+    }
+
+    private static FacturePaiementUpdateDTO paiement(String montant) {
+        FacturePaiementUpdateDTO dto = new FacturePaiementUpdateDTO();
+        dto.setMontantPaiement(new BigDecimal(montant));
+        return dto;
+    }
+
+    @Test
+    void installmentIsRecordedAsAPayment() {
+        PaiementRepository paiementRepository = mock(PaiementRepository.class);
+        FactureServiceImpl service = serviceDePaiement(paiementRepository);
+
+        service.updatePaiement(1L, paiement("5000"));
+
+        ArgumentCaptor<Paiement> paiement = ArgumentCaptor.forClass(Paiement.class);
+        verify(paiementRepository).save(paiement.capture());
+        assertThat(paiement.getValue().getMontant()).isEqualByComparingTo("5000");
+        assertThat(paiement.getValue().getFacture()).isSameAs(facture);
+        assertThat(paiement.getValue().getDatePaiement()).isNotNull();
+        assertThat(facture.getStatut()).isEqualTo(StatutFacture.PARTIELLEMENT_PAYE);
+        assertThat(facture.getMontantRestant()).isEqualByComparingTo("17000");
+    }
+
+    @Test
+    void paymentAboveTheRemainingAmountIsRejected() {
+        PaiementRepository paiementRepository = mock(PaiementRepository.class);
+        FactureServiceImpl service = serviceDePaiement(paiementRepository);
+
+        assertThatThrownBy(() -> service.updatePaiement(1L, paiement("22001")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("dépasse le reste à payer");
+        verify(paiementRepository, never()).save(any());
+        assertThat(facture.getMontantPayement()).isEqualByComparingTo("0");
+    }
+
+    @Test
+    void paymentOnACancelledInvoiceIsRejected() {
+        PaiementRepository paiementRepository = mock(PaiementRepository.class);
+        FactureServiceImpl service = serviceDePaiement(paiementRepository);
+        facture.setStatut(StatutFacture.ANNULEE);
+
+        assertThatThrownBy(() -> service.updatePaiement(1L, paiement("1000")))
+                .isInstanceOf(IllegalStateException.class);
+        verify(paiementRepository, never()).save(any());
     }
 }
