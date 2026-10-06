@@ -232,4 +232,34 @@ class AccessControlTest {
         when(authz.isNotificationRecipient(9L)).thenReturn(false);
         mockMvc.perform(put("/api/notifications/9/read")).andExpect(status().isForbidden());
     }
+
+    // --- C14 : envoi d'e-mail libre réservé à l'admin ---
+
+    private static final String MAIL_VALIDE =
+            "{\"destinataireEmail\":\"patient@test.com\",\"sujet\":\"Rappel\",\"message\":\"Bonjour\"}";
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void medecinCannotSendFreeEmail() throws Exception {
+        mockMvc.perform(post("/api/notifications/send")
+                        .contentType(MediaType.APPLICATION_JSON).content(MAIL_VALIDE))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void adminCanSendEmail() throws Exception {
+        mockMvc.perform(post("/api/notifications/send")
+                        .contentType(MediaType.APPLICATION_JSON).content(MAIL_VALIDE))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void invalidEmailIsRejected() throws Exception {
+        mockMvc.perform(post("/api/notifications/send")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"destinataireEmail\":\"pas-un-email\",\"sujet\":\"\",\"message\":\"x\"}"))
+                .andExpect(status().isBadRequest());
+    }
 }

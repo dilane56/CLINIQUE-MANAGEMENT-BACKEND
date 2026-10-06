@@ -1,6 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur.notification;
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.kfokam48.cliniquemanagementbackend.dto.MailDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.notification.NotificationResponseDTO;
@@ -33,8 +34,8 @@ public class NotificationRestController {
     }
 
     @PostMapping("/send")
-    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
-    public ResponseEntity<String> sendEmail(MailDTO mailDTO) {
+    @PreAuthorize("hasRole('ADMIN')") // Seul l'admin envoie un e-mail libre depuis l'adresse de la clinique
+    public ResponseEntity<String> sendEmail(@Valid @RequestBody MailDTO mailDTO) {
        emailService.sendMail(mailDTO);
         return ResponseEntity.ok("mail envoyer avec succes");
     }
