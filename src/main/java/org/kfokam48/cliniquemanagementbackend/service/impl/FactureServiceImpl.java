@@ -135,7 +135,7 @@ public class FactureServiceImpl implements FactureService {
         }
 
         factureRepository.save(facture);
-        notificationController.sendNotification(1L, "Facture", "Un paiement a été enregistré sur la facture #" + id, false);
+        notificationController.sendNotificationToAdmins("Facture", "Un paiement a été enregistré sur la facture #" + id);
         notificationController.sendNotification(facture.getRendezVous().getMedecin().getId(), "Facture", "Un paiement a été enregistré sur la facture #" + id, false);
         return factureMapper.factureToFactureResponseDto(facture);
     }

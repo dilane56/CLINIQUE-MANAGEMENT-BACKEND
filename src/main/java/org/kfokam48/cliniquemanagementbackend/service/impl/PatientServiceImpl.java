@@ -48,7 +48,7 @@ public class PatientServiceImpl implements PatientService {
         Patient patient = patientMapper.patientDtoToPatient(patientDto);
         patientRepository.save(patient);
         log.info("Patient créé avec succès : {}", patient.getEmail());
-        notificationController.sendNotification(1L,"Nouveau Patient","Un nouveau patient a été ajouter",false);
+        notificationController.sendNotificationToAdmins("Nouveau patient", "Un nouveau patient a été ajouté");
         return patientMapper.patientToPatientResponseDTO(patient);
     }
 

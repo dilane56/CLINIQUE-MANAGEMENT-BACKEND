@@ -13,13 +13,16 @@ import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
 import org.kfokam48.cliniquemanagementbackend.repository.MedecinRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.PatientRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.RendezVousRepository;
+import org.kfokam48.cliniquemanagementbackend.repository.SecretaireRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.TypeRendezVousRepository;
 import org.kfokam48.cliniquemanagementbackend.service.RendezVousService;
+import org.kfokam48.cliniquemanagementbackend.service.mail.EmailService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -32,25 +35,34 @@ public class RendezVousServiceImpl implements RendezVousService {
             EnumSet.of(StatutRendezVous.ANNULER, StatutRendezVous.A_REPROGRAMMER, StatutRendezVous.EXPIRE);
     // Les identifiants commencent à 1 : 0 n'exclut aucun rendez-vous lors d'une création
     private static final Long NOUVEAU_RENDEZ_VOUS = 0L;
+    private static final DateTimeFormatter FORMAT_DATE_HEURE = DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm");
 
     private final RendezVousRepository rendezVousRepository;
     private final RendezVousMapper rendezVousMapper;
     private final PatientRepository patientRepository;
     private final MedecinRepository medecinRepository;
     private final TypeRendezVousRepository typeRendezVousRepository;
+    private final SecretaireRepository secretaireRepository;
     private final NotificationController notificationController;
+    private final EmailService emailService;
 
-    public RendezVousServiceImpl(RendezVousRepository rendezVousRepository, RendezVousMapper rendezVousMapper, PatientRepository patientRepository, MedecinRepository medecinRepository, TypeRendezVousRepository typeRendezVousRepository, NotificationController notificationController) {
+    public RendezVousServiceImpl(RendezVousRepository rendezVousRepository, RendezVousMapper rendezVousMapper, PatientRepository patientRepository, MedecinRepository medecinRepository, TypeRendezVousRepository typeRendezVousRepository, SecretaireRepository secretaireRepository, NotificationController notificationController, EmailService emailService) {
         this.rendezVousRepository = rendezVousRepository;
         this.rendezVousMapper = rendezVousMapper;
         this.patientRepository = patientRepository;
         this.medecinRepository = medecinRepository;
         this.typeRendezVousRepository = typeRendezVousRepository;
+        this.secretaireRepository = secretaireRepository;
         this.notificationController = notificationController;
+        this.emailService = emailService;
     }
 
     @Override
     public RendezVousResponseDTO save(@Valid RendezVousDTO rendezVousDTO) {
+        // secretaireId reçoit des notifications : il doit désigner une secrétaire existante
+        if (rendezVousDTO.getSecretaireId() != null && !secretaireRepository.existsById(rendezVousDTO.getSecretaireId())) {
+            throw new IllegalArgumentException("Secrétaire introuvable : " + rendezVousDTO.getSecretaireId());
+        }
         RendezVous rendezVous = new RendezVous();
         rendezVous.setDateRendezVous(rendezVousDTO.getDateRendezVous());
         rendezVous.setMotif(rendezVousDTO.getMotif());
@@ -62,7 +74,8 @@ public class RendezVousServiceImpl implements RendezVousService {
         RendezVousResponseDTO response = rendezVousMapper.rendezVousToRendezVousResponseDto(
                 rendezVousRepository.save(rendezVous));
         notificationController.sendNotification(rendezVousDTO.getMedecinId(), "Rendez-vous", "Vous avez un nouveau rendez-vous", true);
-        notificationController.sendNotification(rendezVousDTO.getPatientId(), "Rendez-vous", "Vous avez un nouveau rendez-vous", true);
+        envoyerEmailPatient(rendezVous, "Votre rendez-vous",
+                "Votre rendez-vous du " + dateHeure(rendezVous) + " avec le Dr " + rendezVous.getMedecin().getNom() + " est enregistré.");
         return response;
     }
 
@@ -89,8 +102,25 @@ public class RendezVousServiceImpl implements RendezVousService {
         RendezVousResponseDTO response = rendezVousMapper.rendezVousToRendezVousResponseDto(
                 rendezVousRepository.save(rendezVous));
         notificationController.sendNotification(rendezVousDTO.getMedecinId(), "Rendez-vous", "Le rendez-vous avec le patient " + rendezVous.getPatient().getNom() + " a été mis à jour", true);
-        notificationController.sendNotification(rendezVousDTO.getPatientId(), "Rendez-vous", "Votre rendez-vous a été mis à jour", true);
+        envoyerEmailPatient(rendezVous, "Votre rendez-vous a été modifié",
+                "Votre rendez-vous est désormais prévu le " + dateHeure(rendezVous) + " avec le Dr " + rendezVous.getMedecin().getNom() + ".");
         return response;
+    }
+
+    /**
+     * Les patients ne sont pas des utilisateurs : on leur écrit directement à leur adresse e-mail.
+     * (Avant I20, une notification était créée avec l'identifiant du patient et partait chez le
+     * membre du personnel ayant le même identifiant.)
+     */
+    private void envoyerEmailPatient(RendezVous rendezVous, String sujet, String message) {
+        String email = rendezVous.getPatient().getEmail();
+        if (email != null && !email.isBlank()) {
+            emailService.sendEmail(email, sujet, message);
+        }
+    }
+
+    private static String dateHeure(RendezVous rendezVous) {
+        return rendezVous.getDateRendezVous().format(FORMAT_DATE_HEURE);
     }
 
     /**
@@ -168,7 +198,9 @@ public class RendezVousServiceImpl implements RendezVousService {
         if (rendezVous.getSecretaireId() != null) {
             notificationController.sendNotification(rendezVous.getSecretaireId(), "Rendez-vous", "Le statut du rendez-vous avec le patient " + rendezVous.getPatient().getNom() + " a été mis à jour", false);
         }
-        notificationController.sendNotification(rendezVous.getPatient().getId(), "Rendez-vous", "Le statut de votre rendez-vous avec le Dr " + rendezVous.getMedecin().getNom() + " a été mis à jour", true);
+        envoyerEmailPatient(rendezVous, "Statut de votre rendez-vous",
+                "Le statut de votre rendez-vous du " + dateHeure(rendezVous) + " avec le Dr " + rendezVous.getMedecin().getNom()
+                        + " est maintenant : " + statut + ".");
         notificationController.sendNotification(rendezVous.getMedecin().getId(), "Rendez-vous", "Le rendez-vous avec le patient " + rendezVous.getPatient().getNom() + " a changé de statut", true);
         return rendezVousMapper.rendezVousToRendezVousResponseDto(updated);
     }

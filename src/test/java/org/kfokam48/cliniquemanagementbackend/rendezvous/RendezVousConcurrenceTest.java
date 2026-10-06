@@ -14,6 +14,7 @@ import org.kfokam48.cliniquemanagementbackend.repository.PatientRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.RendezVousRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.TypeRendezVousRepository;
 import org.kfokam48.cliniquemanagementbackend.service.impl.RendezVousServiceImpl;
+import org.kfokam48.cliniquemanagementbackend.service.mail.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -58,6 +59,7 @@ class RendezVousConcurrenceTest {
     @Autowired private TypeRendezVousRepository typeRendezVousRepository;
 
     @MockitoBean private NotificationController notificationController;
+    @MockitoBean private EmailService emailService;
 
     @AfterEach
     void nettoyer() {
