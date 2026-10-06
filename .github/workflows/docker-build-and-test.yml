@@ -10,10 +10,38 @@ jobs:
   build-and-test:
     name: Build, test and smoke-test Docker image
     runs-on: ubuntu-latest
+
+    # Base PostgreSQL éphémère : la même que Render/Railway/prod (migrations Flyway db/migration/postgresql)
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: clinique
+          POSTGRES_USER: clinique
+          POSTGRES_PASSWORD: clinique
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U clinique -d clinique"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     env:
       IMAGE_NAME: clinique-backend
-      HOST_PORT: "9001"        # port exposé sur le runner (localhost)
-      CONTAINER_PORT: "8080"   # port sur lequel l'application écoute à l'intérieur du container
+      APP_PORT: "8080"
+      # Configuration de l'application (tests Maven et conteneur). Valeurs de CI uniquement, sans secret réel.
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/clinique
+      SPRING_DATASOURCE_USERNAME: clinique
+      SPRING_DATASOURCE_PASSWORD: clinique
+      MAIL_USERNAME: ci@clinique.local
+      MAIL_PASSWORD: unused
+      # Pas de serveur SMTP en CI : l'indicateur de santé du mail mettrait le statut à DOWN
+      MANAGEMENT_HEALTH_MAIL_ENABLED: "false"
+      DEFAULT_ADMIN_EMAIL: admin@ci.local
+      DEFAULT_ADMIN_PASSWORD: ci-admin-password
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -32,47 +60,76 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-m2-
 
+      - name: Generate a throwaway JWT secret
+        run: |
+          JWT_SECRET=$(openssl rand -base64 32)
+          echo "::add-mask::$JWT_SECRET"
+          echo "JWT_SECRET=$JWT_SECRET" >> "$GITHUB_ENV"
+
+      # Avec SPRING_DATASOURCE_URL défini, les tests d'intégration PostgreSQL s'exécutent aussi :
+      # CliniqueManagementBackendApplicationTests (démarrage complet) et PostgreSqlIntegrationTest
+      # (migrations Flyway V1 + V2, contrainte d'exclusion des créneaux).
       - name: Build and run Maven tests
         run: |
-          mvn -B -U -DskipTests=false clean package
+          mvn -B -U clean package
 
       - name: Build Docker image
         run: |
           docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
 
+      # Réseau "host" : le conteneur atteint PostgreSQL sur localhost:5432.
+      # Le Dockerfile force le profil render ; SPRING_DATASOURCE_* (variables d'environnement)
+      # priment sur application-render.properties et remplacent l'URL Neon (sslmode=require).
       - name: Run container and wait for health
         run: |
-          docker run -d --name clinique-test -e PORT=${CONTAINER_PORT} -p ${HOST_PORT}:${CONTAINER_PORT} ${{ env.IMAGE_NAME }}:${{ github.sha }}
-          echo "Waiting for application health endpoint on host port ${HOST_PORT} (forwarded to container ${CONTAINER_PORT})..."
-          RET=1
-          for i in $(seq 1 30); do
+          docker run -d --name clinique-test --network host \
+            -e PORT=${APP_PORT} \
+            -e SPRING_DATASOURCE_URL -e SPRING_DATASOURCE_USERNAME -e SPRING_DATASOURCE_PASSWORD \
+            -e JWT_SECRET -e MAIL_USERNAME -e MAIL_PASSWORD -e MANAGEMENT_HEALTH_MAIL_ENABLED \
+            -e DEFAULT_ADMIN_EMAIL -e DEFAULT_ADMIN_PASSWORD \
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          echo "Waiting for application health endpoint on port ${APP_PORT}..."
+          for i in $(seq 1 45); do
             sleep 2
-            if curl -sS http://localhost:${HOST_PORT}/actuator/health | grep -q "UP"; then
+            if curl -fsS http://localhost:${APP_PORT}/actuator/health | grep -q '"status":"UP"'; then
               echo "Application is up"
-              RET=0
-              break
+              exit 0
             fi
-            echo "Attempt $i/30: not up yet"
+            echo "Attempt $i/45: not up yet"
           done
-          if [ $RET -ne 0 ]; then
-            echo "Application did not become healthy in time"
-            docker logs clinique-test || true
-            exit 1
-          fi
+          echo "Application did not become healthy in time"
+          docker logs clinique-test || true
+          exit 1
 
       - name: Smoke tests
         run: |
-          echo "Running smoke tests against container on host port ${HOST_PORT}..."
-          # Health
-          curl -fS http://localhost:${HOST_PORT}/actuator/health
-          # Exemple: vérifie un endpoint applicatif GET (adapter /api/endpoint si nécessaire)
-          # curl -fS http://localhost:${HOST_PORT}/api/ton-endpoint
+          set -euo pipefail
+          BASE=http://localhost:${APP_PORT}
+
+          echo "1. Santé (base de données comprise)"
+          curl -fsS $BASE/actuator/health
+
+          echo "2. Route protégée sans token : refusée"
+          code=$(curl -s -o /dev/null -w "%{http_code}" $BASE/api/utilisateurs)
+          echo "HTTP $code"
+          [ "$code" = "401" ] || [ "$code" = "403" ]
+
+          echo "3. Connexion de l'administrateur initial (DEFAULT_ADMIN_*)"
+          TOKEN=$(curl -fsS -X POST $BASE/api/auth/login \
+            -H 'Content-Type: application/json' \
+            -d "{\"email\":\"$DEFAULT_ADMIN_EMAIL\",\"password\":\"$DEFAULT_ADMIN_PASSWORD\"}" | jq -er .token)
+
+          echo "4. Lecture paginée authentifiée (Flyway + JPA + sécurité)"
+          curl -fsS -H "Authorization: Bearer $TOKEN" "$BASE/api/patients?page=0&size=5" | jq -e '.totalElements >= 0'
+
+          echo "5. Types de rendez-vous initialisés au démarrage"
+          curl -fsS -H "Authorization: Bearer $TOKEN" $BASE/api/type-rendezvous | jq -e 'length >= 14'
 
       - name: Save container logs (on failure)
         if: failure()
         run: |
           echo "Saving container logs to file"
-          docker logs clinique-test > clinique-test-logs.txt || true
+          docker logs clinique-test > clinique-test-logs.txt 2>&1 || true
 
       - name: Upload container logs on failure
         if: failure()
@@ -84,7 +141,5 @@ jobs:
       - name: Tear down container
         if: always()
         run: |
-          echo "Container logs:"
-          docker logs clinique-test || true
           docker stop clinique-test || true
           docker rm clinique-test || true

@@ -32,7 +32,7 @@ Connexion utilisateur
 ```json
 {
   "email": "user@example.com",
-  "motDePasse": "password"
+  "password": "votre-mot-de-passe"
 }
 ```
 Administrateur initial : il est créé au premier démarrage à partir des variables d'environnement

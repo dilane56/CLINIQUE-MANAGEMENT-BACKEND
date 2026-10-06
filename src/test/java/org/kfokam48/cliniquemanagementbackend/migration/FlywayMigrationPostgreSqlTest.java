@@ -18,6 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
         "spring.datasource.username=sa",
         "spring.datasource.password=",
         "spring.datasource.driver-class-name=org.h2.Driver",
+        // Indépendant du profil actif (la CI utilise "prod", qui impose le dialecte PostgreSQL)
+        "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
         "spring.flyway.enabled=true",
         "spring.flyway.locations=classpath:db/migration/postgresql",
         // V2 (contrainte d'exclusion btree_gist) n'existe pas sous H2 : à vérifier sur un vrai PostgreSQL
