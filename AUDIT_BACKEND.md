@@ -132,7 +132,13 @@
 
 ### 2.5 Tests
 
-- [ ] **I19** (découvert pendant A11) — `PUT` / `DELETE /api/lignes-facture/{id}` modifient ou suppriment une ligne **sans recalculer `montantTotal` ni `montantRestant` de la facture**, y compris sur une facture déjà payée ou partiellement payée. Les montants de la facture deviennent faux (et donc les revenus). À décider : recalculer la facture à chaque modification de ligne, ou interdire la modification des lignes d'une facture non `NON_PAYEE` (et passer par `PUT /api/factures/{id}`).
+- [x] **I19** (découvert pendant A11) — `PUT` / `DELETE /api/lignes-facture/{id}` modifient ou suppriment une ligne **sans recalculer `montantTotal` ni `montantRestant` de la facture**, y compris sur une facture déjà payée ou partiellement payée. Les montants de la facture deviennent faux (et donc les revenus).
+  - Décision du propriétaire du projet : **combiner les deux** — recalcul tant que la facture est `NON_PAYEE`, refus dès qu'un paiement existe.
+  - `Facture.verifierModifiable()` : toute modification est refusée (400) si le statut n'est pas `NON_PAYEE` (payée, partiellement payée, annulée).
+  - `Facture.recalculerMontants()` : total = somme des lignes ; reste = total − déjà payé. Appelé après modification ou suppression d'une ligne.
+  - Aussi corrigé : `modifierLigne` ne recalculait pas le `prixTotal` de la ligne elle-même.
+  - Aussi corrigé : **`PUT /api/factures/{id}` remettait le montant payé à 0 et le statut à `NON_PAYEE`**, effaçant les paiements enregistrés → même règle `verifierModifiable()`.
+  - Validation ajoutée sur `LigneFactureDTO` (service obligatoire, quantité ≥ 1, prix ≥ 0), y compris pour les lignes envoyées à la création de la facture.
 - [ ] **I18** — Un seul test (`CliniqueManagementBackendApplicationTests.contextLoads`). À ajouter au minimum :
   - [ ] Tests unitaires `RendezVousServiceImpl` (chevauchements patient/médecin, mise à jour, changement de statut)
   - [ ] Tests unitaires facturation / revenus
@@ -193,12 +199,13 @@ Routes publiques (sans JWT) : `/`, `/health`, `/actuator/health/**`, `/api/auth/
 | **Rendez-vous** : voir, modifier (sans le réattribuer), changer le statut | ✅ | ✅ | 👤 |
 | **Rendez-vous** : lister tout, supprimer | ✅ | ✅ | ❌ |
 | **Rendez-vous** d'un médecin / du jour | ✅ | ✅ | 👤 |
-| **Factures** : créer, lister, modifier, **paiement** | ✅ | ✅ | ❌ |
+| **Factures** : créer, lister, **paiement** | ✅ | ✅ | ❌ |
+| **Factures** : modifier (uniquement si aucun paiement, voir I19) | ✅ | ✅ | ❌ |
 | **Factures** : voir, PDF | ✅ | ✅ | 👤 |
 | **Factures** d'un médecin | ✅ | ✅ | 👤 |
 | **Factures** : supprimer | ✅ | ❌ | ❌ |
 | **Lignes de facture** : créer | — | — | uniquement avec la facture (`POST /api/factures`) |
-| **Lignes de facture** : modifier, supprimer (voir I19) | ✅ | ✅ | ❌ |
+| **Lignes de facture** : modifier, supprimer (uniquement si aucun paiement, total recalculé, voir I19) | ✅ | ✅ | ❌ |
 | **Lignes de facture** : voir une ligne | ✅ | ✅ | 👤 |
 | **Lignes de facture** : lister toutes | ✅ | ✅ | ❌ |
 | **Prescriptions** : créer (sur son rendez-vous), modifier | ❌ | ❌ | 👤 |
@@ -225,7 +232,8 @@ Vérification : `src/test/java/.../security/AccessControlTest.java` (31 tests) e
 - [x] **C7b** — Le contrôle de propriété ne couvre que les routes `/medecin/{medecinId}`. Les routes par identifiant de ressource (`GET /api/factures/{id}`, `/api/rendezvous/{id}`, `/api/prescriptions/{id}`, PDF…) ne vérifient pas que la ressource appartient au médecin connecté. Il faut une vérification dans le service (ex. `@authz.ownsRendezVous(#id)`).
 - [x] **C13** — `PUT /api/notifications/{id}/read` : n'importe quel membre du personnel peut marquer comme lue la notification d'un autre utilisateur.
 - [x] **C14** — `POST /api/notifications/send` : tout utilisateur connecté peut envoyer un e-mail arbitraire depuis l'adresse de la clinique (relais de mail) ; de plus `MailDTO` n'a pas `@RequestBody`. Restreindre à ADMIN ou supprimer si inutilisé.
-- [ ] **C15** — `GET /api/utilisateurs/{id}` et la liste exposent l'e-mail et le téléphone de tout le personnel à tout le personnel : acceptable pour l'annuaire interne / le chat, à confirmer.
+- [x] **C15** — `GET /api/utilisateurs/{id}` et la liste exposent l'e-mail et le téléphone de tout le personnel à tout le personnel : acceptable pour l'annuaire interne / le chat, à confirmer.
+  - **Accepté** par le propriétaire du projet : tous les membres du personnel peuvent consulter l'annuaire (e-mails des collègues). Aucun changement de code ; règle conservée telle quelle (`hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')`).
 
 ---
 
@@ -262,3 +270,5 @@ Vérification : `src/test/java/.../security/AccessControlTest.java` (31 tests) e
 | Tests | 2026-10-06 | `dd7e4fe` | `AccessControlTest` (31) + `AuthorizationServiceTest` (4) + autres : 49/49 OK |
 | A11 (prescriptions) | 2026-10-06 | `2da3f00` | `POST /api/lignes-prescription` et `ajouterLigne` supprimés |
 | A11 (factures) | 2026-10-06 | `662ca7f` | `POST /api/lignes-facture` et `ajouterLigne` supprimés. Nouveau point I19 (totaux de facture non recalculés) |
+| I19 | 2026-10-06 | `d47949b` | Recalcul des montants tant que `NON_PAYEE`, refus ensuite (lignes **et** `PUT /api/factures/{id}`, qui effaçait les paiements). `prixTotal` de ligne recalculé. Validation `LigneFactureDTO`. Test : `FactureMontantsTest` (5). Total 54/54 OK |
+| C15 | 2026-10-06 | (aucun) | Accepté : annuaire du personnel visible par tout le personnel. Aucun changement de code |
