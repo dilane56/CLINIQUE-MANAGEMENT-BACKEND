@@ -24,13 +24,6 @@ public class LigneFactureServiceImpl implements LigneFactureService {
     }
 
     @Override
-    public LigneFactureResponseDTO ajouterLigne(LigneFactureDTO dto) {
-       LigneFacture ligneFacture = mapper.ligneFactureDTOToLigneFacture(dto);
-       repository.save(ligneFacture);
-       return mapper.toResponseDTO(ligneFacture);
-    }
-
-    @Override
     public LigneFactureResponseDTO modifierLigne(Long id, LigneFactureDTO dto) {
         LigneFacture entity = repository.findById(id).orElseThrow();
         entity.setServiceName(dto.getServiceName());

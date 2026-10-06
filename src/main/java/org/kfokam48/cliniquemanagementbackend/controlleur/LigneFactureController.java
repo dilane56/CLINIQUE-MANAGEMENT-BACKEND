@@ -10,15 +10,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/lignes-facture")
+// Les lignes sont toujours créées avec leur facture (POST /api/factures) :
+// pas de création isolée, qui produisait des lignes orphelines.
 public class LigneFactureController {
     @Autowired
     private LigneFactureService service;
 
-    @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
-    public LigneFactureResponseDTO ajouter(@RequestBody LigneFactureDTO dto) {
-        return service.ajouterLigne(dto);
-    }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")

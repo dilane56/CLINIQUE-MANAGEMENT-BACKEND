@@ -6,7 +6,6 @@ import org.kfokam48.cliniquemanagementbackend.dto.lignefacture.LigneFactureRespo
 import java.util.List;
 
 public interface LigneFactureService {
-    LigneFactureResponseDTO ajouterLigne(LigneFactureDTO dto);
     LigneFactureResponseDTO modifierLigne(Long id, LigneFactureDTO dto);
     void supprimerLigne(Long id);
     LigneFactureResponseDTO getLigne(Long id);
