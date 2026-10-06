@@ -5,26 +5,18 @@ import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * I9 : la migration Flyway db/migration/sqlserver crée un schéma qu'Hibernate accepte en
+ * I9 : les migrations Flyway db/migration/sqlserver créent un schéma qu'Hibernate accepte en
  * ddl-auto=validate (tables, colonnes et types conformes aux entités).
  *
- * Exécuté sur H2 en mode MSSQLServer. H2 ne connaît pas le type DATETIMEOFFSET de SQL Server :
- * les migrations sont copiées dans target/ et ce seul type y est remplacé par son équivalent H2
- * (TIMESTAMP WITH TIME ZONE). Les fichiers de src/main/resources ne sont pas modifiés.
+ * Exécuté sur H2 en mode MSSQLServer. Dans la copie de test, deux éléments propres à SQL Server
+ * sont traduits pour H2 : le type DATETIMEOFFSET (-> TIMESTAMP WITH TIME ZONE) et
+ * EXEC sp_rename (-> ALTER TABLE ... ALTER COLUMN ... RENAME TO).
  */
 @DataJpaTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:flywaysqlserver;MODE=MSSQLServer;DB_CLOSE_DELAY=-1",
@@ -41,22 +33,11 @@ class FlywayMigrationSqlServerTest {
 
     @DynamicPropertySource
     static void migrationsAdapteesPourH2(DynamicPropertyRegistry registry) {
-        registry.add("spring.flyway.locations", () -> "filesystem:" + copierMigrationsPourH2());
-    }
-
-    private static Path copierMigrationsPourH2() {
-        try {
-            Path cible = Files.createDirectories(Path.of("target", "flyway-sqlserver-h2"));
-            for (Resource migration : new PathMatchingResourcePatternResolver()
-                    .getResources("classpath:db/migration/sqlserver/*.sql")) {
-                String sql = migration.getContentAsString(StandardCharsets.UTF_8)
-                        .replace("DATETIMEOFFSET(6)", "TIMESTAMP(6) WITH TIME ZONE");
-                Files.writeString(cible.resolve(migration.getFilename()), sql, StandardCharsets.UTF_8);
-            }
-            return cible.toAbsolutePath();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        registry.add("spring.flyway.locations", () -> MigrationsPourH2.copier("sqlserver",
+                (fichier, sql) -> sql
+                        .replace("DATETIMEOFFSET(6)", "TIMESTAMP(6) WITH TIME ZONE")
+                        .replaceAll("EXEC sp_rename '(\\w+)\\.(\\w+)', '(\\w+)', 'COLUMN';",
+                                "ALTER TABLE $1 ALTER COLUMN $2 RENAME TO $3;")));
     }
 
     @Autowired

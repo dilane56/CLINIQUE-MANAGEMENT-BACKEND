@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * I9 / I10 / I21 : vérifications sur un VRAI PostgreSQL (impossibles sur H2).
- * - Flyway applique V1 et V2, et Hibernate valide le schéma (ddl-auto=validate) ;
+ * - Flyway applique V1, V2 et V3, et Hibernate valide le schéma (ddl-auto=validate) ;
  * - la contrainte d'exclusion de V2 refuse deux rendez-vous actifs qui se chevauchent.
  *
  * Ne s'exécute que si SPRING_DATASOURCE_URL pointe vers PostgreSQL (CI GitHub Actions,
@@ -84,7 +84,7 @@ class PostgreSqlIntegrationTest {
     void flywayAppliedBothMigrations() {
         List<String> versions = jdbcTemplate.queryForList(
                 "SELECT version FROM flyway_schema_history WHERE success ORDER BY installed_rank", String.class);
-        assertThat(versions).contains("1", "2");
+        assertThat(versions).contains("1", "2", "3");
     }
 
     @Test

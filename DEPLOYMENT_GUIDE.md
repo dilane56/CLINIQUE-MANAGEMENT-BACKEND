@@ -82,10 +82,11 @@ Flyway choisit automatiquement le dossier selon la base connectée (`spring.flyw
 
 - `V1__schema_initial.sql` : schéma complet (les deux bases).
 - `V2__contrainte_chevauchement_rendez_vous.sql` : **PostgreSQL uniquement**. Contrainte d'exclusion qui interdit, en base, deux rendez-vous actifs du même médecin sur des créneaux qui se chevauchent. Nécessite l'extension `btree_gist` (créée par la migration ; disponible sur Neon, Render et Railway).
+- `V3__renommage_colonnes_jointure.sql` : renommage de colonnes de jointure (les deux bases).
 
 ### Modifier le modèle (nouvelle entité, nouveau champ...)
 1. Modifier l'entité JPA.
-2. Créer une **nouvelle** migration `V<n>__description.sql` dans **les deux dossiers** (même numéro, SQL adapté à chaque base). Prochain numéro libre : **V3**.
+2. Créer une **nouvelle** migration `V<n>__description.sql` dans **les deux dossiers** (même numéro, SQL adapté à chaque base). Prochain numéro libre : **V4**.
 3. Ne **jamais** modifier une migration déjà appliquée : Flyway vérifie leur somme de contrôle et refuse de démarrer.
 4. Lancer les tests `FlywayMigrationPostgreSqlTest` et `FlywayMigrationSqlServerTest` : ils appliquent les migrations puis valident le schéma contre les entités.
 

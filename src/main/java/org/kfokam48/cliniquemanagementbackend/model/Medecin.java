@@ -12,7 +12,7 @@ import java.util.*;
 @AllArgsConstructor
 @Data
 @Entity
-@PrimaryKeyJoinColumn(name = "utilisateurs_id")
+@PrimaryKeyJoinColumn(name = "utilisateur_id")
 @EqualsAndHashCode(callSuper = true)
 public class Medecin extends Utilisateur{
     private String specialite;
@@ -24,7 +24,7 @@ public class Medecin extends Utilisateur{
     @JoinTable(
             name= "medecin_secretaire",
             joinColumns = @JoinColumn(name = "medecin_id"),
-            inverseJoinColumns = @JoinColumn(name = "secretarire_id")
+            inverseJoinColumns = @JoinColumn(name = "secretaire_id")
     )
     private Set<Secretaire> secretaires = new HashSet<>();
 

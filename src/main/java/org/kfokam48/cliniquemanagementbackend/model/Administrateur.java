@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Entity
-@PrimaryKeyJoinColumn(name = "utilisateurs_id")
+@PrimaryKeyJoinColumn(name = "utilisateur_id")
 public class Administrateur extends Utilisateur{
 }
