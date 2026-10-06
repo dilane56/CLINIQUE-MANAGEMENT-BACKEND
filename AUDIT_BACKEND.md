@@ -164,9 +164,12 @@
 
 ### 2.3 Architecture
 
-- [ ] **I12** — `service/impl/RendezVousServiceImpl.java` injecte `NotificationController` (inversion de couches) → injecter `NotificationService`.
-- [ ] **I13** — Les services renvoient des `ResponseEntity<String>` (`deleteById` dans plusieurs services) → les services doivent renvoyer du métier (`void` / exception), la réponse HTTP est construite dans le contrôleur.
-- [ ] **I14** — Les contrôleurs injectent les implémentations (`*ServiceImpl`) au lieu des interfaces (`*Service`).
+- [x] **I12** — `service/impl/RendezVousServiceImpl.java` injecte `NotificationController` (inversion de couches) → injecter `NotificationService`.
+  - Corrigé (`c988c93`) : la logique de `NotificationController` (enregistrement, envoi STOMP, notification des admins) est dans `NotificationService` ; la classe `NotificationController` est supprimée. Plus aucun service ne dépend d'un contrôleur.
+- [x] **I13** — Les services renvoient des `ResponseEntity<String>` (`deleteById` dans plusieurs services) → les services doivent renvoyer du métier (`void` / exception), la réponse HTTP est construite dans le contrôleur.
+  - Corrigé (`f31a450`) : `deleteById` renvoie `void` dans les 8 services ; les contrôleurs construisent la réponse, avec le même message qu'avant.
+- [x] **I14** — Les contrôleurs injectent les implémentations (`*ServiceImpl`) au lieu des interfaces (`*Service`).
+  - Corrigé (`d0194d8`) : les 7 contrôleurs injectent les interfaces ; les tests mockent les interfaces.
 
 ### 2.4 Dépendances (`pom.xml`)
 
@@ -328,3 +331,4 @@ Vérification : `src/test/java/.../security/AccessControlTest.java` (31 tests) e
 | I21 | 2026-10-06 | `f0d1bca` | CI avec PostgreSQL 16, vrais tests de fumée (login admin, lecture paginée), `PostgreSqlIntegrationTest` (V1 + V2 sur vrai PostgreSQL). Local : 76 OK + 5 ignorés (nécessitent PostgreSQL). ⚠️ Workflow pas encore exécuté sur GitHub. Nouveau point A13 |
 | I1-I4, I7, A7, A13 | 2026-10-06 | `6f91495` | CORS unique, Swagger désactivé en déploiement, détails de santé protégés, JWT 8 h, 401 en JSON, `@EnableMethodSecurity`, health réel. I5 sans objet (pas de notion de compte suspendu) |
 | I6 | 2026-10-06 | `50cca81` | Anti force brute par compte (5 échecs / 15 min → 429). Total 82 OK + 5 ignorés |
+| I12, I13, I14 | 2026-10-06 | `c988c93`, `f31a450`, `d0194d8` | Plus de dépendance service → contrôleur ; services sans `ResponseEntity` ; contrôleurs sur les interfaces. 82 OK + 5 ignorés |
