@@ -62,6 +62,32 @@ CORS_ALLOW_CREDENTIALS=true
 
 ---
 
+## 🗄️ Schéma de base de données (Flyway)
+
+Le schéma n'est plus créé par Hibernate : il est géré par **Flyway**, et Hibernate se contente de le **valider** au démarrage (`spring.jpa.hibernate.ddl-auto=validate`). Si le schéma ne correspond pas aux entités, l'application refuse de démarrer.
+
+### Où sont les migrations
+| Dossier | Base | Utilisé par |
+|---|---|---|
+| `src/main/resources/db/migration/postgresql` | PostgreSQL | Render, Railway, prod |
+| `src/main/resources/db/migration/sqlserver` | SQL Server | développement local (profil `dev`) |
+
+Flyway choisit automatiquement le dossier selon la base connectée (`spring.flyway.locations=classpath:db/migration/{vendor}`).
+
+- `V1__schema_initial.sql` : schéma complet (les deux bases).
+- `V2__contrainte_chevauchement_rendez_vous.sql` : **PostgreSQL uniquement**. Contrainte d'exclusion qui interdit, en base, deux rendez-vous actifs du même médecin sur des créneaux qui se chevauchent. Nécessite l'extension `btree_gist` (créée par la migration ; disponible sur Neon, Render et Railway).
+
+### Modifier le modèle (nouvelle entité, nouveau champ...)
+1. Modifier l'entité JPA.
+2. Créer une **nouvelle** migration `V<n>__description.sql` dans **les deux dossiers** (même numéro, SQL adapté à chaque base). Prochain numéro libre : **V3**.
+3. Ne **jamais** modifier une migration déjà appliquée : Flyway vérifie leur somme de contrôle et refuse de démarrer.
+4. Lancer les tests `FlywayMigrationPostgreSqlTest` et `FlywayMigrationSqlServerTest` : ils appliquent les migrations puis valident le schéma contre les entités.
+
+### Première mise en place (base existante)
+Les bases créées auparavant par `ddl-auto=update` ne sont pas reconnues par Flyway (« Found non-empty schema(s) without schema history table ») et leurs colonnes `role` / `sexe` sont encore numériques (point C12). Il n'y a pas encore de données de production : **supprimer et recréer la base** (locale et de test), puis démarrer l'application. L'administrateur initial et les types de rendez-vous sont recréés automatiquement (`DEFAULT_ADMIN_EMAIL`, `DEFAULT_ADMIN_PASSWORD`).
+
+---
+
 ## 🔧 Résolution de problèmes
 
 ### Erreurs communes

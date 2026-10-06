@@ -1,5 +1,6 @@
 package org.kfokam48.cliniquemanagementbackend.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -66,6 +67,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, String>> handleIllegalStateException(IllegalStateException e) {
         return new ResponseEntity<>(errorBody(e.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    // Contrainte de la base violée (unicité, clé étrangère, chevauchement de rendez-vous en PostgreSQL...).
+    // Message générique : le détail SQL n'est pas renvoyé au client.
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        String message = e.getMostSpecificCause().getMessage();
+        if (message != null && message.contains("ex_rendez_vous_medecin_chevauchement")) {
+            return new ResponseEntity<>(errorBody("Ce créneau est déjà pris pour ce médecin."), HttpStatus.CONFLICT);
+        }
+        return new ResponseEntity<>(errorBody("L'opération viole une contrainte de données (doublon ou référence invalide)."), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(RendezVousNonTermineException.class)
