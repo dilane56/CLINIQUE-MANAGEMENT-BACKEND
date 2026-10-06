@@ -2,6 +2,7 @@ package org.kfokam48.cliniquemanagementbackend.exception;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mapping.PropertyReferenceException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -68,6 +69,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, String>> handleIllegalStateException(IllegalStateException e) {
         return new ResponseEntity<>(errorBody(e.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    // Trop d'échecs de connexion pour ce compte (anti force brute)
+    @ExceptionHandler(TooManyLoginAttemptsException.class)
+    public ResponseEntity<Map<String, String>> handleTooManyLoginAttemptsException(TooManyLoginAttemptsException e) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(Math.max(1, e.getRetryAfterSeconds())))
+                .body(errorBody(e.getMessage()));
     }
 
     // Tri demandé sur une propriété inexistante (?sort=inconnu) : erreur du client, pas du serveur
