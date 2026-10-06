@@ -1,6 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.service;
 
 
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import org.kfokam48.cliniquemanagementbackend.dto.prescription.PrescriptionDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.prescription.PrescriptionResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.prescription.PrescriptionUpdateDTO;
@@ -16,4 +18,6 @@ public interface PrescriptionService {
     List<PrescriptionResponseDTO> findAll();
     List<PrescriptionResponseDTO> findByMedecinId(Long medecinId);
     ResponseEntity<String > deleteById(Long id);
+    PageResponse<PrescriptionResponseDTO> findAll(Pageable pageable);
+    PageResponse<PrescriptionResponseDTO> findByMedecinId(Long medecinId, Pageable pageable);
 }

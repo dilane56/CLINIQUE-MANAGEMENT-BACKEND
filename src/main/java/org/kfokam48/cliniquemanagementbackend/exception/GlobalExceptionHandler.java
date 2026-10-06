@@ -1,6 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.exception;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -67,6 +68,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, String>> handleIllegalStateException(IllegalStateException e) {
         return new ResponseEntity<>(errorBody(e.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    // Tri demandé sur une propriété inexistante (?sort=inconnu) : erreur du client, pas du serveur
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<Map<String, String>> handlePropertyReferenceException(PropertyReferenceException e) {
+        return new ResponseEntity<>(errorBody("Tri impossible : propriété inconnue « " + e.getPropertyName() + " »."), HttpStatus.BAD_REQUEST);
     }
 
     // Contrainte de la base violée (unicité, clé étrangère, chevauchement de rendez-vous en PostgreSQL...).

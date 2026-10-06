@@ -1,6 +1,9 @@
 package org.kfokam48.cliniquemanagementbackend.security;
 
 import org.junit.jupiter.api.Test;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
+import org.mockito.ArgumentCaptor;
+import org.springframework.data.domain.Pageable;
 import org.kfokam48.cliniquemanagementbackend.config.JwtRequestFillter;
 import org.kfokam48.cliniquemanagementbackend.config.SecurityConfig;
 import org.kfokam48.cliniquemanagementbackend.controlleur.FactureController;
@@ -36,9 +39,14 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -331,5 +339,56 @@ class AccessControlTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"destinataireEmail\":\"pas-un-email\",\"sujet\":\"\",\"message\":\"x\"}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    // --- I11 : pagination progressive ---
+
+    @Test
+    @WithMockUser(roles = "SECRETAIRE")
+    void listWithoutPageParameterIsUnchanged() throws Exception {
+        when(patientService.findAll()).thenReturn(List.of());
+        mockMvc.perform(get("/api/patients"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+        verify(patientService, never()).findAll(any(Pageable.class));
+    }
+
+    @Test
+    @WithMockUser(roles = "SECRETAIRE")
+    void listWithPageParameterIsPaginated() throws Exception {
+        when(patientService.findAll(any(Pageable.class)))
+                .thenReturn(new PageResponse<>(List.of(), 1, 5, 12, 3));
+        mockMvc.perform(get("/api/patients").param("page", "1").param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.page").value(1))
+                .andExpect(jsonPath("$.size").value(5))
+                .andExpect(jsonPath("$.totalElements").value(12))
+                .andExpect(jsonPath("$.totalPages").value(3));
+
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(patientService).findAll(pageable.capture());
+        assertThat(pageable.getValue().getPageNumber()).isEqualTo(1);
+        assertThat(pageable.getValue().getPageSize()).isEqualTo(5);
+    }
+
+    @Test
+    @WithMockUser(roles = "SECRETAIRE")
+    void pageSizeIsCappedAt100() throws Exception {
+        when(rendezVousService.findAll(any(Pageable.class))).thenReturn(new PageResponse<>(List.of(), 0, 100, 0, 0));
+        mockMvc.perform(get("/api/rendezvous").param("page", "0").param("size", "5000"))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(rendezVousService).findAll(pageable.capture());
+        assertThat(pageable.getValue().getPageSize()).isEqualTo(100);
+    }
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void paginatedVariantKeepsTheAccessRule() throws Exception {
+        when(authz.isCurrentUser(AUTRE_MEDECIN)).thenReturn(false);
+        mockMvc.perform(get("/api/rendezvous/medecin/" + AUTRE_MEDECIN).param("page", "0"))
+                .andExpect(status().isForbidden());
     }
 }

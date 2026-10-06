@@ -1,5 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.dto.medecin.MedecinDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.medecin.MedecinResponseDTO;
@@ -95,5 +97,11 @@ public class MedecinServiceImpl implements MedecinService {
     public List<MedecinResponseDTO> findAll() {
 
         return   medecinMapper.medecinListToMedecinResponseDtoList(medecinRepository.findAll());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<MedecinResponseDTO> findAll(Pageable pageable) {
+        return PageResponse.of(medecinRepository.findAll(pageable), medecinMapper::medecinListToMedecinResponseDtoList);
     }
 }

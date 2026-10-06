@@ -1,6 +1,9 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
 
 
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.dto.patient.PatientDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.patient.PatientResponseDTO;
@@ -34,6 +37,13 @@ public class PatientController {
         return ResponseEntity.ok(patients);
     }
 
+    // Variante paginée (?page=0&size=20&sort=...) ; sans "page", la liste complète ci-dessus reste servie
+    @GetMapping(params = "page")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
+    public ResponseEntity<PageResponse<PatientResponseDTO>> getAllPatientsPage(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        return ResponseEntity.ok(patientService.findAll(pageable));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public ResponseEntity<PatientResponseDTO> getPatientById(@PathVariable Long id) {
@@ -46,6 +56,13 @@ public class PatientController {
     public ResponseEntity<List<PatientResponseDTO>> getPatientsByMedecinId(@PathVariable Long medecinId) {
         List<PatientResponseDTO> patients = patientService.findByMedecinId(medecinId);
         return ResponseEntity.ok(patients);
+    }
+
+    // Variante paginée (?page=0&size=20&sort=...) ; sans "page", la liste complète ci-dessus reste servie
+    @GetMapping(value = "/medecin/{medecinId}", params = "page")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.isCurrentUser(#medecinId))")
+    public ResponseEntity<PageResponse<PatientResponseDTO>> getPatientsByMedecinIdPage(@PathVariable Long medecinId, @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        return ResponseEntity.ok(patientService.findByMedecinId(medecinId, pageable));
     }
 
     @PutMapping("/{id}")

@@ -1,6 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
 
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.controlleur.notification.NotificationController;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureDTO;
@@ -174,5 +176,17 @@ public class FactureServiceImpl implements FactureService {
         facture.setMontantTotal(total);
         facture.setMontantRestant(total);
         return facture;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<FactureResponseDto> findAll(Pageable pageable) {
+        return PageResponse.of(factureRepository.findAll(pageable), factureMapper::factureListToFactureResponseDtoList);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<FactureResponseDto> findByMedecinId(Long medecinId, Pageable pageable) {
+        return PageResponse.of(factureRepository.findByRendezVous_Medecin_Id(medecinId, pageable), factureMapper::factureListToFactureResponseDtoList);
     }
 }

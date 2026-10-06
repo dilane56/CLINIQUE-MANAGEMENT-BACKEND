@@ -1,5 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.service.notification;
 
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import lombok.RequiredArgsConstructor;
 import org.kfokam48.cliniquemanagementbackend.dto.notification.NotifcationDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.notification.NotificationResponseDTO;
@@ -61,5 +63,10 @@ public class NotificationService {
             n.setLu(true);
             notificationRepository.save(n);
         });
+    }
+
+    public PageResponse<NotificationResponseDTO> getUserNotifications(Long recepteurId, Pageable pageable) {
+        return PageResponse.of(notificationRepository.findByDestinataireId(recepteurId, pageable),
+                notificationMapper::notificationListToNotificationResponseDTOList);
     }
 }

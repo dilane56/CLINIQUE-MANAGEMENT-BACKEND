@@ -1,5 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.dto.AdministrateurDTO;
 import org.kfokam48.cliniquemanagementbackend.enums.Roles;
@@ -94,5 +96,11 @@ public class AdministrateurServiceImpl implements AdministrateurService {
         administrateurRepository.deleteById(id);
         return ResponseEntity.ok("Administrateur deleted successfully");
 
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Administrateur> findAll(Pageable pageable) {
+        return administrateurRepository.findAll(pageable);
     }
 }

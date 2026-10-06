@@ -1,6 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.repository;
 
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous;
 import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,6 +17,7 @@ import java.util.List;
 @Repository
 public interface RendezVousRepository extends JpaRepository<RendezVous, Long> {
     List<RendezVous> findByMedecinId(Long medecinId);
+    Page<RendezVous> findByMedecinId(Long medecinId, Pageable pageable);
     List<RendezVous> findByMedecinIdAndDateRendezVousBetween(Long medecinId, LocalDateTime debut, LocalDateTime fin);
     List<RendezVous> findAllByStatutRendezVous(StatutRendezVous statutRendezVous);
 

@@ -1,6 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
 
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.dto.prescription.PrescriptionDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.prescription.PrescriptionResponseDTO;
@@ -92,5 +94,17 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     public List<PrescriptionResponseDTO> findByMedecinId(Long medecinId) {
         List<Prescription> prescriptions = prescriptionRepository.findByMedecinId(medecinId);
         return prescriptionMapper.prescriptionListToPrescriptionResponseDtoList(prescriptions);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<PrescriptionResponseDTO> findAll(Pageable pageable) {
+        return PageResponse.of(prescriptionRepository.findAll(pageable), prescriptionMapper::prescriptionListToPrescriptionResponseDtoList);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<PrescriptionResponseDTO> findByMedecinId(Long medecinId, Pageable pageable) {
+        return PageResponse.of(prescriptionRepository.findByMedecinId(medecinId, pageable), prescriptionMapper::prescriptionListToPrescriptionResponseDtoList);
     }
 }

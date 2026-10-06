@@ -1,6 +1,9 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
 
 
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.dto.AdministrateurDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurResponseDTO;
@@ -39,6 +42,13 @@ public class AdministrateurController {
                 .map(utilisateurMapper::utilisateurToUtilisateurResponseDTO)
                 .toList();
         return ResponseEntity.ok(administrateurs);
+    }
+
+    // Variante paginée (?page=0&size=20&sort=...) ; sans "page", la liste complète ci-dessus reste servie
+    @GetMapping(value = "/all", params = "page")
+    @PreAuthorize("hasRole('ADMIN')") // Accès pour les rôles ADMIN
+    public ResponseEntity<PageResponse<UtilisateurResponseDTO>> getAllAdministrateursPage(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        return ResponseEntity.ok(PageResponse.of(administrateurService.findAll(pageable), admins -> admins.stream().map(utilisateurMapper::utilisateurToUtilisateurResponseDTO).toList()));
     }
 
     @GetMapping("/{id}")

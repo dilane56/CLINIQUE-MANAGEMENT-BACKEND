@@ -46,6 +46,31 @@ Si elles ne sont pas définies, aucun administrateur n'est créé et un avertiss
 }
 ```
 
+## 📄 Pagination des listes
+
+Les endpoints de liste acceptent une pagination **optionnelle** :
+
+- **sans paramètre `page`** : réponse inchangée, tableau JSON complet (`[ {...}, ... ]`) ;
+- **avec `page`** : réponse paginée.
+
+```
+GET /api/patients?page=0&size=20&sort=nom,asc
+```
+```json
+{
+  "content": [ {...}, ... ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 135,
+  "totalPages": 7
+}
+```
+
+- `page` commence à 0 ; `size` vaut 20 par défaut et **100 au maximum** ; `sort=propriete,asc|desc` (par défaut `id`). Un tri sur une propriété inconnue renvoie 400.
+- Endpoints concernés : `GET /api/patients`, `/api/rendezvous`, `/api/factures`, `/api/prescriptions`, `/api/utilisateurs`, `/api/medecins`, `/api/secretaires`, `/api/administrateurs/all`, les listes `/medecin/{medecinId}` (patients, rendez-vous, factures, prescriptions) et `/api/notifications/{userId}` (triées par date décroissante).
+- Les règles d'accès sont les mêmes avec ou sans pagination.
+- La liste complète sans `page` sera retirée à terme : migrer les écrans vers la version paginée.
+
 ## 👥 Gestion des Utilisateurs
 
 ### Patients

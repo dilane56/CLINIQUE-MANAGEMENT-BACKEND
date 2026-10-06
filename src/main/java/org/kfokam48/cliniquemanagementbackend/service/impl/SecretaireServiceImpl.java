@@ -1,5 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.dto.secretaire.SecretaireDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.secretaire.SecretaireResponseDTO;
@@ -86,5 +88,11 @@ public class SecretaireServiceImpl implements SecretaireService {
                 .orElseThrow(() -> new RessourceNotFoundException("Secretaire not found"));
         secretaireRepository.deleteById(id);
         return ResponseEntity.ok("Secretaire deleted successfully");
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<SecretaireResponseDTO> findAll(Pageable pageable) {
+        return PageResponse.of(secretaireRepository.findAll(pageable), secretaireMapper::secretaireListToSecretaireResponseDtoList);
     }
 }

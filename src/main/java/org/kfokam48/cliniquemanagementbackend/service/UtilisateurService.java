@@ -1,5 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.service;
 
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.Contact;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurResponseDTO;
@@ -18,4 +20,5 @@ public interface UtilisateurService {
     Utilisateur addRoleTouser(Utilisateur utilisateur, String role);
     List<Contact> findAllContacts();
 
+    PageResponse<UtilisateurResponseDTO> findAll(Pageable pageable);
 }

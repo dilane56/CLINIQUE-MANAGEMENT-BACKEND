@@ -1,4 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.itextpdf.text.DocumentException;
@@ -37,6 +40,13 @@ public class FactureController {
         return ResponseEntity.ok(factureService.findAll());
     }
 
+    // Variante paginée (?page=0&size=20&sort=...) ; sans "page", la liste complète ci-dessus reste servie
+    @GetMapping(params = "page")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
+    public ResponseEntity<PageResponse<FactureResponseDto>> getAllFacturesPage(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        return ResponseEntity.ok(factureService.findAll(pageable));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.ownsFacture(#id))")
     public ResponseEntity<FactureResponseDto> getFactureById(@PathVariable Long id) {
@@ -47,6 +57,13 @@ public class FactureController {
     @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.isCurrentUser(#medecinId))")
     public ResponseEntity<List<FactureResponseDto>> getFacturesByMedecin(@PathVariable Long medecinId) {
         return ResponseEntity.ok(factureService.findByMedecinId(medecinId));
+    }
+
+    // Variante paginée (?page=0&size=20&sort=...) ; sans "page", la liste complète ci-dessus reste servie
+    @GetMapping(value = "/medecin/{medecinId}", params = "page")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.isCurrentUser(#medecinId))")
+    public ResponseEntity<PageResponse<FactureResponseDto>> getFacturesByMedecinPage(@PathVariable Long medecinId, @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        return ResponseEntity.ok(factureService.findByMedecinId(medecinId, pageable));
     }
 
     @PutMapping("/{id}")

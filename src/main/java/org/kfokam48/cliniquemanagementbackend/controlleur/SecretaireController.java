@@ -1,6 +1,9 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
 
 
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.dto.secretaire.SecretaireDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.secretaire.SecretaireResponseDTO;
@@ -32,6 +35,13 @@ public class SecretaireController {
     public ResponseEntity<List<SecretaireResponseDTO>> getAllSecretaires() {
         List<SecretaireResponseDTO> secretaires = secretaireService.findAll();
         return ResponseEntity.ok(secretaires);
+    }
+
+    // Variante paginée (?page=0&size=20&sort=...) ; sans "page", la liste complète ci-dessus reste servie
+    @GetMapping(params = "page")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN')")
+    public ResponseEntity<PageResponse<SecretaireResponseDTO>> getAllSecretairesPage(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        return ResponseEntity.ok(secretaireService.findAll(pageable));
     }
 
     @GetMapping("/{id}")

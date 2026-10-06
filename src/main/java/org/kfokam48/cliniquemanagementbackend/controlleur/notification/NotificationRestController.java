@@ -1,4 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur.notification;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import jakarta.validation.Valid;
@@ -25,6 +29,13 @@ public class NotificationRestController {
     @PreAuthorize("hasRole('ADMIN') or @authz.isCurrentUser(#userId)")
     public List<NotificationResponseDTO> getUserNotifications(@PathVariable Long userId) {
         return notificationService.getUserNotifications(userId);
+    }
+
+    // Variante paginée (?page=0&size=20&sort=...) ; sans "page", la liste complète ci-dessus reste servie
+    @GetMapping(value = "/{userId}", params = "page")
+    @PreAuthorize("hasRole('ADMIN') or @authz.isCurrentUser(#userId)")
+    public PageResponse<NotificationResponseDTO> getUserNotificationsPage(@PathVariable Long userId, @PageableDefault(size = 20, sort = "dateEnvoi", direction = Sort.Direction.DESC) Pageable pageable) {
+        return notificationService.getUserNotifications(userId, pageable);
     }
 
     @PutMapping("/{id}/read")

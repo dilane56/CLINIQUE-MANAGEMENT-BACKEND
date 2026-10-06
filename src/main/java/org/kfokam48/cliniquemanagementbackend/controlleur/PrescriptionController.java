@@ -1,4 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.itextpdf.text.DocumentException;
@@ -68,6 +71,13 @@ public class PrescriptionController {
         return ResponseEntity.ok(prescriptions);
     }
 
+    // Variante paginée (?page=0&size=20&sort=...) ; sans "page", la liste complète ci-dessus reste servie
+    @GetMapping(params = "page")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
+    public ResponseEntity<PageResponse<PrescriptionResponseDTO>> getAllPrescriptionsPage(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        return ResponseEntity.ok(prescriptionService.findAll(pageable));
+    }
+
     // Endpoint pour supprimer une prescription par son ID
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or (hasRole('MEDECIN') and @authz.ownsPrescription(#id))")
@@ -98,5 +108,12 @@ public class PrescriptionController {
     public ResponseEntity<List<PrescriptionResponseDTO>> getPrescriptionsByMedecinId(@PathVariable Long medecinId) {
         List<PrescriptionResponseDTO> prescriptions = prescriptionService.findByMedecinId(medecinId);
         return ResponseEntity.ok(prescriptions);
+    }
+
+    // Variante paginée (?page=0&size=20&sort=...) ; sans "page", la liste complète ci-dessus reste servie
+    @GetMapping(value = "/medecin/{medecinId}", params = "page")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.isCurrentUser(#medecinId))")
+    public ResponseEntity<PageResponse<PrescriptionResponseDTO>> getPrescriptionsByMedecinIdPage(@PathVariable Long medecinId, @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        return ResponseEntity.ok(prescriptionService.findByMedecinId(medecinId, pageable));
     }
 }

@@ -1,4 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 
@@ -49,6 +52,13 @@ public class UtilisateurController {
     public ResponseEntity<List<UtilisateurResponseDTO>> getAllUtilisateurs() {
         List<UtilisateurResponseDTO> utilisateurs = utilisateurService.findAll();
         return new ResponseEntity<>(utilisateurs, HttpStatus.OK);
+    }
+
+    // Variante paginée (?page=0&size=20&sort=...) ; sans "page", la liste complète ci-dessus reste servie
+    @GetMapping(params = "page")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
+    public ResponseEntity<PageResponse<UtilisateurResponseDTO>> getAllUtilisateursPage(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        return ResponseEntity.ok(utilisateurService.findAll(pageable));
     }
 
     @GetMapping("/contacts")

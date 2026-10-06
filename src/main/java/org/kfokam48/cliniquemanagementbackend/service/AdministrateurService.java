@@ -1,6 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.service;
 
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.kfokam48.cliniquemanagementbackend.dto.AdministrateurDTO;
 import org.kfokam48.cliniquemanagementbackend.model.Administrateur;
 import org.springframework.http.ResponseEntity;
@@ -15,5 +17,6 @@ public interface AdministrateurService {
     Administrateur findByEmail(String email);
     ResponseEntity<String> deleteById(Long id);
 
+    Page<Administrateur> findAll(Pageable pageable);
 }
 

@@ -1,6 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
 
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.controlleur.notification.NotificationController;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousDTO;
@@ -212,5 +214,17 @@ public class RendezVousServiceImpl implements RendezVousService {
         LocalDateTime finJour = debutJour.plusDays(1).minusSeconds(1);
         List<RendezVous> rendezVousList = rendezVousRepository.findByMedecinIdAndDateRendezVousBetween(medecinId, debutJour, finJour);
         return rendezVousMapper.rendezVousListToRendezVousResponseDtoList(rendezVousList);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<RendezVousResponseDTO> findAll(Pageable pageable) {
+        return PageResponse.of(rendezVousRepository.findAll(pageable), rendezVousMapper::rendezVousListToRendezVousResponseDtoList);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<RendezVousResponseDTO> findByMedecinId(Long medecinId, Pageable pageable) {
+        return PageResponse.of(rendezVousRepository.findByMedecinId(medecinId, pageable), rendezVousMapper::rendezVousListToRendezVousResponseDtoList);
     }
 }

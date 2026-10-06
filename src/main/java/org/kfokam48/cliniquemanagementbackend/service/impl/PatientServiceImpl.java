@@ -1,5 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.controlleur.notification.NotificationController;
 import org.kfokam48.cliniquemanagementbackend.dto.patient.PatientDTO;
@@ -99,5 +101,17 @@ public class PatientServiceImpl implements PatientService {
         return patients.stream()
                 .map(patientMapper::patientToPatientResponseDTO)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<PatientResponseDTO> findAll(Pageable pageable) {
+        return PageResponse.of(patientRepository.findAll(pageable), patientMapper::patientListToPatientResponseDtoList);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<PatientResponseDTO> findByMedecinId(Long medecinId, Pageable pageable) {
+        return PageResponse.of(patientRepository.findPatientsByMedecinId(medecinId, pageable), patientMapper::patientListToPatientResponseDtoList);
     }
 }

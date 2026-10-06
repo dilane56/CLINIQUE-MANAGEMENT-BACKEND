@@ -1,6 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.service;
 
 
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureResponseDto;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FacturePaiementUpdateDTO;
@@ -18,4 +20,6 @@ public interface FactureService {
     List<FactureResponseDto> findByMedecinId(Long medecinId);
     FactureResponseDto updatePaiement(Long id, FacturePaiementUpdateDTO paiementUpdateDTO);
     ByteArrayOutputStream generatePdf(Long id) throws DocumentException;
+    PageResponse<FactureResponseDto> findAll(Pageable pageable);
+    PageResponse<FactureResponseDto> findByMedecinId(Long medecinId, Pageable pageable);
 }
