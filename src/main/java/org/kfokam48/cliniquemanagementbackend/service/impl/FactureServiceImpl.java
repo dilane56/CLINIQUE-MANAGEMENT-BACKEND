@@ -80,6 +80,8 @@ public class FactureServiceImpl implements FactureService {
     public FactureResponseDto update(Long id, @Valid FactureDTO factureDTO) {
         Facture facture = factureRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Facture not found"));
+        // Sans cette vérification, la mise à jour remettait le montant payé à 0 et effaçait les paiements
+        facture.verifierModifiable();
 
         RendezVous rendezVous = rendezVousRepository.findById(factureDTO.getRendezVousId())
                 .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous not found with id: " + factureDTO.getRendezVousId()));

@@ -1,5 +1,6 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
 import org.springframework.security.access.prepost.PreAuthorize;
+import jakarta.validation.Valid;
 
 import org.kfokam48.cliniquemanagementbackend.dto.lignefacture.LigneFactureDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.lignefacture.LigneFactureResponseDTO;
@@ -19,7 +20,7 @@ public class LigneFactureController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
-    public LigneFactureResponseDTO modifier(@PathVariable Long id, @RequestBody LigneFactureDTO dto) {
+    public LigneFactureResponseDTO modifier(@PathVariable Long id, @Valid @RequestBody LigneFactureDTO dto) {
         return service.modifierLigne(id, dto);
     }
 
