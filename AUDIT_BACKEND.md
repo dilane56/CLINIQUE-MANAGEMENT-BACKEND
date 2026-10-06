@@ -122,7 +122,12 @@
   - Logique dupliquée entre `save` et `update` regroupée dans `affecterEtVerifierCreneau`.
   - Amélioration possible avec I9 (Flyway) : contrainte d'exclusion PostgreSQL (`btree_gist`) comme seconde barrière en base.
   - Tests sur H2 (nouvelle dépendance de test) : `RendezVousChevauchementTest` (8) et `RendezVousConcurrenceTest` (vérifié : **échoue si le verrou est retiré**).
-- [ ] **I20** (découvert pendant I10) — **Notifications et e-mails envoyés au mauvais destinataire** : `RendezVousServiceImpl.save/update` appellent `sendNotification(patientId, …, true)`. Les patients ne sont pas des `Utilisateur` : la notification **et l'e-mail** partent vers le membre du personnel qui a le même identifiant numérique que le patient (fuite d'informations). `FactureServiceImpl.updatePaiement` notifie aussi l'utilisateur `1L` codé en dur (supposé admin). À corriger : envoyer l'e-mail au patient via `Patient.email` (sans notification interne), et notifier les admins réels.
+- [x] **I20** (découvert pendant I10) — **Notifications et e-mails envoyés au mauvais destinataire** : `RendezVousServiceImpl.save/update` appellent `sendNotification(patientId, …, true)`. Les patients ne sont pas des `Utilisateur` : la notification **et l'e-mail** partent vers le membre du personnel qui a le même identifiant numérique que le patient (fuite d'informations). `FactureServiceImpl.updatePaiement` notifie aussi l'utilisateur `1L` codé en dur (supposé admin). À corriger : envoyer l'e-mail au patient via `Patient.email` (sans notification interne), et notifier les admins réels.
+  - Patients : `save`, `update` et `updateStatut` (3 appels) envoient désormais un **e-mail direct à `Patient.email`** (date, heure, médecin, nouveau statut), sans notification interne.
+  - Admins : `NotificationController.sendNotificationToAdmins` notifie **tous** les administrateurs ; remplace `1L` dans `FactureServiceImpl.updatePaiement` et `PatientServiceImpl.save` (même défaut trouvé là).
+  - `secretaireId` (fourni par le client, destinataire de notifications) : à la création, il doit désigner une secrétaire existante, sinon 400.
+  - Javadoc sur `sendNotification` : réservé aux membres du personnel.
+  - Test : `RendezVousNotificationTest` (4).
 - [ ] **I11** — Aucune pagination : les `findAll()` renvoient des tables entières (rendez-vous, patients, factures, utilisateurs…) → utiliser `Pageable` / `Page<T>`.
 
 ### 2.3 Architecture
@@ -280,3 +285,4 @@ Vérification : `src/test/java/.../security/AccessControlTest.java` (31 tests) e
 | I19 | 2026-10-06 | `d47949b` | Recalcul des montants tant que `NON_PAYEE`, refus ensuite (lignes **et** `PUT /api/factures/{id}`, qui effaçait les paiements). `prixTotal` de ligne recalculé. Validation `LigneFactureDTO`. Test : `FactureMontantsTest` (5). Total 54/54 OK |
 | C15 | 2026-10-06 | (aucun) | Accepté : annuaire du personnel visible par tout le personnel. Aucun changement de code |
 | I10 | 2026-10-06 | `e391e82` | Verrou `FOR UPDATE` médecin puis patient ; requête de chevauchement corrigée (début ET fin) ; statuts annulés libèrent le créneau. Tests H2 : chevauchement (8) + concurrence (1, échoue sans le verrou). Total 63/63 OK. Nouveau point I20 |
+| I20 | 2026-10-06 | `4440a26` | E-mail direct au patient (3 endroits), notification à tous les admins (2 endroits avec `1L`), contrôle de `secretaireId`. Test : `RendezVousNotificationTest` (4). Total 67/67 OK |
