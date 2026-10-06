@@ -115,7 +115,14 @@
 ### 2.2 Données / persistance
 
 - [ ] **I9** — `spring.jpa.hibernate.ddl-auto=update` dans **tous** les profils → introduire **Flyway** (ou Liquibase) et passer à `validate` en production.
-- [ ] **I10** — Aucun verrou optimiste (`@Version`) ni contrainte en base → deux réservations simultanées peuvent passer le contrôle de chevauchement dans `RendezVousServiceImpl` (race condition). Ajouter `@Version` et/ou un verrou / contrainte d'exclusion.
+- [x] **I10** — Aucun verrou optimiste (`@Version`) ni contrainte en base → deux réservations simultanées peuvent passer le contrôle de chevauchement dans `RendezVousServiceImpl` (race condition). Ajouter `@Version` et/ou un verrou / contrainte d'exclusion.
+  - **Concurrence** : médecin puis patient lus avec `SELECT ... FOR UPDATE` (`findByIdForUpdate`, `PESSIMISTIC_WRITE`) dans la transaction de réservation → deux réservations du même médecin (ou du même patient) sont sérialisées ; la seconde voit la première. Ordre de verrouillage fixe (médecin puis patient) contre les interblocages. Fonctionne sans changement de schéma.
+  - **Bug de détection corrigé (découvert pendant I10)** : l'ancienne requête (`existsByMedecinAndDateRendezVousBetween`) ne testait que le **début** des rendez-vous existants → un rendez-vous 10h30 était accepté alors qu'un autre occupait 10h00-10h45. Nouvelle règle : chevauchement si `existant.debut < nouveau.fin` **et** `existant.fin > nouveau.debut`. Les rendez-vous qui se suivent (10h00-10h30 puis 10h30) ne sont plus refusés à tort.
+  - **Bug corrigé (découvert pendant I10)** : les rendez-vous annulés bloquaient toujours le créneau (et la règle « un rendez-vous par jour » du patient). Statuts libérant le créneau : `ANNULER`, `A_REPROGRAMMER`, `EXPIRE`.
+  - Logique dupliquée entre `save` et `update` regroupée dans `affecterEtVerifierCreneau`.
+  - Amélioration possible avec I9 (Flyway) : contrainte d'exclusion PostgreSQL (`btree_gist`) comme seconde barrière en base.
+  - Tests sur H2 (nouvelle dépendance de test) : `RendezVousChevauchementTest` (8) et `RendezVousConcurrenceTest` (vérifié : **échoue si le verrou est retiré**).
+- [ ] **I20** (découvert pendant I10) — **Notifications et e-mails envoyés au mauvais destinataire** : `RendezVousServiceImpl.save/update` appellent `sendNotification(patientId, …, true)`. Les patients ne sont pas des `Utilisateur` : la notification **et l'e-mail** partent vers le membre du personnel qui a le même identifiant numérique que le patient (fuite d'informations). `FactureServiceImpl.updatePaiement` notifie aussi l'utilisateur `1L` codé en dur (supposé admin). À corriger : envoyer l'e-mail au patient via `Patient.email` (sans notification interne), et notifier les admins réels.
 - [ ] **I11** — Aucune pagination : les `findAll()` renvoient des tables entières (rendez-vous, patients, factures, utilisateurs…) → utiliser `Pageable` / `Page<T>`.
 
 ### 2.3 Architecture
@@ -140,7 +147,7 @@
   - Aussi corrigé : **`PUT /api/factures/{id}` remettait le montant payé à 0 et le statut à `NON_PAYEE`**, effaçant les paiements enregistrés → même règle `verifierModifiable()`.
   - Validation ajoutée sur `LigneFactureDTO` (service obligatoire, quantité ≥ 1, prix ≥ 0), y compris pour les lignes envoyées à la création de la facture.
 - [ ] **I18** — Un seul test (`CliniqueManagementBackendApplicationTests.contextLoads`). À ajouter au minimum :
-  - [ ] Tests unitaires `RendezVousServiceImpl` (chevauchements patient/médecin, mise à jour, changement de statut)
+  - [ ] Tests unitaires `RendezVousServiceImpl` (chevauchements patient/médecin, mise à jour, changement de statut) — partiel : chevauchements et concurrence couverts (I10), changement de statut non couvert
   - [ ] Tests unitaires facturation / revenus
   - [x] Tests de sécurité `@WebMvcTest` + `@WithMockUser` pour **chaque règle d'accès** (points C3 à C8)
   - [x] Test vérifiant l'absence du champ `password` dans les réponses (point C2)
@@ -272,3 +279,4 @@ Vérification : `src/test/java/.../security/AccessControlTest.java` (31 tests) e
 | A11 (factures) | 2026-10-06 | `662ca7f` | `POST /api/lignes-facture` et `ajouterLigne` supprimés. Nouveau point I19 (totaux de facture non recalculés) |
 | I19 | 2026-10-06 | `d47949b` | Recalcul des montants tant que `NON_PAYEE`, refus ensuite (lignes **et** `PUT /api/factures/{id}`, qui effaçait les paiements). `prixTotal` de ligne recalculé. Validation `LigneFactureDTO`. Test : `FactureMontantsTest` (5). Total 54/54 OK |
 | C15 | 2026-10-06 | (aucun) | Accepté : annuaire du personnel visible par tout le personnel. Aucun changement de code |
+| I10 | 2026-10-06 | `e391e82` | Verrou `FOR UPDATE` médecin puis patient ; requête de chevauchement corrigée (début ET fin) ; statuts annulés libèrent le créneau. Tests H2 : chevauchement (8) + concurrence (1, échoue sans le verrou). Total 63/63 OK. Nouveau point I20 |
