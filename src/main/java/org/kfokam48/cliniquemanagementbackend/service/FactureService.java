@@ -6,7 +6,6 @@ import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureResponseDto;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FacturePaiementUpdateDTO;
-import org.springframework.http.ResponseEntity;
 import com.itextpdf.text.DocumentException;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
@@ -16,7 +15,7 @@ public interface FactureService {
     FactureResponseDto findById(Long id);
     List<FactureResponseDto> findAll();
     FactureResponseDto update(Long id, FactureDTO factureDTO);
-    ResponseEntity<String> deleteById(Long id);
+    void deleteById(Long id);
     List<FactureResponseDto> findByMedecinId(Long medecinId);
     FactureResponseDto updatePaiement(Long id, FacturePaiementUpdateDTO paiementUpdateDTO);
     ByteArrayOutputStream generatePdf(Long id) throws DocumentException;

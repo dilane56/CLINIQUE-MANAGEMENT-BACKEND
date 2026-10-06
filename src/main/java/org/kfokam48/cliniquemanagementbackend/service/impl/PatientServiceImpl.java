@@ -15,7 +15,6 @@ import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
 import org.kfokam48.cliniquemanagementbackend.service.PatientService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,12 +80,11 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public ResponseEntity<String> deleteById(Long id) {
+    public void deleteById(Long id) {
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Patient not found"));
         patientRepository.deleteById(id);
         log.info("Patient supprimé id={}", id);
-        return ResponseEntity.ok("Patient deleted successfully");
 
     }
 

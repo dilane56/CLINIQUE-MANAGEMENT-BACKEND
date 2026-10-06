@@ -115,7 +115,7 @@ class AccessControlTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void adminCanDeleteUser() throws Exception {
-        when(utilisateurService.deleteById(5L)).thenReturn(ResponseEntity.ok("ok"));
+        // deleteById ne renvoie plus rien (I13) : le mock ne fait rien par défaut
         mockMvc.perform(delete("/api/utilisateurs/5")).andExpect(status().isOk());
     }
 
@@ -130,7 +130,7 @@ class AccessControlTest {
     @Test
     @WithMockUser(roles = "SECRETAIRE")
     void secretaireCanDeletePatient() throws Exception {
-        when(patientService.deleteById(3L)).thenReturn(ResponseEntity.ok("ok"));
+        // deleteById ne renvoie plus rien (I13) : le mock ne fait rien par défaut
         mockMvc.perform(delete("/api/patients/3")).andExpect(status().isOk());
     }
 

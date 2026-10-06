@@ -19,7 +19,6 @@ import org.kfokam48.cliniquemanagementbackend.repository.SecretaireRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.TypeRendezVousRepository;
 import org.kfokam48.cliniquemanagementbackend.service.RendezVousService;
 import org.kfokam48.cliniquemanagementbackend.service.mail.EmailService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -168,11 +167,10 @@ public class RendezVousServiceImpl implements RendezVousService {
     }
 
     @Override
-    public ResponseEntity<String> deleteById(Long id) {
+    public void deleteById(Long id) {
         RendezVous rendezVous = rendezVousRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous not found"));
         rendezVousRepository.deleteById(id);
-        return ResponseEntity.ok("Rendez-vous deleted successfully");
     }
 
     @Override

@@ -82,7 +82,8 @@ public class PrescriptionController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or (hasRole('MEDECIN') and @authz.ownsPrescription(#id))")
     public ResponseEntity<String> deletePrescription(@PathVariable Long id) {
-        return prescriptionService.deleteById(id);
+        prescriptionService.deleteById(id);
+        return ResponseEntity.ok("Prescription deleted successfully");
     }
 
     @GetMapping("/{id}/pdf")

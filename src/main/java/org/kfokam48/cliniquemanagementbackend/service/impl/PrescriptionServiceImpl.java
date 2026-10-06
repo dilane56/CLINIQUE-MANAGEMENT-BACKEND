@@ -16,7 +16,6 @@ import org.kfokam48.cliniquemanagementbackend.model.Prescription;
 import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
 import org.kfokam48.cliniquemanagementbackend.repository.*;
 import org.kfokam48.cliniquemanagementbackend.service.PrescriptionService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -82,11 +81,10 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     }
 
     @Override
-    public ResponseEntity<String> deleteById(Long id) {
+    public void deleteById(Long id) {
         Prescription prescription = prescriptionRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Prescription not found"));
         prescriptionRepository.deleteById(id);
-        return ResponseEntity.ok("Prescription deleted successfully");
 
     }
 

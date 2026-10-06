@@ -75,7 +75,8 @@ public class AdministrateurController {
     @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteAdministrateur(@PathVariable Long id) {
-        return administrateurService.deleteById(id);
+        administrateurService.deleteById(id);
+        return ResponseEntity.ok("Administrateur deleted successfully");
     }
 
 

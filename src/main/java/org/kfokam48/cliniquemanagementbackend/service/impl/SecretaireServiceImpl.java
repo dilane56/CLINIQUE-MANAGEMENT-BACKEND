@@ -13,7 +13,6 @@ import org.kfokam48.cliniquemanagementbackend.model.Secretaire;
 import org.kfokam48.cliniquemanagementbackend.repository.SecretaireRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
 import org.kfokam48.cliniquemanagementbackend.service.SecretaireService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,11 +82,10 @@ public class SecretaireServiceImpl implements SecretaireService {
     }
 
     @Override
-    public ResponseEntity<String> deleteById(Long id) {
+    public void deleteById(Long id) {
        secretaireRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Secretaire not found"));
         secretaireRepository.deleteById(id);
-        return ResponseEntity.ok("Secretaire deleted successfully");
     }
 
     @Override

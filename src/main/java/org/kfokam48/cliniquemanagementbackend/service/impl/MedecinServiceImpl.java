@@ -13,7 +13,6 @@ import org.kfokam48.cliniquemanagementbackend.model.Medecin;
 import org.kfokam48.cliniquemanagementbackend.repository.MedecinRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
 import org.kfokam48.cliniquemanagementbackend.service.MedecinService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,11 +85,10 @@ public class MedecinServiceImpl implements MedecinService {
 
 
     @Override
-    public ResponseEntity<String> deleteById(Long id) {
+    public void deleteById(Long id) {
         Medecin medecin = medecinRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Medecin not found"));
         medecinRepository.delete(medecin);
-        return ResponseEntity.ok("Medecin deleted successfully");
     }
 
     @Override

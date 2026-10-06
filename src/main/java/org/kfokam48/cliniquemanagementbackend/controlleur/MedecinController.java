@@ -66,7 +66,8 @@ public class MedecinController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteMedecin(@PathVariable Long id) {
-        return medecinService.deleteById(id);
+        medecinService.deleteById(id);
+        return ResponseEntity.ok("Medecin deleted successfully");
     }
 
 }

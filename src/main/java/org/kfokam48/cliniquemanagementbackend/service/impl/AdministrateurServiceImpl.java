@@ -13,7 +13,6 @@ import org.kfokam48.cliniquemanagementbackend.repository.AdministrateurRepositor
 import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
 import org.kfokam48.cliniquemanagementbackend.service.AdministrateurService;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -91,10 +90,9 @@ public class AdministrateurServiceImpl implements AdministrateurService {
     }
 
     @Override
-    public ResponseEntity<String> deleteById(Long id) {
+    public void deleteById(Long id) {
         Administrateur administrateur = administrateurRepository.findById(id).orElseThrow(()->new RessourceNotFoundException("Administrateur not found"));
         administrateurRepository.deleteById(id);
-        return ResponseEntity.ok("Administrateur deleted successfully");
 
     }
 

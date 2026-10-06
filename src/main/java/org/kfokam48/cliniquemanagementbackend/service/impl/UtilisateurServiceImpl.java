@@ -11,7 +11,6 @@ import org.kfokam48.cliniquemanagementbackend.mapper.UtilisateurMapper;
 import org.kfokam48.cliniquemanagementbackend.model.Utilisateur;
 import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
 import org.kfokam48.cliniquemanagementbackend.service.UtilisateurService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,11 +58,10 @@ public class UtilisateurServiceImpl implements UtilisateurService {
 
 
     @Override
-    public ResponseEntity<String> deleteById(Long id) {
+    public void deleteById(Long id) {
         Utilisateur utilisateur = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Utilisateur not found with id: " + id));
         utilisateurRepository.deleteById(id);
-        return ResponseEntity.ok("Utilisateur deleted successfully");
     }
 
     @Override

@@ -22,7 +22,6 @@ import org.kfokam48.cliniquemanagementbackend.repository.FactureRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.RendezVousRepository;
 import org.kfokam48.cliniquemanagementbackend.service.FactureService;
 import org.kfokam48.cliniquemanagementbackend.service.pdf.PdfService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.itextpdf.text.DocumentException;
@@ -100,10 +99,9 @@ public class FactureServiceImpl implements FactureService {
     }
 
     @Override
-    public ResponseEntity<String> deleteById(Long id) {
+    public void deleteById(Long id) {
         Facture facture = factureRepository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Facture not found"));
         factureRepository.delete(facture);
-        return ResponseEntity.ok("Facture deleted successfully");
     }
 
     @Override
