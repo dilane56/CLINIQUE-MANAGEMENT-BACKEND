@@ -137,7 +137,14 @@
   - `secretaireId` (fourni par le client, destinataire de notifications) : à la création, il doit désigner une secrétaire existante, sinon 400.
   - Javadoc sur `sendNotification` : réservé aux membres du personnel.
   - Test : `RendezVousNotificationTest` (4).
-- [ ] **I11** — Aucune pagination : les `findAll()` renvoient des tables entières (rendez-vous, patients, factures, utilisateurs…) → utiliser `Pageable` / `Page<T>`.
+- [ ] **I11** (partiel) — Aucune pagination : les `findAll()` renvoient des tables entières (rendez-vous, patients, factures, utilisateurs…) → utiliser `Pageable` / `Page<T>`.
+  - **Décision du propriétaire du projet : pagination progressive.** Sans paramètre `page`, la réponse reste un tableau (rien ne casse côté frontend) ; avec `?page=0&size=20&sort=...`, réponse `PageResponse` (`content`, `page`, `size`, `totalElements`, `totalPages`).
+  - [x] Variante paginée (`@GetMapping(params = "page")`, même règle `@PreAuthorize`) sur **13 endpoints** : listes globales (patients, rendez-vous, factures, prescriptions, utilisateurs, médecins, secrétaires, administrateurs), listes `/medecin/{medecinId}` (patients, rendez-vous, factures, prescriptions), notifications d'un utilisateur (date décroissante).
+  - [x] `size` par défaut 20, **max 100** (`spring.data.web.pageable.max-page-size`) ; tri inconnu → 400.
+  - [x] Patients d'un médecin : requête réécrite en `EXISTS` (un `DISTINCT` + tri échoue en PostgreSQL).
+  - [x] Documentation : section « Pagination des listes » du README.
+  - [ ] **Reste à faire** : migrer les écrans du frontend vers `?page=...`, puis **supprimer les variantes non paginées** (c'est seulement alors que la charge est réellement bornée). Non couverts : `/api/utilisateurs/contacts`, `/api/lignes-facture`, `/api/lignes-prescription`, `/api/type-rendezvous`, conversations et messages.
+  - Tests : `AccessControlTest` (+4) et `PaginationRepositoryTest` (3, H2).
 
 ### 2.3 Architecture
 
@@ -298,3 +305,4 @@ Vérification : `src/test/java/.../security/AccessControlTest.java` (31 tests) e
 | I20 | 2026-10-06 | `4440a26` | E-mail direct au patient (3 endroits), notification à tous les admins (2 endroits avec `1L`), contrôle de `secretaireId`. Test : `RendezVousNotificationTest` (4). Total 67/67 OK |
 | I9 | 2026-10-06 | `33380e2` | Flyway (`db/migration/{vendor}`), V1 PostgreSQL + SQL Server, V2 contrainte d'exclusion (PostgreSQL), `ddl-auto=validate` partout, 409 sur violation de contrainte. Tests : `FlywayMigration*Test` (2). Total 69/69 OK. ⚠️ Non vérifié sur vraies bases. Nouveaux points I21, A12 |
 | I8 | 2026-10-06 | (aucun) | Décision : SQL Server conservé en dev, PostgreSQL en déploiement |
+| I11 (partiel) | 2026-10-06 | `5b401f9` | Pagination progressive sur 13 endpoints (`params = "page"`), max 100, tri inconnu → 400. Reste : migration du frontend puis suppression des listes non paginées. Tests : +4 web, +3 H2. Total 76/76 OK |
