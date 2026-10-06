@@ -24,7 +24,7 @@ import org.kfokam48.cliniquemanagementbackend.service.FactureService;
 import org.kfokam48.cliniquemanagementbackend.service.pdf.PdfService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.itextpdf.text.DocumentException;
+import com.lowagie.text.DocumentException;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

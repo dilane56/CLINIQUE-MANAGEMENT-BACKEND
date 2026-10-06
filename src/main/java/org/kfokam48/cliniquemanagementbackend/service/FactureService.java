@@ -6,7 +6,7 @@ import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureResponseDto;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FacturePaiementUpdateDTO;
-import com.itextpdf.text.DocumentException;
+import com.lowagie.text.DocumentException;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 

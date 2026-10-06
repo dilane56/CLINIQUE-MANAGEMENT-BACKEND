@@ -4,7 +4,7 @@ import org.springframework.data.domain.Pageable;
 import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import com.itextpdf.text.DocumentException;
+import com.lowagie.text.DocumentException;
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureResponseDto;
