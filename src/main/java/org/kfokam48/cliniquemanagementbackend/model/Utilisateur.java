@@ -40,6 +40,7 @@ public abstract class Utilisateur {
     // La date et l'heure de la dernière connexion
     private Instant derniereConnexion;
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Roles role; // ADMIN, MEDECIN, SECRETAIRE
     private LocalDate dateCreation;
     private String adresse;
