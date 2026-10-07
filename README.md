@@ -129,6 +129,15 @@ Réponses : **401** sans token valide, **403** si le rôle ou la propriété ne 
 
 ## 👥 Gestion des Utilisateurs
 
+### Mon profil
+
+#### PUT /api/utilisateurs/me
+Modifier son propre profil (tous les rôles). Seuls `nom`, `prenom`, `telephone` (9 à 20 caractères) et `adresse` sont modifiables ; l'e-mail, le rôle et le mot de passe ne le sont pas.
+```json
+{ "nom": "Martin", "prenom": "Paul", "telephone": "690000000", "adresse": "Douala" }
+```
+**Réponse :** l'utilisateur mis à jour, au même format que `user` dans la réponse de connexion.
+
 ### Patients
 
 #### POST /api/patients
