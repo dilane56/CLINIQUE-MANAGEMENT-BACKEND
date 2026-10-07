@@ -1,6 +1,6 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
+import org.springframework.security.access.prepost.PreAuthorize;
 
-import org.kfokam48.cliniquemanagementbackend.dto.ligneprescription.LignePrescriptionDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.ligneprescription.LignePrescriptionResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.ligneprescription.LignePrescriptionUpdateDTO;
 import org.kfokam48.cliniquemanagementbackend.service.LignePrescriptionService;
@@ -10,31 +10,33 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/lignes-prescription")
+// Les lignes sont toujours créées avec leur prescription (POST /api/prescriptions) :
+// pas de création isolée, qui produisait des lignes orphelines.
 public class LignePrescriptionController {
     @Autowired
     private LignePrescriptionService service;
 
-    @PostMapping
-    public LignePrescriptionResponseDTO ajouter(@RequestBody LignePrescriptionDTO dto) {
-        return service.ajouterLigne(dto);
-    }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('MEDECIN') and @authz.ownsLignePrescription(#id)")
     public LignePrescriptionResponseDTO modifier(@PathVariable Long id, @RequestBody LignePrescriptionUpdateDTO dto) {
         return service.modifierLigne(id, dto);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('MEDECIN') and @authz.ownsLignePrescription(#id)")
     public void supprimer(@PathVariable Long id) {
         service.supprimerLigne(id);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.ownsLignePrescription(#id))")
     public LignePrescriptionResponseDTO getLigne(@PathVariable Long id) {
         return service.getLigne(id);
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public List<LignePrescriptionResponseDTO> lister() {
         return service.listerLignes();
     }

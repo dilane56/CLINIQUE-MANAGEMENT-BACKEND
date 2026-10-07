@@ -39,6 +39,25 @@ public class Facture {
     @JoinColumn(name = "rendezvous_id")
     private RendezVous rendezVous;
 
+    /**
+     * Une facture n'est modifiable (lignes ou contenu) que tant qu'aucun paiement n'a été enregistré :
+     * une facture payée, partiellement payée ou annulée ne change plus de montant.
+     */
+    public void verifierModifiable() {
+        if (statut != StatutFacture.NON_PAYEE) {
+            throw new IllegalStateException("La facture #" + id + " ne peut plus être modifiée : statut " + statut
+                    + ". Les montants sont figés dès qu'un paiement a été enregistré.");
+        }
+    }
 
-
+    // Recalcule le total (somme des lignes) et le reste à payer
+    public void recalculerMontants() {
+        BigDecimal total = lignes.stream()
+                .map(LigneFacture::getPrixTotal)
+                .filter(java.util.Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal dejaPaye = montantPayement != null ? montantPayement : BigDecimal.ZERO;
+        this.montantTotal = total;
+        this.montantRestant = total.subtract(dejaPaye);
+    }
 }

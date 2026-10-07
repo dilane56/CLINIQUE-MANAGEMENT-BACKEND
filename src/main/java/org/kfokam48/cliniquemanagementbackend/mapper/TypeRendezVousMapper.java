@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class TypeRencezVousMapper {
+public class TypeRendezVousMapper {
 
     private final ModelMapper modelMapper;
 
-    public TypeRencezVousMapper(ModelMapper modelMapper) {
+    public TypeRendezVousMapper(ModelMapper modelMapper) {
         this.modelMapper = modelMapper;
     }
 

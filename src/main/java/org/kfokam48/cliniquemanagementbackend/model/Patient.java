@@ -31,6 +31,7 @@ public class Patient {
     private LocalDate dateNaissance;
     private String antecedents;
     private String allergies;
+    @Enumerated(EnumType.STRING)
     private Sexe sexe;
     private String adresse;
 

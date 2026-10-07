@@ -1,12 +1,14 @@
 package org.kfokam48.cliniquemanagementbackend.service.pdf;
 
 
-import com.itextpdf.text.*;
+import com.lowagie.text.*;
 
-import com.itextpdf.text.pdf.PdfPCell;
-import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfWriter;
-import com.itextpdf.text.pdf.draw.LineSeparator;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
+import com.lowagie.text.pdf.draw.LineSeparator;
+
+import java.awt.Color;
 
 import org.kfokam48.cliniquemanagementbackend.model.*;
 
@@ -21,10 +23,10 @@ import java.math.BigDecimal;
 
 @Service
 public class PdfService {
-    private final Font title_Font = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 30, BaseColor.BLUE);
-    private final Font subTitle_Font = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 20, BaseColor.BLUE);
-    private final Font text_Font = FontFactory.getFont(FontFactory.HELVETICA, 12, BaseColor.BLACK);
-    private final Font text_Font2 = FontFactory.getFont(FontFactory.HELVETICA, 10, BaseColor.BLACK);
+    private final Font title_Font = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 30, Color.BLUE);
+    private final Font subTitle_Font = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 20, Color.BLUE);
+    private final Font text_Font = FontFactory.getFont(FontFactory.HELVETICA, 12, Color.BLACK);
+    private final Font text_Font2 = FontFactory.getFont(FontFactory.HELVETICA, 10, Color.BLACK);
 
 
     // Ajustement du modèle de PDF pour la facture
@@ -87,7 +89,7 @@ public class PdfService {
         leftCell.setVerticalAlignment(Element.ALIGN_TOP);
         
         Paragraph clinicInfo = new Paragraph();
-        clinicInfo.add(new Chunk("CLINIQUE MÉDICALE\n", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, BaseColor.DARK_GRAY)));
+        clinicInfo.add(new Chunk("CLINIQUE MÉDICALE\n", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, Color.DARK_GRAY)));
         clinicInfo.add(new Chunk("123 Avenue de la Santé\n", text_Font));
         clinicInfo.add(new Chunk("Douala, Cameroun\n", text_Font));
         clinicInfo.add(new Chunk("Tél: +237 XXX XXX XXX\n", text_Font));
@@ -102,7 +104,7 @@ public class PdfService {
         rightCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
         
         Paragraph billingInfo = new Paragraph();
-        billingInfo.add(new Chunk("FACTURE\n", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, BaseColor.BLUE)));
+        billingInfo.add(new Chunk("FACTURE\n", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, Color.BLUE)));
         billingInfo.add(new Chunk("Date: " + java.time.LocalDate.now().toString() + "\n", text_Font));
         billingInfo.add(new Chunk("Échéance: " + java.time.LocalDate.now().plusDays(30).toString() + "\n", text_Font));
         billingInfo.add(new Chunk("Mode de paiement: Espèces/Carte\n", text_Font));
@@ -115,7 +117,7 @@ public class PdfService {
         // Ligne de séparation
         LineSeparator separator = new LineSeparator();
         separator.setLineWidth(1);
-        separator.setLineColor(BaseColor.GRAY);
+        separator.setLineColor(Color.GRAY);
         document.add(separator);
         document.add(new Paragraph(" ")); // Espace
     }
@@ -139,11 +141,11 @@ public class PdfService {
         factureInfoTable.addCell(createLabelCell("Statut:"));
         PdfPCell statusCell = createValueCell(facture.getStatut().toString());
         if (facture.getStatut().toString().equals("PAYEE")) {
-            statusCell.setBackgroundColor(BaseColor.GREEN);
+            statusCell.setBackgroundColor(Color.GREEN);
         } else if (facture.getStatut().toString().equals("NON_PAYEE")) {
-            statusCell.setBackgroundColor(BaseColor.RED);
+            statusCell.setBackgroundColor(Color.RED);
         } else {
-            statusCell.setBackgroundColor(BaseColor.YELLOW);
+            statusCell.setBackgroundColor(Color.YELLOW);
         }
         factureInfoTable.addCell(statusCell);
         
@@ -219,8 +221,8 @@ public class PdfService {
         // En-têtes du tableau
         String[] headers = {"Description", "Quantité", "Prix Unitaire", "TVA (19%)", "Total HT"};
         for (String header : headers) {
-            PdfPCell headerCell = new PdfPCell(new Phrase(header, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, BaseColor.WHITE)));
-            headerCell.setBackgroundColor(BaseColor.DARK_GRAY);
+            PdfPCell headerCell = new PdfPCell(new Phrase(header, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, Color.WHITE)));
+            headerCell.setBackgroundColor(Color.DARK_GRAY);
             headerCell.setHorizontalAlignment(Element.ALIGN_CENTER);
             headerCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
             headerCell.setPadding(5);
@@ -266,7 +268,7 @@ public class PdfService {
         summaryTable.addCell(createSummaryLabelCell("Montant Restant:"));
         PdfPCell restantCell = createSummaryValueCell(facture.getMontantRestant().toString() + " FCFA");
         if (facture.getMontantRestant().compareTo(BigDecimal.ZERO) > 0) {
-            restantCell.setBackgroundColor(BaseColor.RED);
+            restantCell.setBackgroundColor(Color.RED);
         }
         summaryTable.addCell(restantCell);
         
@@ -313,7 +315,7 @@ public class PdfService {
         patientSignatureCell.setHorizontalAlignment(Element.ALIGN_CENTER);
         
         Paragraph patientSignature = new Paragraph();
-        patientSignature.add(new Chunk("Signature du Patient\n", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.BLACK)));
+        patientSignature.add(new Chunk("Signature du Patient\n", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, Color.BLACK)));
         patientSignature.add(new Chunk("_________________________\n", text_Font));
         if (facture.getRendezVous() != null && facture.getRendezVous().getPatient() != null) {
             patientSignature.add(new Chunk(facture.getRendezVous().getPatient().getNom() + " " + facture.getRendezVous().getPatient().getPrenom() + "\n", text_Font));
@@ -328,7 +330,7 @@ public class PdfService {
         clinicStampCell.setHorizontalAlignment(Element.ALIGN_CENTER);
         
         Paragraph clinicStamp = new Paragraph();
-        clinicStamp.add(new Chunk("Cachet de la Clinique\n", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.BLACK)));
+        clinicStamp.add(new Chunk("Cachet de la Clinique\n", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, Color.BLACK)));
         clinicStamp.add(new Chunk("_________________________\n", text_Font));
         clinicStamp.add(new Chunk("CLINIQUE MÉDICALE\n", text_Font));
         clinicStamp.add(new Chunk("Date: " + java.time.LocalDate.now().toString(), text_Font));
@@ -346,14 +348,14 @@ public class PdfService {
         
         LineSeparator footerSeparator = new LineSeparator();
         footerSeparator.setLineWidth(0.5f);
-        footerSeparator.setLineColor(BaseColor.GRAY);
+        footerSeparator.setLineColor(Color.GRAY);
         document.add(footerSeparator);
         
         Paragraph footer = new Paragraph();
         footer.add(new Chunk("Merci de votre confiance. Pour toute question, contactez notre service comptabilité au +237 XXX XXX XXX.\n", 
-                FontFactory.getFont(FontFactory.HELVETICA, 8, BaseColor.GRAY)));
+                FontFactory.getFont(FontFactory.HELVETICA, 8, Color.GRAY)));
         footer.add(new Chunk("Cette facture est générée automatiquement par le système de gestion de la clinique.", 
-                FontFactory.getFont(FontFactory.HELVETICA, 8, BaseColor.GRAY)));
+                FontFactory.getFont(FontFactory.HELVETICA, 8, Color.GRAY)));
         footer.setAlignment(Element.ALIGN_CENTER);
         
         document.add(footer);
@@ -417,7 +419,7 @@ public class PdfService {
         leftCell.setVerticalAlignment(Element.ALIGN_TOP);
         
         Paragraph clinicInfo = new Paragraph();
-        clinicInfo.add(new Chunk("CLINIQUE MÉDICALE\n", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, BaseColor.DARK_GRAY)));
+        clinicInfo.add(new Chunk("CLINIQUE MÉDICALE\n", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, Color.DARK_GRAY)));
         clinicInfo.add(new Chunk("123 Avenue de la Santé\n", text_Font));
         clinicInfo.add(new Chunk("Tél: +237 XXX XXX XXX\n", text_Font));
         clinicInfo.add(new Chunk("Email: contact@clinique.com\n", text_Font));
@@ -441,7 +443,7 @@ public class PdfService {
         // Ligne de séparation
         LineSeparator separator = new LineSeparator();
         separator.setLineWidth(1);
-        separator.setLineColor(BaseColor.GRAY);
+        separator.setLineColor(Color.GRAY);
         document.add(separator);
         document.add(new Paragraph(" ")); // Espace
     }
@@ -519,8 +521,8 @@ public class PdfService {
             allergiesTable.setWidthPercentage(100);
             allergiesTable.setWidths(new float[]{0.3f, 0.7f});
             
-            PdfPCell allergyLabel = new PdfPCell(new Phrase("Allergies:", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, BaseColor.WHITE)));
-            allergyLabel.setBackgroundColor(BaseColor.RED);
+            PdfPCell allergyLabel = new PdfPCell(new Phrase("Allergies:", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, Color.WHITE)));
+            allergyLabel.setBackgroundColor(Color.RED);
             allergyLabel.setPadding(5);
             allergyLabel.setVerticalAlignment(Element.ALIGN_MIDDLE);
             allergiesTable.addCell(allergyLabel);
@@ -579,8 +581,8 @@ public class PdfService {
         // En-têtes du tableau
         String[] headers = {"Médicament", "Dosage", "Fréquence", "Durée", "Instructions"};
         for (String header : headers) {
-            PdfPCell headerCell = new PdfPCell(new Phrase(header, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, BaseColor.WHITE)));
-            headerCell.setBackgroundColor(BaseColor.DARK_GRAY);
+            PdfPCell headerCell = new PdfPCell(new Phrase(header, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, Color.WHITE)));
+            headerCell.setBackgroundColor(Color.DARK_GRAY);
             headerCell.setHorizontalAlignment(Element.ALIGN_CENTER);
             headerCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
             headerCell.setPadding(5);
@@ -640,7 +642,7 @@ public class PdfService {
         signatureCell.setHorizontalAlignment(Element.ALIGN_CENTER);
         
         Paragraph signature = new Paragraph();
-        signature.add(new Chunk("Signature du Médecin\n", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.BLACK)));
+        signature.add(new Chunk("Signature du Médecin\n", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, Color.BLACK)));
         signature.add(new Chunk("_________________________\n", text_Font));
         signature.add(new Chunk("Dr. " + medecin.getNom() + " " + medecin.getPrenom() + "\n", text_Font));
         signature.add(new Chunk(medecin.getSpecialite() + "\n", text_Font));
@@ -654,7 +656,7 @@ public class PdfService {
         stampCell.setHorizontalAlignment(Element.ALIGN_CENTER);
         
         Paragraph stamp = new Paragraph();
-        stamp.add(new Chunk("Cachet de la Clinique\n", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.BLACK)));
+        stamp.add(new Chunk("Cachet de la Clinique\n", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, Color.BLACK)));
         stamp.add(new Chunk("_________________________\n", text_Font));
         stamp.add(new Chunk("Date: " + java.time.LocalDate.now().toString(), text_Font));
         
@@ -671,14 +673,14 @@ public class PdfService {
         
         LineSeparator footerSeparator = new LineSeparator();
         footerSeparator.setLineWidth(0.5f);
-        footerSeparator.setLineColor(BaseColor.GRAY);
+        footerSeparator.setLineColor(Color.GRAY);
         document.add(footerSeparator);
         
         Paragraph footer = new Paragraph();
         footer.add(new Chunk("Ce document est généré automatiquement par le système de gestion de la clinique.\n", 
-                FontFactory.getFont(FontFactory.HELVETICA, 8, BaseColor.GRAY)));
+                FontFactory.getFont(FontFactory.HELVETICA, 8, Color.GRAY)));
         footer.add(new Chunk("Pour toute question, contactez votre médecin traitant.", 
-                FontFactory.getFont(FontFactory.HELVETICA, 8, BaseColor.GRAY)));
+                FontFactory.getFont(FontFactory.HELVETICA, 8, Color.GRAY)));
         footer.setAlignment(Element.ALIGN_CENTER);
         
         document.add(footer);
@@ -686,8 +688,8 @@ public class PdfService {
 
     // Méthodes utilitaires pour créer les cellules
     private PdfPCell createLabelCell(String label) {
-        PdfPCell cell = new PdfPCell(new Phrase(label, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, BaseColor.BLACK)));
-        cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        PdfPCell cell = new PdfPCell(new Phrase(label, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, Color.BLACK)));
+        cell.setBackgroundColor(Color.LIGHT_GRAY);
         cell.setPadding(5);
         cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
         return cell;
@@ -716,8 +718,8 @@ public class PdfService {
     }
 
     private PdfPCell createSummaryLabelCell(String label) {
-        PdfPCell cell = new PdfPCell(new Phrase(label, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, BaseColor.BLACK)));
-        cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        PdfPCell cell = new PdfPCell(new Phrase(label, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, Color.BLACK)));
+        cell.setBackgroundColor(Color.LIGHT_GRAY);
         cell.setPadding(5);
         cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
         cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
@@ -725,7 +727,7 @@ public class PdfService {
     }
 
     private PdfPCell createSummaryValueCell(String value) {
-        PdfPCell cell = new PdfPCell(new Phrase(value, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, BaseColor.BLACK)));
+        PdfPCell cell = new PdfPCell(new Phrase(value, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, Color.BLACK)));
         cell.setPadding(5);
         cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
         cell.setHorizontalAlignment(Element.ALIGN_RIGHT);

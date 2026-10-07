@@ -1,5 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.dto.AdministrateurDTO;
 import org.kfokam48.cliniquemanagementbackend.enums.Roles;
@@ -11,7 +13,6 @@ import org.kfokam48.cliniquemanagementbackend.repository.AdministrateurRepositor
 import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
 import org.kfokam48.cliniquemanagementbackend.service.AdministrateurService;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,19 +81,20 @@ public class AdministrateurServiceImpl implements AdministrateurService {
 
     @Override
     public Administrateur findByEmail(String email) {
-        Administrateur admin =administrateurRepository.findByEmail(email);
-        if(admin == null){
-            throw new RessourceNotFoundException("Administrateur not found");
-        }else{
-            return admin;
-        }
+        return administrateurRepository.findByEmail(email)
+                .orElseThrow(() -> new RessourceNotFoundException("Administrateur not found"));
     }
 
     @Override
-    public ResponseEntity<String> deleteById(Long id) {
+    public void deleteById(Long id) {
         Administrateur administrateur = administrateurRepository.findById(id).orElseThrow(()->new RessourceNotFoundException("Administrateur not found"));
         administrateurRepository.deleteById(id);
-        return ResponseEntity.ok("Administrateur deleted successfully");
 
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Administrateur> findAll(Pageable pageable) {
+        return administrateurRepository.findAll(pageable);
     }
 }

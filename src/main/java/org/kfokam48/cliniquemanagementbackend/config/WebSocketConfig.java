@@ -1,16 +1,25 @@
 package org.kfokam48.cliniquemanagementbackend.config;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.*;
 
 @Configuration
 @EnableWebSocketMessageBroker
-@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final WebSocketAuthInterceptor webSocketAuthInterceptor;
+
+    // Mêmes origines autorisées que pour l'API REST (CORS)
+    private final String[] allowedOrigins;
+
+    public WebSocketConfig(WebSocketAuthInterceptor webSocketAuthInterceptor,
+                           @Value("${cors.allowed.origins}") String allowedOrigins) {
+        this.webSocketAuthInterceptor = webSocketAuthInterceptor;
+        this.allowedOrigins = allowedOrigins.split(",");
+    }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
@@ -22,11 +31,17 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws-chat")
-                .setAllowedOriginPatterns("*")
+                .setAllowedOriginPatterns(allowedOrigins)
                 .withSockJS();
-        
+
         registry.addEndpoint("/ws-chat")
-                .setAllowedOriginPatterns("*");
+                .setAllowedOriginPatterns(allowedOrigins);
+    }
+
+    // Authentification JWT et contrôle des abonnements / envois sur chaque trame STOMP entrante
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(webSocketAuthInterceptor);
     }
 
     @Override

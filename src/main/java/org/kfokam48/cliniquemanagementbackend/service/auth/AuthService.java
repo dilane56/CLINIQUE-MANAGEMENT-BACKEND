@@ -40,13 +40,15 @@ public class AuthService {
     private final UserDetailsService userDetailsService;
     private final UtilisateurRepository utilisateurRepository ;
     private final UtilisateurMapper utilisateurMapper;
+    private final LoginAttemptService loginAttemptService;
 
 
-    public AuthService(AuthenticationManager authenticationManager, UserDetailsService userDetailsService, UtilisateurRepository utilisateurRepository, UtilisateurMapper utilisateurMapper) {
+    public AuthService(AuthenticationManager authenticationManager, UserDetailsService userDetailsService, UtilisateurRepository utilisateurRepository, UtilisateurMapper utilisateurMapper, LoginAttemptService loginAttemptService) {
         this.authenticationManager = authenticationManager;
         this.userDetailsService = userDetailsService;
         this.utilisateurRepository = utilisateurRepository;
         this.utilisateurMapper = utilisateurMapper;
+        this.loginAttemptService = loginAttemptService;
     }
 
     // Initialisation de la clé au démarrage du service
@@ -61,6 +63,8 @@ public class AuthService {
     }
 
     public LoginResponse authenticateUser(@Valid LoginRequest authRequest) {
+        // Anti force brute : compte bloqué temporairement après trop d'échecs (429, hors du try)
+        loginAttemptService.verifierAutorise(authRequest.getEmail());
         try {
             // Authentification
             log.info("Tentative d'authentification pour : {}", authRequest.getEmail());
@@ -84,10 +88,12 @@ public class AuthService {
             LoginResponse loginResponse = new LoginResponse();
             loginResponse.setToken(token);
             loginResponse.setUser(utilisateurMapper.utilisateurToUserDTO(user));
+            loginAttemptService.enregistrerSucces(authRequest.getEmail());
             return loginResponse;
 
         } catch (Exception e) {
             // Gestion des erreurs avec un message explicite
+            loginAttemptService.enregistrerEchec(authRequest.getEmail());
             log.warn("Échec d'authentification pour {} : {}", authRequest.getEmail(), e.getMessage());
             throw new AuthenticationFailedException("Identifiants invalides : vérifiez l'e-mail ou le mot de passe.");
         }

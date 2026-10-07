@@ -1,4 +1,5 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import org.kfokam48.cliniquemanagementbackend.dto.typeRendezVous.TypeRendezVousDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.typeRendezVous.TypeRendezVousResponseDTO;
@@ -14,21 +15,25 @@ public class TypeRendezVousController {
     private TypeRendezVousService typeRendezVousService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public TypeRendezVousResponseDTO ajouter(@RequestBody TypeRendezVousDTO dto) {
         return typeRendezVousService.ajouterTypeRendezVous(dto);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public TypeRendezVousResponseDTO modifier(@PathVariable Long id, @RequestBody TypeRendezVousDTO dto) {
         return typeRendezVousService.modifierTypeRendezVous(id, dto);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public void supprimer(@PathVariable Long id) {
         typeRendezVousService.supprimerTypeRendezVous(id);
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public List<TypeRendezVousResponseDTO> lister() {
         return typeRendezVousService.listerTypeRendezVous();
     }

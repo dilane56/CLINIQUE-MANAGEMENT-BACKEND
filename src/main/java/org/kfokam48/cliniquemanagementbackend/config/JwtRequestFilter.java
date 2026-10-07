@@ -1,19 +1,16 @@
 package org.kfokam48.cliniquemanagementbackend.config;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders; // Import pour décoder la chaîne Base64
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.security.SignatureException; // Pour une gestion plus spécifique des erreurs de signature
-import jakarta.annotation.PostConstruct; // Pour l'initialisation de la clé
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.kfokam48.cliniquemanagementbackend.service.auth.CustomUserDetailsService;
+import org.kfokam48.cliniquemanagementbackend.service.auth.JwtService;
 import org.slf4j.Logger; // Pour les logs
 import org.slf4j.LoggerFactory; // Pour les logs
-import org.springframework.beans.factory.annotation.Value; // Pour injecter la clé depuis la configuration
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,39 +18,21 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.crypto.SecretKey;
-import io.jsonwebtoken.security.Keys; // Import pour Keys.hmacShaKeyFor
 import java.io.IOException;
+import java.util.Map;
 
 @Component
-public class JwtRequestFillter extends OncePerRequestFilter {
+public class JwtRequestFilter extends OncePerRequestFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtRequestFillter.class);
-
-    @Value("${jwt.secret}")
-    private String jwtSecretString; // La clé secrète lue depuis la configuration
-
-    private SecretKey signingKey; // Pour stocker la clé décodée une fois
+    private static final Logger logger = LoggerFactory.getLogger(JwtRequestFilter.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final CustomUserDetailsService userDetailsService;
+    private final JwtService jwtService;
 
-    public JwtRequestFillter(CustomUserDetailsService userDetailsService) {
+    public JwtRequestFilter(CustomUserDetailsService userDetailsService, JwtService jwtService) {
         this.userDetailsService = userDetailsService;
-    }
-
-    // Initialisation de la clé au démarrage du filtre
-    @PostConstruct
-    private void init() {
-        try {
-            // Décoder la chaîne Base64 en bytes, puis créer la SecretKey
-            byte[] keyBytes = Decoders.BASE64.decode(jwtSecretString);
-            this.signingKey = Keys.hmacShaKeyFor(keyBytes);
-            logger.debug("Clé JWT chargée dans JwtRequestFilter. Longueur (octets) : {}", this.signingKey.getEncoded().length);
-        } catch (IllegalArgumentException e) {
-            logger.error("Erreur lors du décodage de la clé JWT. Assurez-vous que 'jwt.secret' est une chaîne Base64 valide.", e);
-            // Gérer l'erreur, par exemple en lançant une RuntimeException pour empêcher l'application de démarrer avec une clé invalide
-            throw new IllegalStateException("Impossible d'initialiser la clé JWT.", e);
-        }
+        this.jwtService = jwtService;
     }
 
     @Override
@@ -76,14 +55,7 @@ public class JwtRequestFillter extends OncePerRequestFilter {
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 jwt = authorizationHeader.substring(7);
 
-                // Utiliser la clé secrète initialisée dans ce filtre
-                Claims claims = Jwts.parser()
-                        .verifyWith(this.signingKey) // Utilisez la clé initialisée ici
-                        .build()
-                        .parseSignedClaims(jwt)
-                        .getPayload();
-
-                userEmail = claims.getSubject();
+                userEmail = jwtService.extractSubject(jwt);
                 logger.debug("Token JWT décodé. Sujet : {}", userEmail);
             }
 
@@ -129,7 +101,9 @@ public class JwtRequestFillter extends OncePerRequestFilter {
             response.resetBuffer();
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\": \"" + message + "\"}");
+            response.setCharacterEncoding("UTF-8");
+            // Sérialisation JSON (échappement correct), et non plus concaténation de chaînes
+            OBJECT_MAPPER.writeValue(response.getWriter(), Map.of("error", message));
         }
     }
 }

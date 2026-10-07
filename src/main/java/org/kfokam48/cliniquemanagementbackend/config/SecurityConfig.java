@@ -1,43 +1,33 @@
 package org.kfokam48.cliniquemanagementbackend.config;
 
 
-import org.kfokam48.cliniquemanagementbackend.service.auth.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 
 @Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
+@EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
 
-    @Value("${cors.allowed.origins:*}")
-    private String allowedOrigins;
-    
-    @Value("${cors.allowed.methods:GET,POST,PUT,DELETE,OPTIONS,PATCH}")
-    private String allowedMethods;
-    
-    @Value("${cors.allowed.headers:*}")
-    private String allowedHeaders;
-    
-    @Value("${cors.allow.credentials:true}")
-    private boolean allowCredentials;
+    private final JwtRequestFilter jwtRequestFilter;
 
-    private final JwtRequestFillter jwtRequestFilter;
-
-    public SecurityConfig(JwtRequestFillter jwtRequestFilter) {
+    public SecurityConfig(JwtRequestFilter jwtRequestFilter) {
         this.jwtRequestFilter = jwtRequestFilter;
     }
 
@@ -47,31 +37,42 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Unique configuration CORS de l'application (utilisée par Spring Security et Spring MVC).
+     * Les origines sont lues dans cors.allowed.origins ; le WebSocket réutilise la même liste.
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource(
+            @Value("${cors.allowed.origins}") String allowedOrigins,
+            @Value("${cors.allowed.methods:GET,POST,PUT,DELETE,OPTIONS,PATCH}") String allowedMethods,
+            @Value("${cors.allowed.headers:*}") String allowedHeaders,
+            @Value("${cors.allow.credentials:true}") boolean allowCredentials) {
+        CorsConfiguration corsConfig = new CorsConfiguration();
+        corsConfig.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+        corsConfig.setAllowedMethods(Arrays.asList(allowedMethods.split(",")));
+        corsConfig.setAllowedHeaders(Arrays.asList(allowedHeaders.split(",")));
+        corsConfig.setAllowCredentials(allowCredentials);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfig);
+        return source;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors
-                        .configurationSource(request -> {
-                            var corsConfig = new org.springframework.web.cors.CorsConfiguration();
-                            corsConfig.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
-                            corsConfig.setAllowedMethods(Arrays.asList(allowedMethods.split(",")));
-                            corsConfig.setAllowedHeaders(Arrays.asList(allowedHeaders.split(",")));
-                            corsConfig.setAllowCredentials(allowCredentials);
-                            return corsConfig;
-                        })
-                )
+                .cors(Customizer.withDefaults()) // utilise le bean corsConfigurationSource
                 .authorizeHttpRequests(auth -> auth
+                        // Seules ces routes sont publiques : tout le reste exige un JWT,
+                        // et les droits par rôle sont définis par @PreAuthorize dans les contrôleurs
                         .requestMatchers(
+                                "/",
+                                "/actuator/health/**",
                                 "/api/auth/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-resources/**",
                                 "/webjars/**",
-                                "/api/secretaires",
-                                "/api/patient",
-                                "/api/administrateurs/create",
-                                "/api/medecins",
-                                "/api/utilisateurs",
                                 "/ws-chat/**"
                         ).permitAll()
                         .anyRequest().authenticated())

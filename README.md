@@ -32,16 +32,12 @@ Connexion utilisateur
 ```json
 {
   "email": "user@example.com",
-  "motDePasse": "password"
+  "password": "votre-mot-de-passe"
 }
 ```
-Default user:
-```json
-{
-  "email": "admin@gmail.com",
-  "password": "password"
-}
-```
+Administrateur initial : il est créé au premier démarrage à partir des variables d'environnement
+`DEFAULT_ADMIN_EMAIL` et `DEFAULT_ADMIN_PASSWORD` (8 caractères minimum).
+Si elles ne sont pas définies, aucun administrateur n'est créé et un avertissement apparaît dans les logs.
 **Réponse:**
 ```json
 {
@@ -49,6 +45,85 @@ Default user:
   "user": {...}
 }
 ```
+
+## 📄 Pagination des listes
+
+Les endpoints de liste acceptent une pagination **optionnelle** :
+
+- **sans paramètre `page`** : réponse inchangée, tableau JSON complet (`[ {...}, ... ]`) ;
+- **avec `page`** : réponse paginée.
+
+```
+GET /api/patients?page=0&size=20&sort=nom,asc
+```
+```json
+{
+  "content": [ {...}, ... ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 135,
+  "totalPages": 7
+}
+```
+
+- `page` commence à 0 ; `size` vaut 20 par défaut et **100 au maximum** ; `sort=propriete,asc|desc` (par défaut `id`). Un tri sur une propriété inconnue renvoie 400.
+- Endpoints concernés : `GET /api/patients`, `/api/rendezvous`, `/api/factures`, `/api/prescriptions`, `/api/utilisateurs`, `/api/medecins`, `/api/secretaires`, `/api/administrateurs/all`, les listes `/medecin/{medecinId}` (patients, rendez-vous, factures, prescriptions) et `/api/notifications/{userId}` (triées par date décroissante).
+- Les règles d'accès sont les mêmes avec ou sans pagination.
+- La liste complète sans `page` sera retirée à terme : migrer les écrans vers la version paginée.
+
+## 🔐 Droits d'accès par rôle
+
+Toutes les routes exigent un JWT (`Authorization: Bearer <token>`), sauf `/api/auth/**`, `/actuator/health`, `/` et, si activé, Swagger.
+
+Légende : ✅ autorisé · ❌ refusé · 👤 uniquement ses propres données (`@authz.isCurrentUser` / `@authz.owns...` : ressource rattachée, via son rendez-vous, au médecin connecté)
+
+| Ressource / action | ADMIN | SECRETAIRE | MEDECIN |
+|---|:-:|:-:|:-:|
+| **Administrateurs** (toutes actions) | ✅ | ❌ | ❌ |
+| **Utilisateurs** : lister, voir, contacts | ✅ | ✅ | ✅ |
+| **Utilisateurs** : supprimer | ✅ | ❌ | ❌ |
+| **Médecins** : créer, supprimer | ✅ | ❌ | ❌ |
+| **Médecins** : lister | ✅ | ✅ | ❌ |
+| **Médecins** : voir un médecin | ✅ | ✅ | ✅ |
+| **Médecins** : modifier | ✅ | ❌ | 👤 |
+| **Secrétaires** : créer, lister, supprimer | ✅ | ❌ | ✅ |
+| **Secrétaires** : voir | ✅ | 👤 | ✅ |
+| **Secrétaires** : modifier | ✅ | 👤 | ❌ |
+| **Patients** : créer | ✅ | ✅ | ❌ |
+| **Patients** : lister, voir, modifier | ✅ | ✅ | ✅ |
+| **Patients** : supprimer | ✅ | ✅ | ❌ |
+| **Patients** d'un médecin | ✅ | ✅ | 👤 |
+| **Rendez-vous** : créer | ✅ | ✅ | 👤 (pour lui-même) |
+| **Rendez-vous** : voir, modifier (sans le réattribuer), changer le statut | ✅ | ✅ | 👤 |
+| **Rendez-vous** : lister tout, supprimer | ✅ | ✅ | ❌ |
+| **Rendez-vous** d'un médecin / du jour | ✅ | ✅ | 👤 |
+| **Factures** : créer, lister, **paiement** | ✅ | ✅ | ❌ |
+| **Factures** : modifier (uniquement si aucun paiement, voir I19) | ✅ | ✅ | ❌ |
+| **Factures** : voir, PDF | ✅ | ✅ | 👤 |
+| **Factures** d'un médecin | ✅ | ✅ | 👤 |
+| **Factures** : supprimer | ✅ | ❌ | ❌ |
+| **Lignes de facture** : créer | — | — | uniquement avec la facture (`POST /api/factures`) |
+| **Lignes de facture** : modifier, supprimer (uniquement si aucun paiement, total recalculé, voir I19) | ✅ | ✅ | ❌ |
+| **Lignes de facture** : voir une ligne | ✅ | ✅ | 👤 |
+| **Lignes de facture** : lister toutes | ✅ | ✅ | ❌ |
+| **Prescriptions** : créer (sur son rendez-vous), modifier | ❌ | ❌ | 👤 |
+| **Prescriptions** : voir, imprimer (PDF) | ✅ | ✅ | 👤 |
+| **Prescriptions** : supprimer | ✅ | ❌ | 👤 |
+| **Prescriptions** : lister tout | ✅ | ✅ | ❌ |
+| **Prescriptions** d'un médecin | ✅ | ✅ | 👤 |
+| **Lignes de prescription** : créer | — | — | uniquement avec la prescription (`POST /api/prescriptions`) |
+| **Lignes de prescription** : modifier, supprimer | ❌ | ❌ | 👤 |
+| **Lignes de prescription** : voir une ligne | ✅ | ✅ | 👤 |
+| **Lignes de prescription** : lister toutes | ✅ | ✅ | ❌ |
+| **Types de rendez-vous** : lister | ✅ | ✅ | ✅ |
+| **Types de rendez-vous** : créer, modifier, supprimer | ✅ | ❌ | ❌ |
+| **Revenus** : globaux et par médecin et par service (`/api/revenus/medecins`) | ✅ | ❌ | ❌ |
+| **Messages** (conversation, lu, liste) | 👤 | 👤 | 👤 |
+| **Notifications** : les siennes | ✅ (toutes) | 👤 | 👤 |
+| **Notifications** : marquer comme lue | 👤 | 👤 | 👤 |
+| **Notifications** : envoyer un e-mail libre | ✅ | ❌ | ❌ |
+
+Réponses : **401** sans token valide, **403** si le rôle ou la propriété ne le permet pas, **429** après 5 échecs de connexion en 15 minutes sur un même compte.
 
 ## 👥 Gestion des Utilisateurs
 
@@ -123,7 +198,8 @@ Lister les rendez-vous d'un médecin
 #### PATCH /api/rendezvous/{id}/statut?statut={STATUT}
 Mettre à jour le statut d'un rendez-vous
 
-#### GET /api/rendezvous/medecin/{medecinId}/aujourd'hui
+#### GET /api/rendezvous/medecin/{medecinId}/aujourdhui
+(ancienne forme `/aujourd'hui` toujours acceptée)
 Récupérer les rendez-vous du jour pour un médecin
 
 ## 💰 Gestion des Factures
@@ -144,25 +220,47 @@ Lister les factures d'un médecin
 Mettre à jour une facture
 
 #### PUT /api/factures/{id}/paiement
-Mettre à jour le paiement d'une facture
+Enregistrer un paiement (complet ou par tranche) : `{ "montantPaiement": 5000 }`.
+Chaque paiement est historisé à sa date. Refusé (400) s'il dépasse le reste à payer, ou si la facture est payée ou annulée.
 
 #### DELETE /api/factures/{id}
-Supprimer une facture
+Supprimer une facture (refusé avec 409 si des paiements ont été enregistrés : l'historique des revenus est conservé)
 
 #### GET /api/factures/{id}/pdf
 Générer et télécharger le PDF d'une facture
 
-## 📊 Statistiques
+## 📊 Statistiques (ADMIN)
+
+Les revenus sont calculés à partir des **paiements encaissés, à leur date** : un paiement par tranche compte dans le mois de chaque versement.
 
 #### GET /api/revenus
-Récupérer les statistiques de revenus
+Revenus du mois en cours, du mois précédent, et évolution en %.
 **Réponse:**
 ```json
 {
   "revenuMensuel": 125000.50,
   "revenuMoisPrecedent": 115000.75,
-  "pourcentageEvolution": 8.2
+  "pourcentageEvolution": 8.7
 }
+```
+
+#### GET /api/revenus/medecins?debut=2030-01-01&fin=2030-01-31
+Revenus encaissés **par médecin et par service** sur la période (dates incluses ; par défaut le mois en cours), du médecin qui a le plus encaissé au moins.
+Un paiement partiel est réparti entre les services de sa facture au prorata de leur montant.
+**Réponse:**
+```json
+[
+  {
+    "medecinId": 7,
+    "nom": "Martin",
+    "prenom": "Paul",
+    "totalEncaisse": 5000.00,
+    "services": [
+      { "service": "Consultation générale", "montantEncaisse": 3333.33 },
+      { "service": "Pansement", "montantEncaisse": 1666.67 }
+    ]
+  }
+]
 ```
 
 ## 🔔 Notifications

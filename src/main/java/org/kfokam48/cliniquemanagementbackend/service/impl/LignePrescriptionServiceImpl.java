@@ -1,6 +1,5 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
-import org.kfokam48.cliniquemanagementbackend.dto.ligneprescription.LignePrescriptionDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.ligneprescription.LignePrescriptionResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.ligneprescription.LignePrescriptionUpdateDTO;
 import org.kfokam48.cliniquemanagementbackend.exception.RessourceNotFoundException;
@@ -25,13 +24,6 @@ public class LignePrescriptionServiceImpl implements LignePrescriptionService {
         this.repository = repository;
         this.lignePrescriptionMapper = lignePrescriptionMapper;
         this.prescriptionRepository = prescriptionRepository;
-    }
-
-    @Override
-    public LignePrescriptionResponseDTO ajouterLigne(LignePrescriptionDTO dto) {
-        LignePrescription lignePrescription = lignePrescriptionMapper.lignePrescriptionDTOToLignePrescription(dto);
-        repository.save(lignePrescription);
-        return  lignePrescriptionMapper.lignePrescriptionToLignePrescriptionResponseDTO(lignePrescription);
     }
 
     @Override

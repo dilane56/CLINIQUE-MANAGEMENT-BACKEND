@@ -1,0 +1,189 @@
+-- Schéma initial (SQL Server : développement local, profil dev).
+-- Généré à partir des entités JPA (dialecte SQLServerDialect), puis relu :
+-- noms de contraintes lisibles et index sur les recherches fréquentes.
+-- Doit rester équivalent à db/migration/postgresql : toute migration est à écrire dans les deux dossiers.
+-- Toute évolution du modèle passe désormais par une nouvelle migration V<n>__description.sql
+-- (Hibernate est en ddl-auto=validate et ne modifie plus le schéma).
+
+CREATE TABLE utilisateur (
+    id                 BIGINT IDENTITY NOT NULL,
+    email              VARCHAR(255) NOT NULL,
+    nom                VARCHAR(255),
+    prenom             VARCHAR(255),
+    password           VARCHAR(255) NOT NULL,
+    telephone          VARCHAR(20),
+    adresse            VARCHAR(255),
+    role               VARCHAR(255) NOT NULL,
+    status             VARCHAR(255),
+    date_creation      DATE,
+    derniere_connexion DATETIMEOFFSET(6),
+    CONSTRAINT pk_utilisateur PRIMARY KEY (id),
+    CONSTRAINT uk_utilisateur_email UNIQUE (email),
+    CONSTRAINT ck_utilisateur_role CHECK (role IN ('MEDECIN', 'ADMIN', 'SECRETAIRE')),
+    CONSTRAINT ck_utilisateur_status CHECK (status IN ('EN_LIGNE', 'HORS_LIGNE', 'OCCUPÉ'))
+);
+
+CREATE TABLE administrateur (
+    utilisateurs_id BIGINT NOT NULL,
+    CONSTRAINT pk_administrateur PRIMARY KEY (utilisateurs_id),
+    CONSTRAINT fk_administrateur_utilisateur FOREIGN KEY (utilisateurs_id) REFERENCES utilisateur (id)
+);
+
+CREATE TABLE medecin (
+    utilisateurs_id BIGINT NOT NULL,
+    specialite      VARCHAR(255),
+    CONSTRAINT pk_medecin PRIMARY KEY (utilisateurs_id),
+    CONSTRAINT fk_medecin_utilisateur FOREIGN KEY (utilisateurs_id) REFERENCES utilisateur (id)
+);
+
+CREATE TABLE secretaire (
+    utilisateur_id BIGINT NOT NULL,
+    CONSTRAINT pk_secretaire PRIMARY KEY (utilisateur_id),
+    CONSTRAINT fk_secretaire_utilisateur FOREIGN KEY (utilisateur_id) REFERENCES utilisateur (id)
+);
+
+-- "secretarire_id" : nom de colonne imposé par le mapping actuel de Medecin.secretaires
+CREATE TABLE medecin_secretaire (
+    medecin_id     BIGINT NOT NULL,
+    secretarire_id BIGINT NOT NULL,
+    CONSTRAINT pk_medecin_secretaire PRIMARY KEY (medecin_id, secretarire_id),
+    CONSTRAINT fk_medecin_secretaire_medecin FOREIGN KEY (medecin_id) REFERENCES medecin (utilisateurs_id),
+    CONSTRAINT fk_medecin_secretaire_secretaire FOREIGN KEY (secretarire_id) REFERENCES secretaire (utilisateur_id)
+);
+
+CREATE TABLE patient (
+    id             BIGINT IDENTITY NOT NULL,
+    email          VARCHAR(255) NOT NULL,
+    nom            VARCHAR(255),
+    prenom         VARCHAR(255),
+    telephone      VARCHAR(255),
+    date_naissance DATE,
+    antecedents    VARCHAR(255),
+    allergies      VARCHAR(255),
+    sexe           VARCHAR(255),
+    adresse        VARCHAR(255),
+    CONSTRAINT pk_patient PRIMARY KEY (id),
+    CONSTRAINT uk_patient_email UNIQUE (email),
+    CONSTRAINT ck_patient_sexe CHECK (sexe IN ('HOMME', 'FEMME'))
+);
+
+CREATE TABLE type_rendez_vous (
+    id      BIGINT IDENTITY NOT NULL,
+    libelle VARCHAR(255),
+    duree   INT NOT NULL,
+    tarif   NUMERIC(38, 2),
+    CONSTRAINT pk_type_rendez_vous PRIMARY KEY (id)
+);
+
+CREATE TABLE rendez_vous (
+    id                                 BIGINT IDENTITY NOT NULL,
+    date_rendez_vous                   DATETIME2(6),
+    date_time_fin_rendez_vous_possible DATETIME2(6),
+    medecin_id                         BIGINT,
+    patient_id                         BIGINT,
+    secretaire_id                      BIGINT,
+    type_rendez_vous_id                BIGINT,
+    motif                              VARCHAR(255),
+    statut_rendez_vous                 VARCHAR(255),
+    CONSTRAINT pk_rendez_vous PRIMARY KEY (id),
+    CONSTRAINT ck_rendez_vous_statut CHECK (statut_rendez_vous IN
+        ('EN_ATTENTE', 'CONFIRME', 'ANNULER', 'EN_COURS', 'TERMINE', 'A_REPROGRAMMER', 'EXPIRE')),
+    CONSTRAINT fk_rendez_vous_medecin FOREIGN KEY (medecin_id) REFERENCES medecin (utilisateurs_id),
+    CONSTRAINT fk_rendez_vous_patient FOREIGN KEY (patient_id) REFERENCES patient (id),
+    CONSTRAINT fk_rendez_vous_type FOREIGN KEY (type_rendez_vous_id) REFERENCES type_rendez_vous (id)
+);
+
+CREATE TABLE facture (
+    id               BIGINT IDENTITY NOT NULL,
+    montant_total    NUMERIC(38, 2),
+    montant_payement NUMERIC(38, 2),
+    montant_restant  NUMERIC(38, 2),
+    date_emission    DATETIME2(6),
+    date_payement    DATETIME2(6),
+    statut           VARCHAR(255),
+    rendezvous_id    BIGINT,
+    CONSTRAINT pk_facture PRIMARY KEY (id),
+    CONSTRAINT ck_facture_statut CHECK (statut IN ('NON_PAYEE', 'PAYEE', 'PARTIELLEMENT_PAYE', 'ANNULEE')),
+    CONSTRAINT fk_facture_rendez_vous FOREIGN KEY (rendezvous_id) REFERENCES rendez_vous (id)
+);
+
+CREATE TABLE ligne_facture (
+    id            BIGINT IDENTITY NOT NULL,
+    service_name  VARCHAR(255),
+    quantite      INT NOT NULL,
+    prix_unitaire NUMERIC(38, 2),
+    prix_total    NUMERIC(38, 2),
+    facture_id    BIGINT,
+    CONSTRAINT pk_ligne_facture PRIMARY KEY (id),
+    CONSTRAINT fk_ligne_facture_facture FOREIGN KEY (facture_id) REFERENCES facture (id)
+);
+
+CREATE TABLE prescription (
+    id             BIGINT IDENTITY NOT NULL,
+    date           DATE,
+    description    VARCHAR(255),
+    rendez_vous_id BIGINT,
+    CONSTRAINT pk_prescription PRIMARY KEY (id),
+    CONSTRAINT fk_prescription_rendez_vous FOREIGN KEY (rendez_vous_id) REFERENCES rendez_vous (id)
+);
+
+CREATE TABLE ligne_prescription (
+    id              BIGINT IDENTITY NOT NULL,
+    medicament      VARCHAR(255),
+    dosage          VARCHAR(255),
+    frequence       VARCHAR(255),
+    duree           INT NOT NULL,
+    prescription_id BIGINT,
+    CONSTRAINT pk_ligne_prescription PRIMARY KEY (id),
+    CONSTRAINT fk_ligne_prescription_prescription FOREIGN KEY (prescription_id) REFERENCES prescription (id)
+);
+
+CREATE TABLE conversation (
+    id         BIGINT IDENTITY NOT NULL,
+    created_at DATETIMEOFFSET(6),
+    CONSTRAINT pk_conversation PRIMARY KEY (id)
+);
+
+CREATE TABLE conversation_users (
+    conversation_id BIGINT NOT NULL,
+    utilisateur_id  BIGINT NOT NULL,
+    CONSTRAINT fk_conversation_users_conversation FOREIGN KEY (conversation_id) REFERENCES conversation (id),
+    CONSTRAINT fk_conversation_users_utilisateur FOREIGN KEY (utilisateur_id) REFERENCES utilisateur (id)
+);
+
+CREATE TABLE message (
+    id              BIGINT IDENTITY NOT NULL,
+    contenu         VARCHAR(255),
+    date_envoi      DATETIMEOFFSET(6),
+    lu              BIT,
+    message_status  VARCHAR(255),
+    conversation_id BIGINT,
+    expediteur_id   BIGINT,
+    destinataire_id BIGINT,
+    CONSTRAINT pk_message PRIMARY KEY (id),
+    CONSTRAINT ck_message_status CHECK (message_status IN ('SENT', 'DELIVERED', 'READ')),
+    CONSTRAINT fk_message_conversation FOREIGN KEY (conversation_id) REFERENCES conversation (id),
+    CONSTRAINT fk_message_expediteur FOREIGN KEY (expediteur_id) REFERENCES utilisateur (id),
+    CONSTRAINT fk_message_destinataire FOREIGN KEY (destinataire_id) REFERENCES utilisateur (id)
+);
+
+CREATE TABLE notification (
+    id              BIGINT IDENTITY NOT NULL,
+    destinataire_id BIGINT,
+    titre           VARCHAR(255),
+    message         VARCHAR(255),
+    lu              BIT,
+    date_envoi      DATETIME2(6),
+    CONSTRAINT pk_notification PRIMARY KEY (id)
+);
+
+-- Index sur les recherches fréquentes (planning, contrôles de chevauchement, factures, notifications)
+CREATE INDEX ix_rendez_vous_medecin_date ON rendez_vous (medecin_id, date_rendez_vous);
+CREATE INDEX ix_rendez_vous_patient_date ON rendez_vous (patient_id, date_rendez_vous);
+CREATE INDEX ix_rendez_vous_statut ON rendez_vous (statut_rendez_vous);
+CREATE INDEX ix_facture_rendez_vous ON facture (rendezvous_id);
+CREATE INDEX ix_ligne_facture_facture ON ligne_facture (facture_id);
+CREATE INDEX ix_prescription_rendez_vous ON prescription (rendez_vous_id);
+CREATE INDEX ix_ligne_prescription_prescription ON ligne_prescription (prescription_id);
+CREATE INDEX ix_notification_destinataire ON notification (destinataire_id);
+CREATE INDEX ix_message_conversation ON message (conversation_id);

@@ -1,5 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.Contact;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.UtilisateurDTO;
@@ -9,7 +11,6 @@ import org.kfokam48.cliniquemanagementbackend.mapper.UtilisateurMapper;
 import org.kfokam48.cliniquemanagementbackend.model.Utilisateur;
 import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
 import org.kfokam48.cliniquemanagementbackend.service.UtilisateurService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,11 +58,10 @@ public class UtilisateurServiceImpl implements UtilisateurService {
 
 
     @Override
-    public ResponseEntity<String> deleteById(Long id) {
+    public void deleteById(Long id) {
         Utilisateur utilisateur = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Utilisateur not found with id: " + id));
         utilisateurRepository.deleteById(id);
-        return ResponseEntity.ok("Utilisateur deleted successfully");
     }
 
     @Override
@@ -82,5 +82,11 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     @Override
     public List<Contact> findAllContacts() {
         return utilisateurMapper.utilisateursToContacts(utilisateurRepository.findAll());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<UtilisateurResponseDTO> findAll(Pageable pageable) {
+        return PageResponse.of(utilisateurRepository.findAll(pageable), utilisateurMapper::utilisateursToUtilisateurResponseDTOs);
     }
 }

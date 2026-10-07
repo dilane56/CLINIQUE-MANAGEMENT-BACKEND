@@ -1,6 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
 
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.dto.prescription.PrescriptionDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.prescription.PrescriptionResponseDTO;
@@ -14,7 +16,6 @@ import org.kfokam48.cliniquemanagementbackend.model.Prescription;
 import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
 import org.kfokam48.cliniquemanagementbackend.repository.*;
 import org.kfokam48.cliniquemanagementbackend.service.PrescriptionService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -80,11 +81,10 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     }
 
     @Override
-    public ResponseEntity<String> deleteById(Long id) {
+    public void deleteById(Long id) {
         Prescription prescription = prescriptionRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Prescription not found"));
         prescriptionRepository.deleteById(id);
-        return ResponseEntity.ok("Prescription deleted successfully");
 
     }
 
@@ -92,5 +92,17 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     public List<PrescriptionResponseDTO> findByMedecinId(Long medecinId) {
         List<Prescription> prescriptions = prescriptionRepository.findByMedecinId(medecinId);
         return prescriptionMapper.prescriptionListToPrescriptionResponseDtoList(prescriptions);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<PrescriptionResponseDTO> findAll(Pageable pageable) {
+        return PageResponse.of(prescriptionRepository.findAll(pageable), prescriptionMapper::prescriptionListToPrescriptionResponseDtoList);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<PrescriptionResponseDTO> findByMedecinId(Long medecinId, Pageable pageable) {
+        return PageResponse.of(prescriptionRepository.findByMedecinId(medecinId, pageable), prescriptionMapper::prescriptionListToPrescriptionResponseDtoList);
     }
 }

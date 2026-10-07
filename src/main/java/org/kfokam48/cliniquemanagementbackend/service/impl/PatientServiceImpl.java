@@ -1,7 +1,9 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
-import org.kfokam48.cliniquemanagementbackend.controlleur.notification.NotificationController;
+import org.kfokam48.cliniquemanagementbackend.service.notification.NotificationService;
 import org.kfokam48.cliniquemanagementbackend.dto.patient.PatientDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.patient.PatientResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.exception.ResourceAlreadyExistException;
@@ -13,7 +15,6 @@ import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
 import org.kfokam48.cliniquemanagementbackend.service.PatientService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,13 +30,13 @@ public class PatientServiceImpl implements PatientService {
     private final PatientMapper patientMapper;
     private final UtilisateurRepository utilisateurRepository;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    private final NotificationController notificationController ;
+    private final NotificationService notificationService ;
 
-    public PatientServiceImpl(PatientRepository patientRepository, PatientMapper patientMapper, UtilisateurRepository utilisateurRepository, NotificationController notificationController) {
+    public PatientServiceImpl(PatientRepository patientRepository, PatientMapper patientMapper, UtilisateurRepository utilisateurRepository, NotificationService notificationService) {
         this.patientRepository = patientRepository;
         this.patientMapper = patientMapper;
         this.utilisateurRepository = utilisateurRepository;
-        this.notificationController = notificationController;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -48,7 +49,7 @@ public class PatientServiceImpl implements PatientService {
         Patient patient = patientMapper.patientDtoToPatient(patientDto);
         patientRepository.save(patient);
         log.info("Patient créé avec succès : {}", patient.getEmail());
-        notificationController.sendNotification(1L,"Nouveau Patient","Un nouveau patient a été ajouter",false);
+        notificationService.sendNotificationToAdmins("Nouveau patient", "Un nouveau patient a été ajouté");
         return patientMapper.patientToPatientResponseDTO(patient);
     }
 
@@ -79,12 +80,11 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public ResponseEntity<String> deleteById(Long id) {
+    public void deleteById(Long id) {
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Patient not found"));
         patientRepository.deleteById(id);
         log.info("Patient supprimé id={}", id);
-        return ResponseEntity.ok("Patient deleted successfully");
 
     }
 
@@ -99,5 +99,17 @@ public class PatientServiceImpl implements PatientService {
         return patients.stream()
                 .map(patientMapper::patientToPatientResponseDTO)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<PatientResponseDTO> findAll(Pageable pageable) {
+        return PageResponse.of(patientRepository.findAll(pageable), patientMapper::patientListToPatientResponseDtoList);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<PatientResponseDTO> findByMedecinId(Long medecinId, Pageable pageable) {
+        return PageResponse.of(patientRepository.findPatientsByMedecinId(medecinId, pageable), patientMapper::patientListToPatientResponseDtoList);
     }
 }

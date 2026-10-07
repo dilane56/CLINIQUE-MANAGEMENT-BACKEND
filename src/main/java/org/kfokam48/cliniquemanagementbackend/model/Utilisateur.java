@@ -1,4 +1,5 @@
 package org.kfokam48.cliniquemanagementbackend.model;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 import jakarta.validation.constraints.Size;
@@ -26,6 +27,8 @@ public abstract class Utilisateur {
     private String email;
     private String nom;
     private String prenom;
+    // Jamais renvoyé dans une réponse JSON
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(nullable = false)
     private String password;
     @Size(min = 9, message = "Le numéro de téléphone doit contenir au moins 9 caractères")
@@ -37,6 +40,7 @@ public abstract class Utilisateur {
     // La date et l'heure de la dernière connexion
     private Instant derniereConnexion;
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Roles role; // ADMIN, MEDECIN, SECRETAIRE
     private LocalDate dateCreation;
     private String adresse;

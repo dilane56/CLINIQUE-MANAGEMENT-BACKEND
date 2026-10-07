@@ -1,5 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.mapping.PropertyReferenceException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -66,6 +69,31 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, String>> handleIllegalStateException(IllegalStateException e) {
         return new ResponseEntity<>(errorBody(e.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    // Trop d'échecs de connexion pour ce compte (anti force brute)
+    @ExceptionHandler(TooManyLoginAttemptsException.class)
+    public ResponseEntity<Map<String, String>> handleTooManyLoginAttemptsException(TooManyLoginAttemptsException e) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(Math.max(1, e.getRetryAfterSeconds())))
+                .body(errorBody(e.getMessage()));
+    }
+
+    // Tri demandé sur une propriété inexistante (?sort=inconnu) : erreur du client, pas du serveur
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<Map<String, String>> handlePropertyReferenceException(PropertyReferenceException e) {
+        return new ResponseEntity<>(errorBody("Tri impossible : propriété inconnue « " + e.getPropertyName() + " »."), HttpStatus.BAD_REQUEST);
+    }
+
+    // Contrainte de la base violée (unicité, clé étrangère, chevauchement de rendez-vous en PostgreSQL...).
+    // Message générique : le détail SQL n'est pas renvoyé au client.
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        String message = e.getMostSpecificCause().getMessage();
+        if (message != null && message.contains("ex_rendez_vous_medecin_chevauchement")) {
+            return new ResponseEntity<>(errorBody("Ce créneau est déjà pris pour ce médecin."), HttpStatus.CONFLICT);
+        }
+        return new ResponseEntity<>(errorBody("L'opération viole une contrainte de données (doublon ou référence invalide)."), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(RendezVousNonTermineException.class)

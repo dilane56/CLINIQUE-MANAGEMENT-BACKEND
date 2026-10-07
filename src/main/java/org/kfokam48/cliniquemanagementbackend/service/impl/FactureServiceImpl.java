@@ -1,8 +1,10 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
 
+import org.springframework.data.domain.Pageable;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
-import org.kfokam48.cliniquemanagementbackend.controlleur.notification.NotificationController;
+import org.kfokam48.cliniquemanagementbackend.service.notification.NotificationService;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureResponseDto;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FacturePaiementUpdateDTO;
@@ -17,13 +19,14 @@ import org.kfokam48.cliniquemanagementbackend.model.Facture;
 import org.kfokam48.cliniquemanagementbackend.model.LigneFacture;
 import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
 import org.kfokam48.cliniquemanagementbackend.repository.FactureRepository;
+import org.kfokam48.cliniquemanagementbackend.repository.PaiementRepository;
+import org.kfokam48.cliniquemanagementbackend.model.Paiement;
 import org.kfokam48.cliniquemanagementbackend.repository.RendezVousRepository;
 import org.kfokam48.cliniquemanagementbackend.service.FactureService;
 import org.kfokam48.cliniquemanagementbackend.service.pdf.PdfService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.itextpdf.text.DocumentException;
+import com.lowagie.text.DocumentException;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -37,16 +40,18 @@ public class FactureServiceImpl implements FactureService {
     private final RendezVousRepository rendezVousRepository;
     private final FactureMapper factureMapper;
     private final LigneFactureMapper ligneFactureMapper;
-    private final NotificationController notificationController;
+    private final NotificationService notificationService;
     private final PdfService pdfService;
+    private final PaiementRepository paiementRepository;
 
-    public FactureServiceImpl(FactureRepository factureRepository, RendezVousRepository rendezVousRepository, FactureMapper factureMapper, LigneFactureMapper ligneFactureMapper, NotificationController notificationController, PdfService pdfService) {
+    public FactureServiceImpl(FactureRepository factureRepository, RendezVousRepository rendezVousRepository, FactureMapper factureMapper, LigneFactureMapper ligneFactureMapper, NotificationService notificationService, PdfService pdfService, PaiementRepository paiementRepository) {
         this.factureRepository = factureRepository;
         this.rendezVousRepository = rendezVousRepository;
         this.factureMapper = factureMapper;
         this.ligneFactureMapper = ligneFactureMapper;
-        this.notificationController = notificationController;
+        this.notificationService = notificationService;
         this.pdfService = pdfService;
+        this.paiementRepository = paiementRepository;
     }
 
     @Override
@@ -80,6 +85,8 @@ public class FactureServiceImpl implements FactureService {
     public FactureResponseDto update(Long id, @Valid FactureDTO factureDTO) {
         Facture facture = factureRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Facture not found"));
+        // Sans cette vérification, la mise à jour remettait le montant payé à 0 et effaçait les paiements
+        facture.verifierModifiable();
 
         RendezVous rendezVous = rendezVousRepository.findById(factureDTO.getRendezVousId())
                 .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous not found with id: " + factureDTO.getRendezVousId()));
@@ -96,10 +103,9 @@ public class FactureServiceImpl implements FactureService {
     }
 
     @Override
-    public ResponseEntity<String> deleteById(Long id) {
+    public void deleteById(Long id) {
         Facture facture = factureRepository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Facture not found"));
         factureRepository.delete(facture);
-        return ResponseEntity.ok("Facture deleted successfully");
     }
 
     @Override
@@ -116,11 +122,26 @@ public class FactureServiceImpl implements FactureService {
         if (facture.getStatut() == StatutFacture.PAYEE) {
             throw new IllegalStateException("Cette facture est déjà entièrement payée.");
         }
+        if (facture.getStatut() == StatutFacture.ANNULEE) {
+            throw new IllegalStateException("Impossible d'enregistrer un paiement sur une facture annulée.");
+        }
+
+        // Un paiement ne peut pas dépasser le reste à payer (sinon les revenus seraient gonflés)
+        BigDecimal montant = paiementUpdateDTO.getMontantPaiement();
+        BigDecimal resteAPayer = facture.getMontantTotal().subtract(facture.getMontantPayement());
+        if (montant.compareTo(resteAPayer) > 0) {
+            throw new IllegalArgumentException("Le paiement (" + montant + " FCFA) dépasse le reste à payer ("
+                    + resteAPayer + " FCFA).");
+        }
+
+        // Historique : chaque versement (complet ou tranche) est enregistré à sa date (I22)
+        LocalDateTime maintenant = LocalDateTime.now();
+        paiementRepository.save(new Paiement(facture, montant, maintenant));
 
         // Accumulation du paiement
-        BigDecimal nouveauTotal = facture.getMontantPayement().add(paiementUpdateDTO.getMontantPaiement());
+        BigDecimal nouveauTotal = facture.getMontantPayement().add(montant);
         facture.setMontantPayement(nouveauTotal);
-        facture.setDatePayement(LocalDateTime.now());
+        facture.setDatePayement(maintenant);
 
         BigDecimal montantRestant = facture.getMontantTotal().subtract(nouveauTotal);
 
@@ -133,8 +154,8 @@ public class FactureServiceImpl implements FactureService {
         }
 
         factureRepository.save(facture);
-        notificationController.sendNotification(1L, "Facture", "Un paiement a été enregistré sur la facture #" + id, false);
-        notificationController.sendNotification(facture.getRendezVous().getMedecin().getId(), "Facture", "Un paiement a été enregistré sur la facture #" + id, false);
+        notificationService.sendNotificationToAdmins("Facture", "Un paiement a été enregistré sur la facture #" + id);
+        notificationService.sendNotification(facture.getRendezVous().getMedecin().getId(), "Facture", "Un paiement a été enregistré sur la facture #" + id, false);
         return factureMapper.factureToFactureResponseDto(facture);
     }
 
@@ -172,5 +193,17 @@ public class FactureServiceImpl implements FactureService {
         facture.setMontantTotal(total);
         facture.setMontantRestant(total);
         return facture;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<FactureResponseDto> findAll(Pageable pageable) {
+        return PageResponse.of(factureRepository.findAll(pageable), factureMapper::factureListToFactureResponseDtoList);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<FactureResponseDto> findByMedecinId(Long medecinId, Pageable pageable) {
+        return PageResponse.of(factureRepository.findByRendezVous_Medecin_Id(medecinId, pageable), factureMapper::factureListToFactureResponseDtoList);
     }
 }
