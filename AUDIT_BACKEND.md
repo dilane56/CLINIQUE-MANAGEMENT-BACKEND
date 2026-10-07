@@ -159,7 +159,7 @@
   - [x] `size` par défaut 20, **max 100** (`spring.data.web.pageable.max-page-size`) ; tri inconnu → 400.
   - [x] Patients d'un médecin : requête réécrite en `EXISTS` (un `DISTINCT` + tri échoue en PostgreSQL).
   - [x] Documentation : section « Pagination des listes » du README.
-  - [ ] **Reste à faire** : migrer les écrans du frontend vers `?page=...`, puis **supprimer les variantes non paginées** (c'est seulement alors que la charge est réellement bornée). Non couverts : `/api/utilisateurs/contacts`, `/api/lignes-facture`, `/api/lignes-prescription`, `/api/type-rendezvous`, conversations et messages.
+  - [ ] **Reste à faire** : migrer les écrans du frontend vers `?page=...`, puis **supprimer les variantes non paginées** (c'est seulement alors que la charge est réellement bornée). Non couverts : `/api/utilisateurs/contacts`, `/api/lignes-facture`, `/api/lignes-prescription`, `/api/type-rendezvous`, conversations et messages. **Mise à jour 2026-10-07** : la suppression complète des listes non paginées n'est pas possible en l'état : les menus déroulants (patients, médecins), les compteurs des tableaux de bord et la recherche de la page « Rendez-vous » de l'admin ont besoin de la liste complète. Il faudrait d'abord une recherche côté serveur (autocomplétion, filtres). Le frontend pagine désormais les listes sans recherche (patients, factures, rendez-vous de la secrétaire).
   - Tests : `AccessControlTest` (+4) et `PaginationRepositoryTest` (3, H2).
 
 ### 2.3 Architecture
@@ -252,6 +252,7 @@ Routes publiques (sans JWT) : `/`, `/actuator/health/**`, `/api/auth/**`, Swagge
 | **Administrateurs** (toutes actions) | ✅ | ❌ | ❌ |
 | **Utilisateurs** : lister, voir, contacts | ✅ | ✅ | ✅ |
 | **Utilisateurs** : supprimer | ✅ | ❌ | ❌ |
+| **Utilisateurs** : modifier son propre profil (`PUT /api/utilisateurs/me` : nom, prénom, téléphone, adresse) | 👤 | 👤 | 👤 |
 | **Médecins** : créer, supprimer | ✅ | ❌ | ❌ |
 | **Médecins** : lister | ✅ | ✅ | ❌ |
 | **Médecins** : voir un médecin | ✅ | ✅ | ✅ |
@@ -267,11 +268,12 @@ Routes publiques (sans JWT) : `/`, `/actuator/health/**`, `/api/auth/**`, Swagge
 | **Rendez-vous** : voir, modifier (sans le réattribuer), changer le statut | ✅ | ✅ | 👤 |
 | **Rendez-vous** : lister tout, supprimer | ✅ | ✅ | ❌ |
 | **Rendez-vous** d'un médecin / du jour | ✅ | ✅ | 👤 |
-| **Factures** : créer, lister, **paiement** | ✅ | ✅ | ❌ |
-| **Factures** : modifier (uniquement si aucun paiement, voir I19) | ✅ | ✅ | ❌ |
+| **Factures** : créer | ✅ | ✅ | 👤 (sur ses rendez-vous) |
+| **Factures** : lister toutes, enregistrer un **paiement** | ✅ | ✅ | ❌ |
+| **Factures** : modifier (uniquement si aucun paiement, voir I19) | ✅ | ✅ | 👤 |
 | **Factures** : voir, PDF | ✅ | ✅ | 👤 |
 | **Factures** d'un médecin | ✅ | ✅ | 👤 |
-| **Factures** : supprimer | ✅ | ❌ | ❌ |
+| **Factures** : supprimer (uniquement si aucun paiement) | ✅ | ❌ | 👤 |
 | **Lignes de facture** : créer | — | — | uniquement avec la facture (`POST /api/factures`) |
 | **Lignes de facture** : modifier, supprimer (uniquement si aucun paiement, total recalculé, voir I19) | ✅ | ✅ | ❌ |
 | **Lignes de facture** : voir une ligne | ✅ | ✅ | 👤 |
@@ -286,7 +288,7 @@ Routes publiques (sans JWT) : `/`, `/actuator/health/**`, `/api/auth/**`, Swagge
 | **Lignes de prescription** : voir une ligne | ✅ | ✅ | 👤 |
 | **Lignes de prescription** : lister toutes | ✅ | ✅ | ❌ |
 | **Types de rendez-vous** : lister | ✅ | ✅ | ✅ |
-| **Types de rendez-vous** : créer, modifier, supprimer | ✅ | ❌ | ❌ |
+| **Types de rendez-vous** : créer, modifier, supprimer | ✅ | ✅ | ❌ |
 | **Revenus** : globaux et par médecin et par service (`/api/revenus/medecins`) | ✅ | ❌ | ❌ |
 | **Messages** (conversation, lu, liste) | 👤 | 👤 | 👤 |
 | **Notifications** : les siennes | ✅ (toutes) | 👤 | 👤 |
@@ -302,6 +304,18 @@ Vérification : `src/test/java/.../security/AccessControlTest.java` (31 tests) e
 - [x] **C14** — `POST /api/notifications/send` : tout utilisateur connecté peut envoyer un e-mail arbitraire depuis l'adresse de la clinique (relais de mail) ; de plus `MailDTO` n'a pas `@RequestBody`. Restreindre à ADMIN ou supprimer si inutilisé.
 - [x] **C15** — `GET /api/utilisateurs/{id}` et la liste exposent l'e-mail et le téléphone de tout le personnel à tout le personnel : acceptable pour l'annuaire interne / le chat, à confirmer.
   - **Accepté** par le propriétaire du projet : tous les membres du personnel peuvent consulter l'annuaire (e-mails des collègues). Aucun changement de code ; règle conservée telle quelle (`hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')`).
+
+---
+
+## 🔗 5. Alignement avec le frontend (2026-10-07)
+
+Analyse du frontend (`CLINIQUE-MANAGEMENT-REACT-FRONTEND`) après l'audit : certaines règles par défaut de la section 4 contredisaient des fonctionnalités existantes. Décisions du propriétaire du projet :
+
+- [x] **F-B1** — Le frontend permet au **médecin** de créer, modifier et supprimer ses factures (page « Factures »), refusé (403) depuis C3-C8. Décision : **le médecin gère les factures de SES rendez-vous** (`@authz.ownsRendezVous` / `@authz.ownsFacture`), modification uniquement sans paiement (I19). Une facture qui a reçu un paiement ne peut plus être supprimée, par personne (400).
+- [x] **F-B2** — La page « Types de rendez-vous » est réservée à la **secrétaire** dans le frontend, refusée (403) depuis C3-C8, et aucun écran admin n'existe. Décision : **secrétaire et admin** gèrent les types.
+- [x] **F-B3** — La page « Profil » appelait `PUT /api/utilisateurs/{id}`, **qui n'a jamais existé** (profil jamais modifiable). Décision : nouvel endpoint **`PUT /api/utilisateurs/me`** (utilisateur du JWT ; nom, prénom, téléphone, adresse ; ni e-mail, ni rôle, ni mot de passe), renvoie le même `UserDTO` que la connexion.
+- [x] **F-B4** — La modification de prescription n'envoie pas `rendezVousId` : le backend faisait `findById(null)` (échec), puis 403 depuis C7b. Correction : `rendezVousId` **facultatif** en modification (absent = rendez-vous actuel conservé) ; le contrôle de propriété porte toujours sur la prescription.
+- Tests : `AccessControlTest` (+10), `FactureMontantsTest` (+2), `PrescriptionUpdateTest`. Total 115 tests.
 
 ---
 
@@ -352,3 +366,4 @@ Vérification : `src/test/java/.../security/AccessControlTest.java` (31 tests) e
 | I15, I16 | 2026-10-06 | `374256b` | OpenPDF à la place d'iText (AGPL) ; pilote SQL Server stable. I17 reporté |
 | Lot final | 2026-10-06 | `780439a` … `5f8a257` | A1-A6, A8-A10, A12 (V3), I18 (95 tests). Nouveau point I22 (revenus et paiements par tranche) |
 | I22 | 2026-10-06 | `9f2a5dc` | Historique des paiements (V4), revenus à la date de chaque versement, revenus par médecin et par service. 98 OK + 5 ignorés (PostgreSQL) |
+| F-B1 à F-B4 | 2026-10-07 | `a43b71b` | Alignement frontend : factures du médecin, types de rendez-vous de la secrétaire, `PUT /api/utilisateurs/me`, `rendezVousId` facultatif. 110 OK + 5 ignorés (PostgreSQL) |
