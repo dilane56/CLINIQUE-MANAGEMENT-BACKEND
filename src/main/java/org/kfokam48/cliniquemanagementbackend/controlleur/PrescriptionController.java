@@ -57,7 +57,7 @@ public class PrescriptionController {
 
     // Endpoint pour mettre à jour une prescription existante
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('MEDECIN') and @authz.ownsPrescription(#id) and @authz.ownsRendezVous(#prescriptionDTO.rendezVousId)")
+    @PreAuthorize("hasRole('MEDECIN') and @authz.ownsPrescription(#id) and (#prescriptionDTO.rendezVousId == null or @authz.ownsRendezVous(#prescriptionDTO.rendezVousId))")
     public ResponseEntity<PrescriptionResponseDTO> updatePrescription(@PathVariable Long id, @RequestBody @Valid PrescriptionUpdateDTO prescriptionDTO) {
         PrescriptionResponseDTO updatedPrescription = prescriptionService.update(id, prescriptionDTO);
         return ResponseEntity.ok(updatedPrescription);

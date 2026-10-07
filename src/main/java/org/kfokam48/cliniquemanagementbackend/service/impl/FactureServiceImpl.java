@@ -105,6 +105,11 @@ public class FactureServiceImpl implements FactureService {
     @Override
     public void deleteById(Long id) {
         Facture facture = factureRepository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Facture not found"));
+        // Une facture qui a reçu un paiement fait partie de l'historique des revenus : elle n'est jamais supprimée
+        if (facture.getMontantPayement() != null && facture.getMontantPayement().signum() > 0) {
+            throw new IllegalStateException("Impossible de supprimer la facture #" + id
+                    + " : des paiements ont déjà été enregistrés.");
+        }
         factureRepository.delete(facture);
     }
 

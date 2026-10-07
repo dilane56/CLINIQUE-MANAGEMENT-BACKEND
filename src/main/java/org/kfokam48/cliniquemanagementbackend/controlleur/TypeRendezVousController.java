@@ -15,19 +15,19 @@ public class TypeRendezVousController {
     private TypeRendezVousService typeRendezVousService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public TypeRendezVousResponseDTO ajouter(@RequestBody TypeRendezVousDTO dto) {
         return typeRendezVousService.ajouterTypeRendezVous(dto);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public TypeRendezVousResponseDTO modifier(@PathVariable Long id, @RequestBody TypeRendezVousDTO dto) {
         return typeRendezVousService.modifierTypeRendezVous(id, dto);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public void supprimer(@PathVariable Long id) {
         typeRendezVousService.supprimerTypeRendezVous(id);
     }

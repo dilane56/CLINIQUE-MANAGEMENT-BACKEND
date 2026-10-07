@@ -62,8 +62,11 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     public PrescriptionResponseDTO update(Long id, @Valid PrescriptionUpdateDTO prescriptionUpdateDTO) {
         Prescription prescription = prescriptionRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Prescription not found"));
-        RendezVous rendezVous = rendezVousRepository.findById(prescriptionUpdateDTO.getRendezVousId())
-                .orElseThrow(() -> new RessourceNotFoundException("RendezVous not found"));
+        // rendezVousId facultatif : absent, la prescription reste rattachée à son rendez-vous actuel
+        RendezVous rendezVous = prescriptionUpdateDTO.getRendezVousId() == null
+                ? prescription.getRendezVous()
+                : rendezVousRepository.findById(prescriptionUpdateDTO.getRendezVousId())
+                        .orElseThrow(() -> new RessourceNotFoundException("RendezVous not found"));
         if (!(rendezVous.getStatutRendezVous() == StatutRendezVous.TERMINE || rendezVous.getStatutRendezVous() == StatutRendezVous.EN_COURS)) {
             throw new IllegalStateException("Impossible de modifier une prescription pour un rendez-vous qui n'est pas terminé ou en cours.");
         }

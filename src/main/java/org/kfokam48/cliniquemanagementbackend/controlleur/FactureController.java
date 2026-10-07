@@ -29,7 +29,7 @@ public class FactureController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.ownsRendezVous(#factureDTO.rendezVousId))")
     public ResponseEntity<FactureResponseDto> createFacture(@Valid @RequestBody FactureDTO factureDTO) {
         return ResponseEntity.ok(factureService.save(factureDTO));
     }
@@ -67,7 +67,7 @@ public class FactureController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.ownsFacture(#id) and @authz.ownsRendezVous(#factureDTO.rendezVousId))")
     public ResponseEntity<FactureResponseDto> updateFacture(@PathVariable Long id, @Valid @RequestBody FactureDTO factureDTO) {
         return ResponseEntity.ok(factureService.update(id, factureDTO));
     }
@@ -79,7 +79,7 @@ public class FactureController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('MEDECIN') and @authz.ownsFacture(#id))")
     public ResponseEntity<String> deleteFacture(@PathVariable Long id) {
         factureService.deleteById(id);
         return ResponseEntity.ok("Facture deleted successfully");

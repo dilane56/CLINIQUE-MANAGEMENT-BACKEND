@@ -1,5 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
+import org.kfokam48.cliniquemanagementbackend.dto.auth.UserDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.ProfilUpdateDTO;
 import org.springframework.data.domain.Pageable;
 import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
@@ -88,5 +90,16 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     @Transactional(readOnly = true)
     public PageResponse<UtilisateurResponseDTO> findAll(Pageable pageable) {
         return PageResponse.of(utilisateurRepository.findAll(pageable), utilisateurMapper::utilisateursToUtilisateurResponseDTOs);
+    }
+
+    @Override
+    public UserDTO updateProfil(String email, ProfilUpdateDTO profil) {
+        Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
+                .orElseThrow(() -> new RessourceNotFoundException("Utilisateur introuvable"));
+        utilisateur.setNom(profil.getNom().trim());
+        utilisateur.setPrenom(profil.getPrenom().trim());
+        utilisateur.setTelephone(profil.getTelephone());
+        utilisateur.setAdresse(profil.getAdresse());
+        return utilisateurMapper.utilisateurToUserDTO(utilisateurRepository.save(utilisateur));
     }
 }

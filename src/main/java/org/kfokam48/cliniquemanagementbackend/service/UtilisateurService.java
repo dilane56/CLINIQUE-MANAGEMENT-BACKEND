@@ -1,5 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.service;
 
+import org.kfokam48.cliniquemanagementbackend.dto.auth.UserDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.ProfilUpdateDTO;
 import org.springframework.data.domain.Pageable;
 import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.Contact;
@@ -20,4 +22,7 @@ public interface UtilisateurService {
     List<Contact> findAllContacts();
 
     PageResponse<UtilisateurResponseDTO> findAll(Pageable pageable);
+
+    // Modification de son propre profil (nom, prénom, téléphone, adresse)
+    UserDTO updateProfil(String email, ProfilUpdateDTO profil);
 }
