@@ -28,6 +28,8 @@ import org.kfokam48.cliniquemanagementbackend.service.MedecinService;
 import org.kfokam48.cliniquemanagementbackend.service.PatientService;
 import org.kfokam48.cliniquemanagementbackend.service.RendezVousService;
 import org.kfokam48.cliniquemanagementbackend.service.UtilisateurService;
+import org.kfokam48.cliniquemanagementbackend.service.TypeRendezVousService;
+import org.kfokam48.cliniquemanagementbackend.controlleur.TypeRendezVousController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -59,7 +61,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         MedecinController.class,
         RendezVousController.class,
         PrescriptionController.class,
-        NotificationRestController.class
+        NotificationRestController.class,
+        TypeRendezVousController.class
 }, properties = {
         // Clé de test uniquement (Base64, 256 bits)
         "jwt.secret=dGVzdC1zZWNyZXQta2V5LWZvci11bml0LXRlc3RzLW9ubHktMzJieXRlcw==",
@@ -91,6 +94,7 @@ class AccessControlTest {
     @MockitoBean private PrescriptionRepository prescriptionRepository;
     @MockitoBean private NotificationService notificationService;
     @MockitoBean private EmailService emailService;
+    @MockitoBean private TypeRendezVousService typeRendezVousService;
 
     // --- C3 : plus aucune route métier publique ---
 
@@ -399,5 +403,102 @@ class AccessControlTest {
         mockMvc.perform(get("/api/patients").header("Authorization", "Bearer faux.token.jwt"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").isString());
+    }
+
+    // --- Alignement frontend : le médecin gère les factures de SES rendez-vous ---
+
+    private static final String FACTURE_RDV_10 =
+            "{\"rendezVousId\":10,\"lignesFacture\":[{\"serviceName\":\"Pansement\",\"quantite\":1,\"prixUnitaire\":7000}]}";
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void medecinCanCreateInvoiceForOwnAppointment() throws Exception {
+        when(authz.ownsRendezVous(10L)).thenReturn(true);
+        mockMvc.perform(post("/api/factures").contentType(MediaType.APPLICATION_JSON).content(FACTURE_RDV_10))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void medecinCannotCreateInvoiceForAnotherMedecinAppointment() throws Exception {
+        when(authz.ownsRendezVous(10L)).thenReturn(false);
+        mockMvc.perform(post("/api/factures").contentType(MediaType.APPLICATION_JSON).content(FACTURE_RDV_10))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void medecinCanUpdateAndDeleteOwnInvoiceOnly() throws Exception {
+        when(authz.ownsFacture(7L)).thenReturn(true);
+        when(authz.ownsRendezVous(10L)).thenReturn(true);
+        when(authz.ownsFacture(8L)).thenReturn(false);
+
+        mockMvc.perform(put("/api/factures/7").contentType(MediaType.APPLICATION_JSON).content(FACTURE_RDV_10))
+                .andExpect(status().isOk());
+        mockMvc.perform(delete("/api/factures/7")).andExpect(status().isOk());
+        mockMvc.perform(put("/api/factures/8").contentType(MediaType.APPLICATION_JSON).content(FACTURE_RDV_10))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(delete("/api/factures/8")).andExpect(status().isForbidden());
+    }
+
+    // --- Alignement frontend : la secrétaire gère les types de rendez-vous ---
+
+    @Test
+    @WithMockUser(roles = "SECRETAIRE")
+    void secretaireCanManageAppointmentTypes() throws Exception {
+        String type = "{\"libelle\":\"Vaccination\",\"duree\":15,\"tarif\":10000}";
+        mockMvc.perform(post("/api/type-rendezvous").contentType(MediaType.APPLICATION_JSON).content(type))
+                .andExpect(status().isOk());
+        mockMvc.perform(put("/api/type-rendezvous/3").contentType(MediaType.APPLICATION_JSON).content(type))
+                .andExpect(status().isOk());
+        mockMvc.perform(delete("/api/type-rendezvous/3")).andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void medecinCannotManageAppointmentTypes() throws Exception {
+        mockMvc.perform(delete("/api/type-rendezvous/3")).andExpect(status().isForbidden());
+    }
+
+    // --- Alignement frontend : modification de son propre profil ---
+
+    @Test
+    @WithMockUser(username = "medecin@clinique.com", roles = "MEDECIN")
+    void anyoneCanUpdateOwnProfile() throws Exception {
+        mockMvc.perform(put("/api/utilisateurs/me").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nom\":\"Martin\",\"prenom\":\"Paul\",\"telephone\":\"690000000\",\"adresse\":\"Douala\"}"))
+                .andExpect(status().isOk());
+        // L'utilisateur modifié est celui du JWT, jamais un identifiant fourni par le client
+        verify(utilisateurService).updateProfil(org.mockito.ArgumentMatchers.eq("medecin@clinique.com"), any());
+    }
+
+    @Test
+    void anonymousCannotUpdateProfile() throws Exception {
+        mockMvc.perform(put("/api/utilisateurs/me").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nom\":\"X\",\"prenom\":\"Y\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "SECRETAIRE")
+    void invalidProfileIsRejected() throws Exception {
+        mockMvc.perform(put("/api/utilisateurs/me").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nom\":\"\",\"prenom\":\"Y\",\"telephone\":\"12\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    // --- Alignement frontend : modification de prescription sans rendezVousId ---
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void prescriptionUpdateWithoutAppointmentKeepsTheOwnershipCheckOnThePrescription() throws Exception {
+        when(authz.ownsPrescription(4L)).thenReturn(true);
+        mockMvc.perform(put("/api/prescriptions/4").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"description\":\"modif\"}"))
+                .andExpect(status().isOk());
+        when(authz.ownsPrescription(5L)).thenReturn(false);
+        mockMvc.perform(put("/api/prescriptions/5").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"description\":\"modif\"}"))
+                .andExpect(status().isForbidden());
     }
 }

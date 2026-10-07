@@ -203,4 +203,22 @@ class FactureMontantsTest {
                 .isInstanceOf(IllegalStateException.class);
         verify(paiementRepository, never()).save(any());
     }
+
+    @Test
+    void invoiceWithPaymentsCannotBeDeleted() {
+        facture.setMontantPayement(new BigDecimal("5000"));
+        FactureServiceImpl service = serviceDePaiement(mock(PaiementRepository.class));
+
+        assertThatThrownBy(() -> service.deleteById(1L))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("des paiements ont déjà été enregistrés");
+        verify(factureRepository, never()).delete(any());
+    }
+
+    @Test
+    void unpaidInvoiceCanBeDeleted() {
+        FactureServiceImpl service = serviceDePaiement(mock(PaiementRepository.class));
+        service.deleteById(1L);
+        verify(factureRepository).delete(facture);
+    }
 }

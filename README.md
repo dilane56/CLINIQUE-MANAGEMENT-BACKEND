@@ -82,6 +82,7 @@ Légende : ✅ autorisé · ❌ refusé · 👤 uniquement ses propres données 
 | **Administrateurs** (toutes actions) | ✅ | ❌ | ❌ |
 | **Utilisateurs** : lister, voir, contacts | ✅ | ✅ | ✅ |
 | **Utilisateurs** : supprimer | ✅ | ❌ | ❌ |
+| **Utilisateurs** : modifier son propre profil (`PUT /api/utilisateurs/me` : nom, prénom, téléphone, adresse) | 👤 | 👤 | 👤 |
 | **Médecins** : créer, supprimer | ✅ | ❌ | ❌ |
 | **Médecins** : lister | ✅ | ✅ | ❌ |
 | **Médecins** : voir un médecin | ✅ | ✅ | ✅ |
@@ -97,11 +98,12 @@ Légende : ✅ autorisé · ❌ refusé · 👤 uniquement ses propres données 
 | **Rendez-vous** : voir, modifier (sans le réattribuer), changer le statut | ✅ | ✅ | 👤 |
 | **Rendez-vous** : lister tout, supprimer | ✅ | ✅ | ❌ |
 | **Rendez-vous** d'un médecin / du jour | ✅ | ✅ | 👤 |
-| **Factures** : créer, lister, **paiement** | ✅ | ✅ | ❌ |
-| **Factures** : modifier (uniquement si aucun paiement, voir I19) | ✅ | ✅ | ❌ |
+| **Factures** : créer | ✅ | ✅ | 👤 (sur ses rendez-vous) |
+| **Factures** : lister toutes, enregistrer un **paiement** | ✅ | ✅ | ❌ |
+| **Factures** : modifier (uniquement si aucun paiement, voir I19) | ✅ | ✅ | 👤 |
 | **Factures** : voir, PDF | ✅ | ✅ | 👤 |
 | **Factures** d'un médecin | ✅ | ✅ | 👤 |
-| **Factures** : supprimer | ✅ | ❌ | ❌ |
+| **Factures** : supprimer (uniquement si aucun paiement) | ✅ | ❌ | 👤 |
 | **Lignes de facture** : créer | — | — | uniquement avec la facture (`POST /api/factures`) |
 | **Lignes de facture** : modifier, supprimer (uniquement si aucun paiement, total recalculé, voir I19) | ✅ | ✅ | ❌ |
 | **Lignes de facture** : voir une ligne | ✅ | ✅ | 👤 |
@@ -116,7 +118,7 @@ Légende : ✅ autorisé · ❌ refusé · 👤 uniquement ses propres données 
 | **Lignes de prescription** : voir une ligne | ✅ | ✅ | 👤 |
 | **Lignes de prescription** : lister toutes | ✅ | ✅ | ❌ |
 | **Types de rendez-vous** : lister | ✅ | ✅ | ✅ |
-| **Types de rendez-vous** : créer, modifier, supprimer | ✅ | ❌ | ❌ |
+| **Types de rendez-vous** : créer, modifier, supprimer | ✅ | ✅ | ❌ |
 | **Revenus** : globaux et par médecin et par service (`/api/revenus/medecins`) | ✅ | ❌ | ❌ |
 | **Messages** (conversation, lu, liste) | 👤 | 👤 | 👤 |
 | **Notifications** : les siennes | ✅ (toutes) | 👤 | 👤 |

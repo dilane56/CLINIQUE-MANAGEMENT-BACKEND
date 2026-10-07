@@ -1,4 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
+import org.springframework.security.core.Authentication;
+import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.ProfilUpdateDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.auth.UserDTO;
+import jakarta.validation.Valid;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.domain.Pageable;
 import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
@@ -29,6 +33,13 @@ public class UtilisateurController {
     }
 
 
+
+    // Modification de son propre profil : l'utilisateur est celui du JWT, jamais un identifiant fourni par le client
+    @PutMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserDTO> updateMonProfil(@Valid @RequestBody ProfilUpdateDTO profil, Authentication authentication) {
+        return ResponseEntity.ok(utilisateurService.updateProfil(authentication.getName(), profil));
+    }
 
     // Endpoint pour récupérer un utilisateur par ID
     @GetMapping("/{id}")
