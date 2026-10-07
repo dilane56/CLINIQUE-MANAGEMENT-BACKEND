@@ -1,6 +1,10 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
 
+import org.kfokam48.cliniquemanagementbackend.repository.RendezVousSpecifications;
+import java.util.Map;
+import java.util.EnumMap;
+import java.time.LocalDate;
 import org.springframework.data.domain.Pageable;
 import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
@@ -224,5 +228,28 @@ public class RendezVousServiceImpl implements RendezVousService {
     @Transactional(readOnly = true)
     public PageResponse<RendezVousResponseDTO> findByMedecinId(Long medecinId, Pageable pageable) {
         return PageResponse.of(rendezVousRepository.findByMedecinId(medecinId, pageable), rendezVousMapper::rendezVousListToRendezVousResponseDtoList);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<RendezVousResponseDTO> rechercher(String texte, StatutRendezVous statut, LocalDate date, Pageable pageable) {
+        return PageResponse.of(
+                rendezVousRepository.findAll(RendezVousSpecifications.rechercher(texte, statut, date), pageable),
+                rendezVousMapper::rendezVousListToRendezVousResponseDtoList);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<StatutRendezVous, Long> compterParStatut() {
+        Map<StatutRendezVous, Long> compteurs = new EnumMap<>(StatutRendezVous.class);
+        for (StatutRendezVous statut : StatutRendezVous.values()) {
+            compteurs.put(statut, 0L);
+        }
+        for (Object[] ligne : rendezVousRepository.compterParStatut()) {
+            if (ligne[0] != null) {
+                compteurs.put((StatutRendezVous) ligne[0], (Long) ligne[1]);
+            }
+        }
+        return compteurs;
     }
 }

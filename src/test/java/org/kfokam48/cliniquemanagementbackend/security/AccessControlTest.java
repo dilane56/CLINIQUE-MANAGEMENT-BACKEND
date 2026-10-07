@@ -501,4 +501,46 @@ class AccessControlTest {
                         .content("{\"description\":\"modif\"}"))
                 .andExpect(status().isForbidden());
     }
+
+    // --- Recherche paginée des rendez-vous (page Rendez-vous de l'admin) ---
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void appointmentSearchPassesCriteriaAndDefaultsToMostRecentFirst() throws Exception {
+        when(rendezVousService.rechercher(any(), any(), any(), any(Pageable.class)))
+                .thenReturn(new PageResponse<>(List.of(), 0, 20, 0, 0));
+
+        mockMvc.perform(get("/api/rendezvous/recherche")
+                        .param("q", "martin").param("statut", "CONFIRME").param("date", "2030-01-15"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(0));
+
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(rendezVousService).rechercher(org.mockito.ArgumentMatchers.eq("martin"),
+                org.mockito.ArgumentMatchers.eq(org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous.CONFIRME),
+                org.mockito.ArgumentMatchers.eq(java.time.LocalDate.of(2030, 1, 15)), pageable.capture());
+        assertThat(pageable.getValue().getSort().getOrderFor("dateRendezVous")).isNotNull();
+        assertThat(pageable.getValue().getSort().getOrderFor("dateRendezVous").isDescending()).isTrue();
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void invalidStatusIsRejected() throws Exception {
+        mockMvc.perform(get("/api/rendezvous/recherche").param("statut", "INCONNU"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(roles = "SECRETAIRE")
+    void secretaireCanSearchAndCountAppointments() throws Exception {
+        mockMvc.perform(get("/api/rendezvous/recherche")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/rendezvous/statistiques")).andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void medecinCannotSearchAllAppointments() throws Exception {
+        mockMvc.perform(get("/api/rendezvous/recherche")).andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/rendezvous/statistiques")).andExpect(status().isForbidden());
+    }
 }
