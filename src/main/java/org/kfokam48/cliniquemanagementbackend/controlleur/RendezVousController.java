@@ -1,4 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.controlleur;
+import java.util.Map;
+import java.time.LocalDate;
+import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.domain.Pageable;
 import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
@@ -43,6 +47,28 @@ public class RendezVousController {
     @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public ResponseEntity<PageResponse<RendezVousResponseDTO>> getAllRendezVousPage(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
         return ResponseEntity.ok(rendezVousService.findAll(pageable));
+    }
+
+    /**
+     * Recherche paginée, exécutée par la base : texte (patient, médecin, type de rendez-vous),
+     * statut et jour facultatifs. Exemple :
+     * /api/rendezvous/recherche?q=martin&statut=CONFIRME&date=2030-01-15&page=0&size=20&sort=dateRendezVous,desc
+     */
+    @GetMapping("/recherche")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
+    public ResponseEntity<PageResponse<RendezVousResponseDTO>> rechercherRendezVous(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) StatutRendezVous statut,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @PageableDefault(size = 20, sort = "dateRendezVous", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(rendezVousService.rechercher(q, statut, date, pageable));
+    }
+
+    // Nombre de rendez-vous par statut (compteurs) : { "EN_ATTENTE": 12, "CONFIRME": 23, ... }
+    @GetMapping("/statistiques")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
+    public ResponseEntity<Map<StatutRendezVous, Long>> statistiquesRendezVous() {
+        return ResponseEntity.ok(rendezVousService.compterParStatut());
     }
 
     @GetMapping("/{id}")

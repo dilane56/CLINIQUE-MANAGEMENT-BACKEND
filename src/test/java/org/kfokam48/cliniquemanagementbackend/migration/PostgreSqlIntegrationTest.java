@@ -1,5 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.migration;
 
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageRequest;
+import org.kfokam48.cliniquemanagementbackend.repository.RendezVousSpecifications;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -50,6 +53,7 @@ class PostgreSqlIntegrationTest {
 
     private Medecin medecin;
     private Patient patient;
+    private String nomPatient;
     private TypeRendezVous consultation;
 
     @BeforeEach
@@ -63,6 +67,9 @@ class PostgreSqlIntegrationTest {
 
         patient = new Patient();
         patient.setEmail("patient-" + suffixe + "@ci.local");
+        nomPatient = "Ngono" + suffixe.substring(0, 8);
+        patient.setNom(nomPatient);
+        patient.setPrenom("Aïcha");
         patient = patientRepository.save(patient);
 
         consultation = typeRendezVousRepository.save(
@@ -108,5 +115,20 @@ class PostgreSqlIntegrationTest {
     void cancelledAppointmentDoesNotBlockTheSlot() {
         rendezVousRepository.saveAndFlush(rendezVous(medecin, DIX_HEURES, StatutRendezVous.ANNULER));
         rendezVousRepository.saveAndFlush(rendezVous(medecin, DIX_HEURES, StatutRendezVous.CONFIRME));
+    }
+
+    @Test
+    void appointmentSearchRunsOnPostgreSql() {
+        RendezVous confirme = rendezVousRepository.saveAndFlush(rendezVous(medecin, DIX_HEURES, StatutRendezVous.CONFIRME));
+        rendezVousRepository.saveAndFlush(rendezVous(medecin, DIX_HEURES.plusDays(1), StatutRendezVous.EN_ATTENTE));
+
+        // Texte (casse ignorée, prénom puis nom), statut et jour : même SQL que la page Rendez-vous de l'admin
+        assertThat(rendezVousRepository.findAll(RendezVousSpecifications.rechercher(
+                        "aïcha " + nomPatient.toUpperCase(), StatutRendezVous.CONFIRME, DIX_HEURES.toLocalDate()),
+                PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "dateRendezVous"))).getContent())
+                .containsExactly(confirme);
+        assertThat(rendezVousRepository.findAll(RendezVousSpecifications.rechercher(nomPatient, null, null),
+                PageRequest.of(0, 1)).getTotalElements()).isEqualTo(2);
+        assertThat(rendezVousRepository.compterParStatut()).isNotEmpty();
     }
 }

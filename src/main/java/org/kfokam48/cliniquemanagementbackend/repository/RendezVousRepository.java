@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous;
 import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,11 +16,15 @@ import java.util.Collection;
 import java.util.List;
 
 @Repository
-public interface RendezVousRepository extends JpaRepository<RendezVous, Long> {
+public interface RendezVousRepository extends JpaRepository<RendezVous, Long>, JpaSpecificationExecutor<RendezVous> {
     List<RendezVous> findByMedecinId(Long medecinId);
     Page<RendezVous> findByMedecinId(Long medecinId, Pageable pageable);
     List<RendezVous> findByMedecinIdAndDateRendezVousBetween(Long medecinId, LocalDateTime debut, LocalDateTime fin);
     List<RendezVous> findAllByStatutRendezVous(StatutRendezVous statutRendezVous);
+
+    // Nombre de rendez-vous par statut (compteurs du tableau de bord) : [statut, nombre]
+    @Query("SELECT r.statutRendezVous, COUNT(r) FROM RendezVous r GROUP BY r.statutRendezVous")
+    List<Object[]> compterParStatut();
 
     /**
      * Vrai si le médecin a déjà un rendez-vous actif qui chevauche [debut, fin[.

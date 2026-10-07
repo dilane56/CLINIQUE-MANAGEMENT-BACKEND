@@ -206,6 +206,12 @@ Supprimer un rendez-vous
 #### GET /api/rendezvous/medecin/{medecinId}
 Lister les rendez-vous d'un médecin
 
+#### GET /api/rendezvous/recherche?q=&statut=&date=&page=0&size=20 (ADMIN, SECRETAIRE)
+Recherche paginée exécutée par la base. Tous les critères sont facultatifs : `q` cherche (sans tenir compte de la casse) dans le nom et le prénom du patient ou du médecin, dans les deux ordres, et dans le type de rendez-vous ; `statut` (ex. `CONFIRME`, 400 si inconnu) ; `date` (jour, format `AAAA-MM-JJ`). Tri par défaut : `dateRendezVous,desc`. Réponse paginée (voir « Pagination des listes »).
+
+#### GET /api/rendezvous/statistiques (ADMIN, SECRETAIRE)
+Nombre de rendez-vous par statut, tous statuts présents : `{ "EN_ATTENTE": 12, "CONFIRME": 23, "EN_COURS": 2, ... }`.
+
 #### PATCH /api/rendezvous/{id}/statut?statut={STATUT}
 Mettre à jour le statut d'un rendez-vous
 
