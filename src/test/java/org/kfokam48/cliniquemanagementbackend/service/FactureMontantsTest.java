@@ -13,7 +13,7 @@ import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.lignefacture.LigneFactureDTO;
 import org.kfokam48.cliniquemanagementbackend.enums.StatutFacture;
 import org.kfokam48.cliniquemanagementbackend.mapper.FactureMapper;
-import org.kfokam48.cliniquemanagementbackend.mapper.LigneFactureMapper;
+import org.kfokam48.cliniquemanagementbackend.mapper.LigneFactureMapperImpl;
 import org.kfokam48.cliniquemanagementbackend.model.Facture;
 import org.kfokam48.cliniquemanagementbackend.model.LigneFacture;
 import org.kfokam48.cliniquemanagementbackend.repository.FactureRepository;
@@ -49,7 +49,7 @@ class FactureMontantsTest {
     void setUp() {
         ligneFactureRepository = mock(LigneFactureRepository.class);
         factureRepository = mock(FactureRepository.class);
-        ligneFactureService = new LigneFactureServiceImpl(ligneFactureRepository, new LigneFactureMapper(), factureRepository);
+        ligneFactureService = new LigneFactureServiceImpl(ligneFactureRepository, new LigneFactureMapperImpl(), factureRepository);
         when(ligneFactureRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Facture : consultation 15 000 + pansement 7 000 = 22 000
@@ -135,7 +135,7 @@ class FactureMontantsTest {
         when(factureRepository.findById(1L)).thenReturn(Optional.of(facture));
 
         FactureServiceImpl factureService = new FactureServiceImpl(factureRepository, mock(RendezVousRepository.class),
-                mock(FactureMapper.class), new LigneFactureMapper(), mock(NotificationService.class), mock(PdfService.class),
+                mock(FactureMapper.class), new LigneFactureMapperImpl(), mock(NotificationService.class), mock(PdfService.class),
                 mock(PaiementRepository.class));
         FactureDTO factureDTO = new FactureDTO();
         factureDTO.setRendezVousId(5L);
@@ -156,7 +156,7 @@ class FactureMontantsTest {
         rendezVous.setMedecin(medecin);
         facture.setRendezVous(rendezVous);
         return new FactureServiceImpl(factureRepository, mock(RendezVousRepository.class), mock(FactureMapper.class),
-                new LigneFactureMapper(), mock(NotificationService.class), mock(PdfService.class), paiementRepository);
+                new LigneFactureMapperImpl(), mock(NotificationService.class), mock(PdfService.class), paiementRepository);
     }
 
     private static FacturePaiementUpdateDTO paiement(String montant) {

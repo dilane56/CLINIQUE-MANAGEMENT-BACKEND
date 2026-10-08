@@ -3,49 +3,30 @@ package org.kfokam48.cliniquemanagementbackend.mapper;
 import org.kfokam48.cliniquemanagementbackend.dto.lignefacture.LigneFactureDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.lignefacture.LigneFactureResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.model.LigneFacture;
-import org.springframework.stereotype.Component;
-import java.math.BigDecimal;
+import org.mapstruct.AfterMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
+import java.math.BigDecimal;
 import java.util.List;
 
-@Component
-public class LigneFactureMapper {
+@Mapper(config = MappingConfig.class)
+public interface LigneFactureMapper {
 
+    // La facture est rattachée par le service ; le prix total est calculé après la copie
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "facture", ignore = true)
+    @Mapping(target = "prixTotal", ignore = true)
+    LigneFacture ligneFactureDTOToLigneFacture(LigneFactureDTO dto);
 
-
-
-    public LigneFacture ligneFactureDTOToLigneFacture(LigneFactureDTO dto) {
-        LigneFacture ligneFacture = new LigneFacture();
-        ligneFacture.setServiceName(dto.getServiceName());
-        ligneFacture.setQuantite(dto.getQuantite());
-        ligneFacture.setPrixUnitaire(dto.getPrixUnitaire());
+    @AfterMapping
+    default void calculerPrixTotal(LigneFactureDTO dto, @MappingTarget LigneFacture ligneFacture) {
         ligneFacture.setPrixTotal(ligneFacture.getPrixUnitaire().multiply(BigDecimal.valueOf(dto.getQuantite())));
-
-        return ligneFacture;
-
     }
 
-    public LigneFactureResponseDTO toResponseDTO(LigneFacture ligneFacture) {
-        LigneFactureResponseDTO ligneFactureResponseDTO =new LigneFactureResponseDTO();
-        ligneFactureResponseDTO.setId(ligneFacture.getId());
-        ligneFactureResponseDTO.setServiceName(ligneFacture.getServiceName());
-        ligneFactureResponseDTO.setQuantite(ligneFacture.getQuantite());
-        ligneFactureResponseDTO.setPrixUnitaire(ligneFacture.getPrixUnitaire());
-        ligneFactureResponseDTO.setPrixTotal(ligneFacture.getPrixTotal());
-        ligneFactureResponseDTO.setFactureId((ligneFacture.getFacture().getId()));
-        return ligneFactureResponseDTO;
+    @Mapping(target = "factureId", source = "facture.id")
+    LigneFactureResponseDTO toResponseDTO(LigneFacture ligneFacture);
 
-    }
-
-    public List<LigneFactureResponseDTO> toResponseDTOList(List<LigneFacture> ligneFactures) {
-        return ligneFactures.stream()
-                .map(this::toResponseDTO)
-                .toList();
-    }
-
-
-
-
-
+    List<LigneFactureResponseDTO> toResponseDTOList(List<LigneFacture> ligneFactures);
 }
-

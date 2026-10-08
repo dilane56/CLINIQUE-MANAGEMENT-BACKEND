@@ -1,5 +1,6 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
+import java.util.Objects;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 import jakarta.validation.Valid;
@@ -65,7 +66,9 @@ public class AdministrateurServiceImpl implements AdministrateurService {
     @Override
     public Administrateur update(Long id,@Valid AdministrateurDTO administrateurDTO) {
         Administrateur administrateur = administrateurRepository.findById(id).orElseThrow(()->new RessourceNotFoundException("Administrateur not found"));
-        if (utilisateurRepository.existsByEmail(administrateurDTO.getEmail())) {
+        // Son propre e-mail est accepté ; seul un e-mail déjà pris par un autre compte est refusé
+        if (!Objects.equals(administrateur.getEmail(), administrateurDTO.getEmail())
+                && utilisateurRepository.existsByEmail(administrateurDTO.getEmail())) {
             throw new ResourceAlreadyExistException("Administrateur already exists with this email");
         }
 
@@ -74,7 +77,7 @@ public class AdministrateurServiceImpl implements AdministrateurService {
         administrateur.setNom(administrateurDTO.getNom());
         administrateur.setPrenom(administrateurDTO.getPrenom());
         administrateur.setTelephone(administrateurDTO.getTelephone());
-        administrateur.setRole(administrateurDTO.getRole());
+        // Le rôle n'est jamais repris de la requête (il est fixé par le type de compte)
         administrateurRepository.save(administrateur);
         return administrateur;
     }

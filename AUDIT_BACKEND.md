@@ -177,8 +177,10 @@
   - Corrigé (`374256b`) : **OpenPDF 1.4.2** (LGPL/MPL) remplace iText 5 ; même API (`com.lowagie.text`), couleurs `java.awt.Color`. Test `PdfServiceTest` : facture et prescription générées et relues (accents compris). ⚠️ Rendu visuel à vérifier à l'œil.
 - [x] **I16** — `mssql-jdbc 13.5.1.jre11-preview` (version *preview*) alors que la cible est PostgreSQL → supprimer si inutile.
   - Corrigé (`374256b`) : le pilote reste nécessaire (décision : SQL Server en dev, voir I8), mais passe de `13.5.1.jre11-preview` à la version **stable gérée par Spring Boot** (12.8.1), en scope `runtime`.
-- [~] **I17** — ModelMapper coexiste avec des mappers manuels → choisir une approche unique (idéalement MapStruct, vérifié à la compilation).
-  - Décision du propriétaire du projet : **reporté** (refonte large, sans effet fonctionnel, qui compliquerait la relecture de la pull request en cours).
+- [x] **I17** — ModelMapper coexiste avec des mappers manuels → choisir une approche unique (idéalement MapStruct, vérifié à la compilation).
+  - Décision du propriétaire du projet : reporté (refonte large, sans effet fonctionnel), puis réalisé le 2026-10-08.
+  - Les 13 mappers sont des mappers MapStruct (`MappingConfig` : beans Spring, injection par constructeur). Tout champ cible ni alimenté ni explicitement ignoré **fait échouer la compilation**. ModelMapper est retiré, ainsi que 10 méthodes de mapper jamais appelées.
+  - Garantie de non-régression : `MappersSnapshotTest` fige la sortie de chaque méthode de mapper ; l'instantané produit avec ModelMapper est resté identique après la migration.
 
 ### 2.5 Tests
 
@@ -368,3 +370,4 @@ Analyse du frontend (`CLINIQUE-MANAGEMENT-REACT-FRONTEND`) après l'audit : cert
 | I22 | 2026-10-06 | `9f2a5dc` | Historique des paiements (V4), revenus à la date de chaque versement, revenus par médecin et par service. 98 OK + 5 ignorés (PostgreSQL) |
 | F-B1 à F-B4 | 2026-10-07 | `a43b71b` | Alignement frontend : factures du médecin, types de rendez-vous de la secrétaire, `PUT /api/utilisateurs/me`, `rendezVousId` facultatif. 110 OK + 5 ignorés (PostgreSQL) |
 | I11 (recherche RDV) | 2026-10-07 | `e7710f8` | `GET /api/rendezvous/recherche` et `/statistiques` : page Rendez-vous de l'admin paginée côté serveur. 122 OK + 6 ignorés (PostgreSQL) |
+| I17 | 2026-10-08 | (à venir) | ModelMapper remplacé par MapStruct, vérifié à la compilation ; instantané des mappers inchangé. Correctif d'escalade de rôle (mise à jour d'un médecin ou d'une secrétaire). 126 OK + 6 ignorés (PostgreSQL) |

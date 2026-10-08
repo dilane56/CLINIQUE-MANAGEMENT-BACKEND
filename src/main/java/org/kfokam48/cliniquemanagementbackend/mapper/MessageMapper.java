@@ -1,54 +1,20 @@
 package org.kfokam48.cliniquemanagementbackend.mapper;
 
-import org.kfokam48.cliniquemanagementbackend.dto.message.MessageDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.message.MessageResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.model.Message;
-import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import java.util.List;
+@Mapper(config = MappingConfig.class)
+public interface MessageMapper {
 
-@Component
-public class MessageMapper {
-    private final UtilisateurRepository utilisateurRepository;
-
-    public MessageMapper(UtilisateurRepository utilisateurRepository) {
-        this.utilisateurRepository = utilisateurRepository;
-    }
-
-    public MessageResponseDTO messageToMessageResponseDTO (Message message){
-        MessageResponseDTO messageResponseDTO = new MessageResponseDTO();
-        messageResponseDTO.setExpediteurId(message.getExpediteur().getId());
-        messageResponseDTO.setExpediteurNom(message.getExpediteur().getNom());
-        messageResponseDTO.setExpediteurPrenom(message.getExpediteur().getPrenom());
-        messageResponseDTO.setDestinataireId(message.getDestinataire().getId());
-        messageResponseDTO.setDestinataireNom(message.getDestinataire().getNom());
-        messageResponseDTO.setDestinatairePrenom(message.getDestinataire().getPrenom());
-        messageResponseDTO.setStatus(message.getMessageStatus());
-        messageResponseDTO.setId(message.getId());
-        messageResponseDTO.setLu(message.getLu());
-        messageResponseDTO.setContent(message.getContenu());
-        messageResponseDTO.setDateEnvoi(message.getDateEnvoi());
-        return messageResponseDTO;
-    }
-
-   public Message messageDToToMessage(MessageDTO messageDTO){
-        Message message = new Message();
-        message.setExpediteur(utilisateurRepository.findById(messageDTO.getExpediteurId()).orElseThrow(() -> new RuntimeException("Sender not found")));
-        message.setDestinataire(utilisateurRepository.findById(messageDTO.getDestinataireId()).orElseThrow(() -> new RuntimeException("Receiver not found")));
-        message.setContenu(messageDTO.getContenu());
-        return message;
-   }
-
-   public List<MessageResponseDTO> messageListToMessageResponseDTOList(List<Message> messages) {
-        return messages.stream()
-                .map(this::messageToMessageResponseDTO)
-                .toList();
-    }
-
-    public List<Message> messageDTOListToMessageList(List<MessageDTO> messageDTOs) {
-        return messageDTOs.stream()
-                .map(this::messageDToToMessage)
-                .toList();
-    }
+    @Mapping(target = "expediteurId", source = "expediteur.id")
+    @Mapping(target = "expediteurNom", source = "expediteur.nom")
+    @Mapping(target = "expediteurPrenom", source = "expediteur.prenom")
+    @Mapping(target = "destinataireId", source = "destinataire.id")
+    @Mapping(target = "destinataireNom", source = "destinataire.nom")
+    @Mapping(target = "destinatairePrenom", source = "destinataire.prenom")
+    @Mapping(target = "content", source = "contenu")
+    @Mapping(target = "status", source = "messageStatus")
+    MessageResponseDTO messageToMessageResponseDTO(Message message);
 }

@@ -63,7 +63,7 @@ public class SecretaireServiceImpl implements SecretaireService {
 
             secretaire.setEmail(secretaireDTO.getEmail());
             secretaire.setPassword(passwordEncoder.encode(secretaireDTO.getPassword()));
-            secretaire.setRole(secretaireDTO.getRole());
+            // Le rôle n'est jamais repris de la requête : une secrétaire qui modifie son profil ne peut pas se donner un autre rôle
             secretaire.setPrenom(secretaireDTO.getPrenom());
             secretaire.setTelephone(secretaireDTO.getTelephone());
             secretaire.setNom(secretaireDTO.getNom());
