@@ -138,6 +138,11 @@ Modifier son propre profil (tous les rôles). Seuls `nom`, `prenom`, `telephone`
 ```
 **Réponse :** l'utilisateur mis à jour, au même format que `user` dans la réponse de connexion.
 
+### Compteurs
+
+#### GET /api/utilisateurs/statistiques (ADMIN)
+Nombre de comptes par rôle : `{ "MEDECIN": 5, "ADMIN": 1, "SECRETAIRE": 2 }` (tableau de bord de l'administrateur).
+
 ### Désactiver un compte
 
 #### PATCH /api/utilisateurs/{id}/activation
@@ -238,6 +243,9 @@ Créer une nouvelle facture
 
 #### GET /api/factures
 Lister toutes les factures
+
+#### GET /api/factures/statistiques (ADMIN, SECRETAIRE)
+Nombre de factures par statut, tous statuts présents : `{ "NON_PAYEE": 4, "PAYEE": 30, "PARTIELLEMENT_PAYE": 2, "ANNULEE": 0 }` (carte « Factures impayées » du tableau de bord).
 
 #### GET /api/factures/{id}
 Récupérer une facture par ID

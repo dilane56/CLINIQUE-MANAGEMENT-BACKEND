@@ -1,4 +1,6 @@
 package org.kfokam48.cliniquemanagementbackend.controller;
+import org.kfokam48.cliniquemanagementbackend.enums.StatutFacture;
+import java.util.Map;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.domain.Pageable;
 import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
@@ -45,6 +47,13 @@ public class FactureController {
     @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public ResponseEntity<PageResponse<FactureResponseDto>> getAllFacturesPage(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
         return ResponseEntity.ok(factureService.findAll(pageable));
+    }
+
+    // Nombre de factures par statut (tableau de bord) : { "NON_PAYEE": 4, "PARTIELLEMENT_PAYE": 2, ... }
+    @GetMapping("/statistiques")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
+    public ResponseEntity<Map<StatutFacture, Long>> statistiquesFactures() {
+        return ResponseEntity.ok(factureService.compterParStatut());
     }
 
     @GetMapping("/{id}")

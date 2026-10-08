@@ -21,4 +21,8 @@ public interface FactureRepository extends JpaRepository<Facture, Long> {
     // Contrôle de propriété (@authz) : cette facture appartient-elle à ce médecin ?
     boolean existsByIdAndRendezVous_Medecin_Id(Long id, Long medecinId);
 
+
+    // Nombre de factures par statut (compteurs du tableau de bord)
+    @Query("SELECT f.statut, COUNT(f) FROM Facture f GROUP BY f.statut")
+    List<Object[]> compterParStatut();
 }

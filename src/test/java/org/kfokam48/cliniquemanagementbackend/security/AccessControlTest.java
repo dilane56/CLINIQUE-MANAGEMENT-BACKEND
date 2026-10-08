@@ -600,4 +600,37 @@ class AccessControlTest {
                 .andExpect(jsonPath("$.error").value("Compte désactivé. Contactez l'administrateur."));
         verify(utilisateurService, never()).findAll();
     }
+
+    // --- Compteurs des tableaux de bord ---
+
+    @Test
+    @WithMockUser(roles = "SECRETAIRE")
+    void secretaireCanReadInvoiceCounts() throws Exception {
+        when(factureService.compterParStatut()).thenReturn(java.util.Map.of(
+                org.kfokam48.cliniquemanagementbackend.enums.StatutFacture.NON_PAYEE, 3L));
+        mockMvc.perform(get("/api/factures/statistiques"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.NON_PAYEE").value(3));
+    }
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void medecinCannotReadInvoiceCounts() throws Exception {
+        mockMvc.perform(get("/api/factures/statistiques")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void adminCanReadAccountCounts() throws Exception {
+        when(utilisateurService.compterParRole()).thenReturn(java.util.Map.of(org.kfokam48.cliniquemanagementbackend.enums.Roles.MEDECIN, 5L));
+        mockMvc.perform(get("/api/utilisateurs/statistiques"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.MEDECIN").value(5));
+    }
+
+    @Test
+    @WithMockUser(roles = "SECRETAIRE")
+    void onlyAdminCanReadAccountCounts() throws Exception {
+        mockMvc.perform(get("/api/utilisateurs/statistiques")).andExpect(status().isForbidden());
+    }
 }
