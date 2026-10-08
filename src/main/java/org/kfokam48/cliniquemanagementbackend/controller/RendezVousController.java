@@ -1,4 +1,4 @@
-package org.kfokam48.cliniquemanagementbackend.controlleur;
+package org.kfokam48.cliniquemanagementbackend.controller;
 import java.util.Map;
 import java.time.LocalDate;
 import org.springframework.data.domain.Sort;

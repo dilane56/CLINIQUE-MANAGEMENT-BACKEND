@@ -1,4 +1,4 @@
-package org.kfokam48.cliniquemanagementbackend.controlleur;
+package org.kfokam48.cliniquemanagementbackend.controller;
 import org.springframework.security.core.Authentication;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.ProfilUpdateDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.auth.UserDTO;

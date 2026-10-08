@@ -211,12 +211,12 @@
 - [x] **A2** — `ChatHandler.java` à la racine du package → déplacer dans un package dédié (`websocket` / `chat`).
   - Corrigé (`780439a`) : `ChatHandler` **supprimé** plutôt que déplacé : handler jamais enregistré sur aucun endpoint (code mort), qui aurait diffusé chaque message à toutes les sessions.
 - [x] **A3** — Fautes de frappe dans les noms :
-  - Corrigé (`780439a`) pour les classes ; le renommage du package `controlleur` est **reporté** (décision du propriétaire du projet).
+  - Corrigé (`780439a`) pour les classes ; le package `controlleur` a été renommé `controller` le 2026-10-08 (d'abord reporté pour son impact large).
   - [x] `JwtRequestFillter` → `JwtRequestFilter`
   - [x] `WebSocketEventListner` → supprimé (voir A1)
   - [x] `TypeRencezVousMapper` → `TypeRendezVousMapper`
   - [x] `NotifcationDTO` → `NotificationDTO` (et `createnotifcation` → `createNotification`)
-  - [~] package `controlleur` → `controller` : reporté (impact large)
+  - [x] package `controlleur` → `controller` (seules les déclarations `package` et les imports changent)
 - [x] **A4** — Route `GET /api/rendezvous/medecin/{medecinId}/aujourd'hui` contient une apostrophe → renommer (ex. `/aujourdhui` ou `/today`) en coordination avec le frontend.
   - Corrigé (`780439a`) : route `/medecin/{medecinId}/aujourdhui` ajoutée ; `/aujourd'hui` reste acceptée pour compatibilité (à retirer une fois le frontend migré). README mis à jour.
 - [x] **A5** — Remplacer les `System.out.println` par le logger SLF4J.
@@ -370,4 +370,5 @@ Analyse du frontend (`CLINIQUE-MANAGEMENT-REACT-FRONTEND`) après l'audit : cert
 | I22 | 2026-10-06 | `9f2a5dc` | Historique des paiements (V4), revenus à la date de chaque versement, revenus par médecin et par service. 98 OK + 5 ignorés (PostgreSQL) |
 | F-B1 à F-B4 | 2026-10-07 | `a43b71b` | Alignement frontend : factures du médecin, types de rendez-vous de la secrétaire, `PUT /api/utilisateurs/me`, `rendezVousId` facultatif. 110 OK + 5 ignorés (PostgreSQL) |
 | I11 (recherche RDV) | 2026-10-07 | `e7710f8` | `GET /api/rendezvous/recherche` et `/statistiques` : page Rendez-vous de l'admin paginée côté serveur. 122 OK + 6 ignorés (PostgreSQL) |
-| I17 | 2026-10-08 | (à venir) | ModelMapper remplacé par MapStruct, vérifié à la compilation ; instantané des mappers inchangé. Correctif d'escalade de rôle (mise à jour d'un médecin ou d'une secrétaire). 126 OK + 6 ignorés (PostgreSQL) |
+| I17 | 2026-10-08 | `6d163d7` | ModelMapper remplacé par MapStruct, vérifié à la compilation ; instantané des mappers inchangé. Correctif d'escalade de rôle (mise à jour d'un médecin ou d'une secrétaire). 126 OK + 6 ignorés (PostgreSQL) |
+| A3 (package) | 2026-10-08 | (ce commit) | Package `controlleur` renommé `controller` , dernier point reporté de l'audit. 126 OK + 6 ignorés (PostgreSQL) |

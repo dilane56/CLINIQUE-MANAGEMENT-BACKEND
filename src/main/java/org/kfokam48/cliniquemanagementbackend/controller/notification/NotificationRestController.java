@@ -1,4 +1,4 @@
-package org.kfokam48.cliniquemanagementbackend.controlleur.notification;
+package org.kfokam48.cliniquemanagementbackend.controller.notification;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.domain.Pageable;
 import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
@@ -9,7 +9,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.kfokam48.cliniquemanagementbackend.dto.MailDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.notification.NotificationResponseDTO;
-import org.kfokam48.cliniquemanagementbackend.model.Notification;
 import org.kfokam48.cliniquemanagementbackend.service.mail.EmailService;
 import org.kfokam48.cliniquemanagementbackend.service.notification.NotificationService;
 import org.springframework.http.ResponseEntity;
