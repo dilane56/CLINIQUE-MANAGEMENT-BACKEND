@@ -21,8 +21,7 @@ public interface RendezVousMapper {
 
     List<RendezVousResponseDTO> rendezVousListToRendezVousResponseDtoList(List<RendezVous> rendezVousList);
 
-    // Bug d'origine conservé à l'identique dans ce commit (patientNom jamais renseigné), corrigé ensuite
-    @Mapping(target = "patientNom", ignore = true)
+    @Mapping(target = "patientNom", source = "patient.nom")
     @Mapping(target = "patientPrenom", source = "patient.prenom")
     @Mapping(target = "medecinNom", source = "medecin.nom")
     @Mapping(target = "medecinPrenon", source = "medecin.prenom")

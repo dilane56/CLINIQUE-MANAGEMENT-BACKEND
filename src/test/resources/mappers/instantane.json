@@ -191,7 +191,7 @@
         "medecinNom" : "Martin",
         "medecinPrenon" : "Paul",
         "motif" : "Douleurs thoraciques",
-        "patientNom" : null,
+        "patientNom" : "Ngono",
         "patientPrenom" : "Aïcha"
       } ]
     },
@@ -224,7 +224,7 @@
           "medecinNom" : "Martin",
           "medecinPrenon" : "Paul",
           "motif" : "Douleurs thoraciques",
-          "patientNom" : null,
+          "patientNom" : "Ngono",
           "patientPrenom" : "Aïcha"
         } ]
       },
@@ -310,7 +310,7 @@
         "medecinNom" : "Martin",
         "medecinPrenon" : "Paul",
         "motif" : "Douleurs thoraciques",
-        "patientNom" : null,
+        "patientNom" : "Ngono",
         "patientPrenom" : "Aïcha"
       } ]
     },
@@ -338,7 +338,7 @@
           "medecinNom" : "Martin",
           "medecinPrenon" : "Paul",
           "motif" : "Douleurs thoraciques",
-          "patientNom" : null,
+          "patientNom" : "Ngono",
           "patientPrenom" : "Aïcha"
         } ]
       },
@@ -462,7 +462,7 @@
       "medecinNom" : "Martin",
       "medecinPrenon" : "Paul",
       "motif" : "Douleurs thoraciques",
-      "patientNom" : null,
+      "patientNom" : "Ngono",
       "patientPrenom" : "Aïcha"
     } ]
   },
