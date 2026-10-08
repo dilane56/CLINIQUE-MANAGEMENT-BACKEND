@@ -1,0 +1,690 @@
+{
+  "administrateur.dtoVersEntite" : {
+    "@type" : "Administrateur",
+    "adresse" : null,
+    "dateCreation" : null,
+    "derniereConnexion" : null,
+    "email" : "admin@clinique.cm",
+    "id" : null,
+    "nom" : "NomAdmin",
+    "password" : "MotDePasse123",
+    "prenom" : "Admin",
+    "role" : "ADMIN",
+    "status" : null,
+    "telephone" : "+237 699 99 99 99"
+  },
+  "facture.reponse" : {
+    "@type" : "FactureResponseDto",
+    "dateEmission" : "2030-01-15T10:00",
+    "datePayement" : "2030-01-16T11:00",
+    "id" : "40",
+    "lignesFacture" : {
+      "@type" : "List",
+      "elements" : [ {
+        "@type" : "LigneFactureResponseDTO",
+        "factureId" : "40",
+        "id" : "41",
+        "prixTotal" : "25000.00",
+        "prixUnitaire" : "25000.00",
+        "quantite" : "1",
+        "serviceName" : "Consultation"
+      } ]
+    },
+    "montantRestant" : "15000.00",
+    "montantTotal" : "25000.00",
+    "montantVerser" : "10000.00",
+    "patientNom" : "Ngono",
+    "patientPrenom" : "Aïcha",
+    "rendezVousId" : "20",
+    "statut" : "PARTIELLEMENT_PAYE"
+  },
+  "facture.reponseListe" : {
+    "@type" : "List",
+    "elements" : [ {
+      "@type" : "FactureResponseDto",
+      "dateEmission" : "2030-01-15T10:00",
+      "datePayement" : "2030-01-16T11:00",
+      "id" : "40",
+      "lignesFacture" : {
+        "@type" : "List",
+        "elements" : [ {
+          "@type" : "LigneFactureResponseDTO",
+          "factureId" : "40",
+          "id" : "41",
+          "prixTotal" : "25000.00",
+          "prixUnitaire" : "25000.00",
+          "quantite" : "1",
+          "serviceName" : "Consultation"
+        } ]
+      },
+      "montantRestant" : "15000.00",
+      "montantTotal" : "25000.00",
+      "montantVerser" : "10000.00",
+      "patientNom" : "Ngono",
+      "patientPrenom" : "Aïcha",
+      "rendezVousId" : "20",
+      "statut" : "PARTIELLEMENT_PAYE"
+    } ]
+  },
+  "ligneFacture.dtoVersEntite" : {
+    "@type" : "LigneFacture",
+    "facture" : null,
+    "id" : null,
+    "prixTotal" : "25001.00",
+    "prixUnitaire" : "12500.50",
+    "quantite" : "2",
+    "serviceName" : "Radiographie"
+  },
+  "ligneFacture.reponse" : {
+    "@type" : "LigneFactureResponseDTO",
+    "factureId" : "40",
+    "id" : "41",
+    "prixTotal" : "25000.00",
+    "prixUnitaire" : "25000.00",
+    "quantite" : "1",
+    "serviceName" : "Consultation"
+  },
+  "ligneFacture.reponseListe" : {
+    "@type" : "List",
+    "elements" : [ {
+      "@type" : "LigneFactureResponseDTO",
+      "factureId" : "40",
+      "id" : "41",
+      "prixTotal" : "25000.00",
+      "prixUnitaire" : "25000.00",
+      "quantite" : "1",
+      "serviceName" : "Consultation"
+    } ]
+  },
+  "lignePrescription.dtoVersEntiteListe" : {
+    "@type" : "List",
+    "elements" : [ {
+      "@type" : "LignePrescription",
+      "dosage" : "1 g",
+      "duree" : "7",
+      "frequence" : "2 fois par jour",
+      "id" : null,
+      "medicament" : "Amoxicilline",
+      "prescription" : null
+    } ]
+  },
+  "lignePrescription.dtoVersEntiteListeNull" : {
+    "@type" : "List",
+    "elements" : [ ]
+  },
+  "lignePrescription.reponse" : {
+    "@type" : "LignePrescriptionResponseDTO",
+    "dosage" : "500 mg",
+    "duree" : "10",
+    "frequence" : "3 fois par jour",
+    "id" : "31",
+    "medicament" : "Paracétamol",
+    "prescriptionId" : "30"
+  },
+  "lignePrescription.reponseListe" : {
+    "@type" : "List",
+    "elements" : [ {
+      "@type" : "LignePrescriptionResponseDTO",
+      "dosage" : "500 mg",
+      "duree" : "10",
+      "frequence" : "3 fois par jour",
+      "id" : "31",
+      "medicament" : "Paracétamol",
+      "prescriptionId" : "30"
+    } ]
+  },
+  "lignePrescription.reponseListeNull" : {
+    "@type" : "List",
+    "elements" : [ ]
+  },
+  "lignePrescription.updateVersEntiteListe" : {
+    "@type" : "List",
+    "elements" : [ {
+      "@type" : "LignePrescription",
+      "dosage" : "400 mg",
+      "duree" : "5",
+      "frequence" : "Le soir",
+      "id" : null,
+      "medicament" : "Ibuprofène",
+      "prescription" : null
+    } ]
+  },
+  "lignePrescription.updateVersEntiteListeNull" : {
+    "@type" : "List",
+    "elements" : [ ]
+  },
+  "medecin.dtoVersEntite" : {
+    "@type" : "Medecin",
+    "adresse" : null,
+    "dateCreation" : null,
+    "derniereConnexion" : null,
+    "email" : "anne@clinique.cm",
+    "id" : null,
+    "nom" : "NomAnne",
+    "password" : "MotDePasse123",
+    "prenom" : "Anne",
+    "rendezvous" : {
+      "@type" : "List",
+      "elements" : [ ]
+    },
+    "role" : "MEDECIN",
+    "secretaires" : {
+      "@type" : "Set",
+      "elements" : [ ]
+    },
+    "specialite" : "Pédiatrie",
+    "status" : null,
+    "telephone" : "+237 699 99 99 99"
+  },
+  "medecin.reponse" : {
+    "@type" : "MedecinResponseDTO",
+    "email" : "paul@clinique.cm",
+    "id" : null,
+    "nom" : "Martin",
+    "prenom" : "Paul",
+    "rendezvous" : {
+      "@type" : "List",
+      "elements" : [ {
+        "@type" : "RendezVousInUserDto",
+        "dateRendezVous" : "2030-01-15T09:00",
+        "id" : "20",
+        "medecinNom" : "Martin",
+        "medecinPrenon" : "Paul",
+        "motif" : "Douleurs thoraciques",
+        "patientNom" : null,
+        "patientPrenom" : "Aïcha"
+      } ]
+    },
+    "role" : null,
+    "secretaires" : {
+      "@type" : "List",
+      "elements" : [ {
+        "@type" : "SecretaireInMedecinDTO",
+        "nom" : "Ewondo",
+        "prenom" : "Brigitte"
+      } ]
+    },
+    "specialite" : "Cardiologie",
+    "telephone" : "+237 690 00 00 07"
+  },
+  "medecin.reponseListe" : {
+    "@type" : "List",
+    "elements" : [ {
+      "@type" : "MedecinResponseDTO",
+      "email" : "paul@clinique.cm",
+      "id" : null,
+      "nom" : "Martin",
+      "prenom" : "Paul",
+      "rendezvous" : {
+        "@type" : "List",
+        "elements" : [ {
+          "@type" : "RendezVousInUserDto",
+          "dateRendezVous" : "2030-01-15T09:00",
+          "id" : "20",
+          "medecinNom" : "Martin",
+          "medecinPrenon" : "Paul",
+          "motif" : "Douleurs thoraciques",
+          "patientNom" : null,
+          "patientPrenom" : "Aïcha"
+        } ]
+      },
+      "role" : null,
+      "secretaires" : {
+        "@type" : "List",
+        "elements" : [ {
+          "@type" : "SecretaireInMedecinDTO",
+          "nom" : "Ewondo",
+          "prenom" : "Brigitte"
+        } ]
+      },
+      "specialite" : "Cardiologie",
+      "telephone" : "+237 690 00 00 07"
+    } ]
+  },
+  "message.reponse" : {
+    "@type" : "MessageResponseDTO",
+    "content" : "Bonjour, le patient est arrivé ?",
+    "dateEnvoi" : "2030-01-15T08:55:00Z",
+    "destinataireId" : "4",
+    "destinataireNom" : "Ewondo",
+    "destinatairePrenom" : "Brigitte",
+    "expediteurId" : "7",
+    "expediteurNom" : "Martin",
+    "expediteurPrenom" : "Paul",
+    "id" : "50",
+    "lu" : "true",
+    "status" : "DELIVERED"
+  },
+  "notification.reponse" : {
+    "@type" : "NotificationResponseDTO",
+    "dateEnvoi" : "2030-01-14T18:00",
+    "id" : "60",
+    "lu" : "true",
+    "message" : "Aïcha Ngono à 9 h",
+    "titre" : "Nouveau rendez-vous"
+  },
+  "notification.reponseListe" : {
+    "@type" : "List",
+    "elements" : [ {
+      "@type" : "NotificationResponseDTO",
+      "dateEnvoi" : "2030-01-14T18:00",
+      "id" : "60",
+      "lu" : "true",
+      "message" : "Aïcha Ngono à 9 h",
+      "titre" : "Nouveau rendez-vous"
+    } ]
+  },
+  "patient.dtoVersEntite" : {
+    "@type" : "Patient",
+    "adresse" : "Bafoussam",
+    "allergies" : "Aucune",
+    "antecedents" : "Hypertension",
+    "dateNaissance" : "1985-11-02",
+    "email" : "jean@mail.cm",
+    "id" : null,
+    "nom" : "Fotso",
+    "prenom" : "Jean",
+    "rendezvous" : {
+      "@type" : "List",
+      "elements" : [ ]
+    },
+    "sexe" : "HOMME",
+    "telephone" : "+237 655 44 33 22"
+  },
+  "patient.reponse" : {
+    "@type" : "PatientResponseDTO",
+    "adresse" : "Douala, Akwa",
+    "allergies" : "Pénicilline",
+    "antecedents" : "Asthme",
+    "dateNaissance" : "1990-03-08",
+    "email" : "aicha@mail.cm",
+    "id" : "12",
+    "nom" : "Ngono",
+    "prenom" : "Aïcha",
+    "rendezvous" : {
+      "@type" : "List",
+      "elements" : [ {
+        "@type" : "RendezVousInUserDto",
+        "dateRendezVous" : "2030-01-15T09:00",
+        "id" : "20",
+        "medecinNom" : "Martin",
+        "medecinPrenon" : "Paul",
+        "motif" : "Douleurs thoraciques",
+        "patientNom" : null,
+        "patientPrenom" : "Aïcha"
+      } ]
+    },
+    "sexe" : "FEMME",
+    "telephone" : "+237 677 11 22 33"
+  },
+  "patient.reponseListe" : {
+    "@type" : "List",
+    "elements" : [ {
+      "@type" : "PatientResponseDTO",
+      "adresse" : "Douala, Akwa",
+      "allergies" : "Pénicilline",
+      "antecedents" : "Asthme",
+      "dateNaissance" : "1990-03-08",
+      "email" : "aicha@mail.cm",
+      "id" : "12",
+      "nom" : "Ngono",
+      "prenom" : "Aïcha",
+      "rendezvous" : {
+        "@type" : "List",
+        "elements" : [ {
+          "@type" : "RendezVousInUserDto",
+          "dateRendezVous" : "2030-01-15T09:00",
+          "id" : "20",
+          "medecinNom" : "Martin",
+          "medecinPrenon" : "Paul",
+          "motif" : "Douleurs thoraciques",
+          "patientNom" : null,
+          "patientPrenom" : "Aïcha"
+        } ]
+      },
+      "sexe" : "FEMME",
+      "telephone" : "+237 677 11 22 33"
+    } ]
+  },
+  "prescription.dtoVersEntite" : {
+    "@type" : "Prescription",
+    "date" : null,
+    "description" : "Antibiotiques",
+    "id" : null,
+    "lignes" : {
+      "@type" : "List",
+      "elements" : [ {
+        "@type" : "LignePrescription",
+        "dosage" : "1 g",
+        "duree" : "7",
+        "frequence" : "2 fois par jour",
+        "id" : null,
+        "medicament" : "Amoxicilline",
+        "prescription" : "Prescription#null"
+      } ]
+    },
+    "rendezVous" : {
+      "@type" : "RendezVous",
+      "dateRendezVous" : "2030-01-15T09:00",
+      "dateTimeFinRendezVousPossible" : "2030-01-15T09:30",
+      "id" : "20",
+      "medecin" : "Medecin#7",
+      "motif" : "Douleurs thoraciques",
+      "patient" : "Patient#12",
+      "secretaireId" : "4",
+      "statutRendezVous" : "TERMINE",
+      "typeRendezVous" : "TypeRendezVous#3"
+    }
+  },
+  "prescription.miseAJour" : {
+    "@type" : "Prescription",
+    "date" : "2030-01-15",
+    "description" : "Traitement prolongé",
+    "id" : "30",
+    "lignes" : {
+      "@type" : "List",
+      "elements" : [ {
+        "@type" : "LignePrescription",
+        "dosage" : "400 mg",
+        "duree" : "5",
+        "frequence" : "Le soir",
+        "id" : null,
+        "medicament" : "Ibuprofène",
+        "prescription" : "Prescription#30"
+      } ]
+    },
+    "rendezVous" : {
+      "@type" : "RendezVous",
+      "dateRendezVous" : "2030-01-15T09:00",
+      "dateTimeFinRendezVousPossible" : "2030-01-15T09:30",
+      "id" : "20",
+      "medecin" : "Medecin#7",
+      "motif" : "Douleurs thoraciques",
+      "patient" : "Patient#12",
+      "secretaireId" : "4",
+      "statutRendezVous" : "TERMINE",
+      "typeRendezVous" : "TypeRendezVous#3"
+    }
+  },
+  "prescription.reponse" : {
+    "@type" : "PrescriptionResponseDTO",
+    "date" : "2030-01-15",
+    "description" : "Traitement de 10 jours",
+    "id" : "30",
+    "lignes" : {
+      "@type" : "List",
+      "elements" : [ {
+        "@type" : "LignePrescriptionResponseDTO",
+        "dosage" : "500 mg",
+        "duree" : "10",
+        "frequence" : "3 fois par jour",
+        "id" : "31",
+        "medicament" : "Paracétamol",
+        "prescriptionId" : "30"
+      } ]
+    },
+    "medecinNom" : "Martin",
+    "medecinPrenom" : "Paul",
+    "patientNom" : "Ngono",
+    "patientPrenom" : "Aïcha"
+  },
+  "prescription.reponseListe" : {
+    "@type" : "List",
+    "elements" : [ {
+      "@type" : "PrescriptionResponseDTO",
+      "date" : "2030-01-15",
+      "description" : "Traitement de 10 jours",
+      "id" : "30",
+      "lignes" : {
+        "@type" : "List",
+        "elements" : [ {
+          "@type" : "LignePrescriptionResponseDTO",
+          "dosage" : "500 mg",
+          "duree" : "10",
+          "frequence" : "3 fois par jour",
+          "id" : "31",
+          "medicament" : "Paracétamol",
+          "prescriptionId" : "30"
+        } ]
+      },
+      "medecinNom" : "Martin",
+      "medecinPrenom" : "Paul",
+      "patientNom" : "Ngono",
+      "patientPrenom" : "Aïcha"
+    } ]
+  },
+  "rendezVous.dansUtilisateurListe" : {
+    "@type" : "List",
+    "elements" : [ {
+      "@type" : "RendezVousInUserDto",
+      "dateRendezVous" : "2030-01-15T09:00",
+      "id" : "20",
+      "medecinNom" : "Martin",
+      "medecinPrenon" : "Paul",
+      "motif" : "Douleurs thoraciques",
+      "patientNom" : null,
+      "patientPrenom" : "Aïcha"
+    } ]
+  },
+  "rendezVous.reponse" : {
+    "@type" : "RendezVousResponseDTO",
+    "dateRendezVous" : "2030-01-15T09:00",
+    "dateTimeFinRendezVousPossible" : "2030-01-15T09:30",
+    "id" : "20",
+    "medecin" : {
+      "@type" : "MedecinInRendezVousDto",
+      "id" : "7",
+      "nom" : "Martin",
+      "prenom" : "Paul",
+      "specialite" : "Cardiologie"
+    },
+    "motif" : "Douleurs thoraciques",
+    "patient" : {
+      "@type" : "PatientInRendezVousDTO",
+      "email" : "aicha@mail.cm",
+      "id" : "12",
+      "nom" : "Ngono",
+      "numeroDossierMedical" : null,
+      "prenom" : "Aïcha"
+    },
+    "statutRendezVous" : "TERMINE",
+    "typeRendezVous" : {
+      "@type" : "TypeRendezVousDTO",
+      "duree" : "30",
+      "libelle" : "Consultation",
+      "tarif" : "15000.00"
+    }
+  },
+  "rendezVous.reponseListe" : {
+    "@type" : "List",
+    "elements" : [ {
+      "@type" : "RendezVousResponseDTO",
+      "dateRendezVous" : "2030-01-15T09:00",
+      "dateTimeFinRendezVousPossible" : "2030-01-15T09:30",
+      "id" : "20",
+      "medecin" : {
+        "@type" : "MedecinInRendezVousDto",
+        "id" : "7",
+        "nom" : "Martin",
+        "prenom" : "Paul",
+        "specialite" : "Cardiologie"
+      },
+      "motif" : "Douleurs thoraciques",
+      "patient" : {
+        "@type" : "PatientInRendezVousDTO",
+        "email" : "aicha@mail.cm",
+        "id" : "12",
+        "nom" : "Ngono",
+        "numeroDossierMedical" : null,
+        "prenom" : "Aïcha"
+      },
+      "statutRendezVous" : "TERMINE",
+      "typeRendezVous" : {
+        "@type" : "TypeRendezVousDTO",
+        "duree" : "30",
+        "libelle" : "Consultation",
+        "tarif" : "15000.00"
+      }
+    } ]
+  },
+  "secretaire.dtoVersEntite" : {
+    "@type" : "Secretaire",
+    "adresse" : null,
+    "dateCreation" : null,
+    "derniereConnexion" : null,
+    "email" : "brigitte@clinique.cm",
+    "id" : null,
+    "medecins" : {
+      "@type" : "Set",
+      "elements" : [ ]
+    },
+    "nom" : "NomBrigitte",
+    "password" : "MotDePasse123",
+    "prenom" : "Brigitte",
+    "role" : "SECRETAIRE",
+    "status" : null,
+    "telephone" : "+237 699 99 99 99"
+  },
+  "secretaire.reponse" : {
+    "@type" : "SecretaireResponseDTO",
+    "email" : "brigitte@clinique.cm",
+    "id" : "4",
+    "medecins" : {
+      "@type" : "List",
+      "elements" : [ {
+        "@type" : "MedecinInSecretaireDTO",
+        "nomMedecin" : "Durand",
+        "prenomMedecin" : "Anne",
+        "specialite" : "Pédiatrie"
+      } ]
+    },
+    "nom" : "Ewondo",
+    "prenom" : "Brigitte",
+    "role" : "SECRETAIRE",
+    "telephone" : "+237 690 00 00 04"
+  },
+  "secretaire.reponseListe" : {
+    "@type" : "List",
+    "elements" : [ {
+      "@type" : "SecretaireResponseDTO",
+      "email" : "brigitte@clinique.cm",
+      "id" : "4",
+      "medecins" : {
+        "@type" : "List",
+        "elements" : [ {
+          "@type" : "MedecinInSecretaireDTO",
+          "nomMedecin" : "Durand",
+          "prenomMedecin" : "Anne",
+          "specialite" : "Pédiatrie"
+        } ]
+      },
+      "nom" : "Ewondo",
+      "prenom" : "Brigitte",
+      "role" : "SECRETAIRE",
+      "telephone" : "+237 690 00 00 04"
+    } ]
+  },
+  "typeRendezVous.dtoVersEntite" : {
+    "@type" : "TypeRendezVous",
+    "duree" : "15",
+    "id" : null,
+    "libelle" : "Vaccination",
+    "tarif" : "10000.00"
+  },
+  "typeRendezVous.reponse" : {
+    "@type" : "TypeRendezVousResponseDTO",
+    "duree" : "30",
+    "id" : "3",
+    "libelle" : "Consultation",
+    "tarif" : "15000.00"
+  },
+  "typeRendezVous.reponseListe" : {
+    "@type" : "List",
+    "elements" : [ {
+      "@type" : "TypeRendezVousResponseDTO",
+      "duree" : "30",
+      "id" : "3",
+      "libelle" : "Consultation",
+      "tarif" : "15000.00"
+    } ]
+  },
+  "utilisateur.contacts" : {
+    "@type" : "List",
+    "elements" : [ {
+      "@type" : "Contact",
+      "derniereConnexion" : "2030-01-14T08:00:00Z",
+      "email" : "paul@clinique.cm",
+      "id" : "7",
+      "nom" : "Martin",
+      "prenom" : "Paul",
+      "role" : "MEDECIN",
+      "status" : "EN_LIGNE"
+    }, {
+      "@type" : "Contact",
+      "derniereConnexion" : "2030-01-14T08:00:00Z",
+      "email" : "brigitte@clinique.cm",
+      "id" : "4",
+      "nom" : "Ewondo",
+      "prenom" : "Brigitte",
+      "role" : "SECRETAIRE",
+      "status" : "EN_LIGNE"
+    }, {
+      "@type" : "Contact",
+      "derniereConnexion" : "2030-01-14T08:00:00Z",
+      "email" : "admin@clinique.cm",
+      "id" : "1",
+      "nom" : "Principal",
+      "prenom" : "Admin",
+      "role" : "ADMIN",
+      "status" : "EN_LIGNE"
+    } ]
+  },
+  "utilisateur.reponse" : {
+    "@type" : "UtilisateurResponseDTO",
+    "email" : "paul@clinique.cm",
+    "id" : "7",
+    "nom" : "Martin",
+    "prenom" : "Paul",
+    "role" : "MEDECIN",
+    "telephone" : "+237 690 00 00 07"
+  },
+  "utilisateur.reponseListe" : {
+    "@type" : "List",
+    "elements" : [ {
+      "@type" : "UtilisateurResponseDTO",
+      "email" : "paul@clinique.cm",
+      "id" : "7",
+      "nom" : "Martin",
+      "prenom" : "Paul",
+      "role" : "MEDECIN",
+      "telephone" : "+237 690 00 00 07"
+    }, {
+      "@type" : "UtilisateurResponseDTO",
+      "email" : "brigitte@clinique.cm",
+      "id" : "4",
+      "nom" : "Ewondo",
+      "prenom" : "Brigitte",
+      "role" : "SECRETAIRE",
+      "telephone" : "+237 690 00 00 04"
+    }, {
+      "@type" : "UtilisateurResponseDTO",
+      "email" : "admin@clinique.cm",
+      "id" : "1",
+      "nom" : "Principal",
+      "prenom" : "Admin",
+      "role" : "ADMIN",
+      "telephone" : "+237 690 00 00 01"
+    } ]
+  },
+  "utilisateur.userDTO" : {
+    "@type" : "UserDTO",
+    "adresse" : "Yaoundé, Bastos",
+    "email" : "paul@clinique.cm",
+    "id" : "7",
+    "nom" : "Martin",
+    "prenom" : "Paul",
+    "role" : "MEDECIN",
+    "sexe" : null,
+    "telephone" : "+237 690 00 00 07"
+  }
+}
