@@ -67,7 +67,7 @@ public class MedecinServiceImpl implements MedecinService {
             medecin.setSpecialite(medecinDTO.getSpecialite());
             medecin.setNom(medecinDTO.getNom());
             medecin.setPrenom(medecinDTO.getPrenom());
-            medecin.setRole(medecinDTO.getRole());
+            // Le rôle n'est jamais repris de la requête : un médecin qui modifie son profil ne peut pas se donner un autre rôle
             medecin.setTelephone(medecinDTO.getTelephone());
             medecinRepository.save(medecin);
             return medecinMapper.medecinToMedecinResponseDto(medecin);
