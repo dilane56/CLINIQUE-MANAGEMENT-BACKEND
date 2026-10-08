@@ -1,4 +1,4 @@
-package org.kfokam48.cliniquemanagementbackend.controlleur;
+package org.kfokam48.cliniquemanagementbackend.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

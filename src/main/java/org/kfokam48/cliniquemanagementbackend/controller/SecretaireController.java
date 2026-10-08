@@ -1,4 +1,4 @@
-package org.kfokam48.cliniquemanagementbackend.controlleur;
+package org.kfokam48.cliniquemanagementbackend.controller;
 
 
 import org.springframework.data.web.PageableDefault;
@@ -7,7 +7,6 @@ import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.dto.secretaire.SecretaireDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.secretaire.SecretaireResponseDTO;
-import org.kfokam48.cliniquemanagementbackend.model.Secretaire;
 import org.kfokam48.cliniquemanagementbackend.service.SecretaireService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

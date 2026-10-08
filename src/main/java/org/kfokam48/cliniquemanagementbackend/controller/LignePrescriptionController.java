@@ -1,4 +1,4 @@
-package org.kfokam48.cliniquemanagementbackend.controlleur;
+package org.kfokam48.cliniquemanagementbackend.controller;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import org.kfokam48.cliniquemanagementbackend.dto.ligneprescription.LignePrescriptionResponseDTO;
