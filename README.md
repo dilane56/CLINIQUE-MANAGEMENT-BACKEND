@@ -165,6 +165,10 @@ Créer un nouveau patient
 **Rôles:** MEDECIN, ADMIN, SECRETAIRE  
 Lister tous les patients
 
+#### GET /api/patients/recherche?q=&page=&size=
+**Rôles:** ADMIN, SECRETAIRE, MEDECIN  
+Recherche paginée exécutée par la base : `q` (facultatif, casse ignorée) est cherché dans « nom prénom », « prénom nom », l'e-mail et le téléphone. Par défaut : 10 résultats, triés par nom puis prénom. Sert au choix du patient dans le formulaire de rendez-vous.
+
 #### GET /api/patients/{id}
 **Rôles:** MEDECIN, ADMIN, SECRETAIRE  
 Récupérer un patient par ID

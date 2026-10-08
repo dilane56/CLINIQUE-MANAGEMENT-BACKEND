@@ -2,6 +2,7 @@ package org.kfokam48.cliniquemanagementbackend.migration;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.PageRequest;
+import org.kfokam48.cliniquemanagementbackend.repository.PatientSpecifications;
 import org.kfokam48.cliniquemanagementbackend.repository.RendezVousSpecifications;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -130,5 +131,13 @@ class PostgreSqlIntegrationTest {
         assertThat(rendezVousRepository.findAll(RendezVousSpecifications.rechercher(nomPatient, null, null),
                 PageRequest.of(0, 1)).getTotalElements()).isEqualTo(2);
         assertThat(rendezVousRepository.compterParStatut()).isNotEmpty();
+    }
+
+    @Test
+    void patientSearchRunsOnPostgreSql() {
+        // Même SQL que le choix du patient dans le formulaire de rendez-vous de la secrétaire
+        assertThat(patientRepository.findAll(PatientSpecifications.rechercher("aïcha " + nomPatient.toUpperCase()),
+                PageRequest.of(0, 10, Sort.by("nom", "prenom"))).getContent())
+                .containsExactly(patient);
     }
 }

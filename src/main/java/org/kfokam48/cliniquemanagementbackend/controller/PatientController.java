@@ -43,6 +43,16 @@ public class PatientController {
         return ResponseEntity.ok(patientService.findAll(pageable));
     }
 
+    // Recherche paginée : ?q=texte (nom, prénom, e-mail ou téléphone)&page=0&size=10. Sert au choix
+    // d'un patient dans un formulaire sans charger toute la liste.
+    @GetMapping("/recherche")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
+    public ResponseEntity<PageResponse<PatientResponseDTO>> rechercherPatients(
+            @RequestParam(required = false) String q,
+            @PageableDefault(size = 10, sort = {"nom", "prenom"}) Pageable pageable) {
+        return ResponseEntity.ok(patientService.rechercher(q, pageable));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','MEDECIN')")
     public ResponseEntity<PatientResponseDTO> getPatientById(@PathVariable Long id) {
