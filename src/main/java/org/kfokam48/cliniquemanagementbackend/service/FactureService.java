@@ -1,6 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.service;
 
 
+import org.kfokam48.cliniquemanagementbackend.enums.StatutFacture;
+import java.util.Map;
 import org.springframework.data.domain.Pageable;
 import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureDTO;
@@ -21,4 +23,7 @@ public interface FactureService {
     ByteArrayOutputStream generatePdf(Long id) throws DocumentException;
     PageResponse<FactureResponseDto> findAll(Pageable pageable);
     PageResponse<FactureResponseDto> findByMedecinId(Long medecinId, Pageable pageable);
+
+    // Nombre de factures par statut (tous les statuts, 0 si aucune)
+    Map<StatutFacture, Long> compterParStatut();
 }

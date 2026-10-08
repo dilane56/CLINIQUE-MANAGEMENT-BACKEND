@@ -1,9 +1,9 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
 
+import org.kfokam48.cliniquemanagementbackend.service.Compteurs;
 import org.kfokam48.cliniquemanagementbackend.repository.RendezVousSpecifications;
 import java.util.Map;
-import java.util.EnumMap;
 import java.time.LocalDate;
 import org.springframework.data.domain.Pageable;
 import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
@@ -241,15 +241,6 @@ public class RendezVousServiceImpl implements RendezVousService {
     @Override
     @Transactional(readOnly = true)
     public Map<StatutRendezVous, Long> compterParStatut() {
-        Map<StatutRendezVous, Long> compteurs = new EnumMap<>(StatutRendezVous.class);
-        for (StatutRendezVous statut : StatutRendezVous.values()) {
-            compteurs.put(statut, 0L);
-        }
-        for (Object[] ligne : rendezVousRepository.compterParStatut()) {
-            if (ligne[0] != null) {
-                compteurs.put((StatutRendezVous) ligne[0], (Long) ligne[1]);
-            }
-        }
-        return compteurs;
+        return Compteurs.parValeur(StatutRendezVous.class, rendezVousRepository.compterParStatut());
     }
 }

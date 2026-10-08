@@ -1,5 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
+import org.kfokam48.cliniquemanagementbackend.service.Compteurs;
+import org.kfokam48.cliniquemanagementbackend.enums.Roles;
+import java.util.Map;
 import org.kfokam48.cliniquemanagementbackend.dto.auth.UserDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.ProfilUpdateDTO;
 import org.springframework.data.domain.Pageable;
@@ -118,5 +121,11 @@ public class UtilisateurServiceImpl implements UtilisateurService {
             utilisateur.setStatus(UserStatus.HORS_LIGNE);
         }
         return utilisateurMapper.utilisateurToUtilisateurResponseDTO(utilisateurRepository.save(utilisateur));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Roles, Long> compterParRole() {
+        return Compteurs.parValeur(Roles.class, utilisateurRepository.compterParRole());
     }
 }

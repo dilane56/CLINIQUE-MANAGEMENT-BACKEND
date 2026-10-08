@@ -1,5 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.service;
 
+import org.kfokam48.cliniquemanagementbackend.enums.Roles;
+import java.util.Map;
 import org.kfokam48.cliniquemanagementbackend.dto.auth.UserDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.ProfilUpdateDTO;
 import org.springframework.data.domain.Pageable;
@@ -28,4 +30,7 @@ public interface UtilisateurService {
 
     // I5 : désactive ou réactive un compte (admin) ; l'administrateur ne peut pas se désactiver lui-même
     UtilisateurResponseDTO changerActivation(Long id, boolean actif, String emailAdministrateur);
+
+    // Nombre de comptes par rôle (tous les rôles, 0 si aucun)
+    Map<Roles, Long> compterParRole();
 }

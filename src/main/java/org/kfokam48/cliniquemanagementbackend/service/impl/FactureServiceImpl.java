@@ -1,6 +1,8 @@
 package org.kfokam48.cliniquemanagementbackend.service.impl;
 
 
+import org.kfokam48.cliniquemanagementbackend.service.Compteurs;
+import java.util.Map;
 import org.springframework.data.domain.Pageable;
 import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
@@ -210,5 +212,11 @@ public class FactureServiceImpl implements FactureService {
     @Transactional(readOnly = true)
     public PageResponse<FactureResponseDto> findByMedecinId(Long medecinId, Pageable pageable) {
         return PageResponse.of(factureRepository.findByRendezVous_Medecin_Id(medecinId, pageable), factureMapper::factureListToFactureResponseDtoList);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<StatutFacture, Long> compterParStatut() {
+        return Compteurs.parValeur(StatutFacture.class, factureRepository.compterParStatut());
     }
 }

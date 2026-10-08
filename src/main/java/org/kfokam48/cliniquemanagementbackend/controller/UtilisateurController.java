@@ -1,4 +1,6 @@
 package org.kfokam48.cliniquemanagementbackend.controller;
+import org.kfokam48.cliniquemanagementbackend.enums.Roles;
+import java.util.Map;
 import org.springframework.security.core.Authentication;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.ActivationCompteDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.ProfilUpdateDTO;
@@ -48,6 +50,13 @@ public class UtilisateurController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UtilisateurResponseDTO> changerActivation(@PathVariable Long id, @Valid @RequestBody ActivationCompteDTO activation, Authentication authentication) {
         return ResponseEntity.ok(utilisateurService.changerActivation(id, activation.getActif(), authentication.getName()));
+    }
+
+    // Nombre de comptes par rôle (tableau de bord) : { "MEDECIN": 5, "ADMIN": 1, "SECRETAIRE": 2 }
+    @GetMapping("/statistiques")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<Roles, Long>> statistiquesUtilisateurs() {
+        return ResponseEntity.ok(utilisateurService.compterParRole());
     }
 
     // Endpoint pour récupérer un utilisateur par ID

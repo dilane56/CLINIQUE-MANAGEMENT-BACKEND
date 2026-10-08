@@ -373,4 +373,5 @@ Analyse du frontend (`CLINIQUE-MANAGEMENT-REACT-FRONTEND`) après l'audit : cert
 | I11 (recherche RDV) | 2026-10-07 | `e7710f8` | `GET /api/rendezvous/recherche` et `/statistiques` : page Rendez-vous de l'admin paginée côté serveur. 122 OK + 6 ignorés (PostgreSQL) |
 | I17 | 2026-10-08 | `6d163d7` | ModelMapper remplacé par MapStruct, vérifié à la compilation ; instantané des mappers inchangé. Correctif d'escalade de rôle (mise à jour d'un médecin ou d'une secrétaire). 126 OK + 6 ignorés (PostgreSQL) |
 | A3 (package) | 2026-10-08 | `9992e64` | Package `controlleur` renommé `controller` , dernier point reporté de l'audit. 126 OK + 6 ignorés (PostgreSQL) |
-| I5 | 2026-10-08 | (ce commit) | Désactivation de compte par l'admin (V5, `PATCH /api/utilisateurs/{id}/activation`), effet immédiat sur les jetons et le chat. 138 OK + 6 ignorés (PostgreSQL) |
+| I5 | 2026-10-08 | `717af8d` | Désactivation de compte par l'admin (V5, `PATCH /api/utilisateurs/{id}/activation`), effet immédiat sur les jetons et le chat. 138 OK + 6 ignorés (PostgreSQL) |
+| Compteurs (audit frontend P1, P2, F5) | 2026-10-08 | (ce commit) | `GET /api/factures/statistiques` (factures par statut) et `GET /api/utilisateurs/statistiques` (comptes par rôle), calculés en base ; utilitaire `Compteurs` partagé avec `/rendezvous/statistiques`. 144 OK + 6 ignorés (PostgreSQL) |
