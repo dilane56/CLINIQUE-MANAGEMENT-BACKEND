@@ -25,4 +25,7 @@ public interface UtilisateurService {
 
     // Modification de son propre profil (nom, prénom, téléphone, adresse)
     UserDTO updateProfil(String email, ProfilUpdateDTO profil);
+
+    // I5 : désactive ou réactive un compte (admin) ; l'administrateur ne peut pas se désactiver lui-même
+    UtilisateurResponseDTO changerActivation(Long id, boolean actif, String emailAdministrateur);
 }

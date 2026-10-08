@@ -40,5 +40,6 @@ public interface MappingConfig {
     @Mapping(target = "derniereConnexion", ignore = true)
     @Mapping(target = "dateCreation", ignore = true)
     @Mapping(target = "adresse", ignore = true)
+    @Mapping(target = "actif", ignore = true)
     Utilisateur nouveauCompte(UtilisateurDTO utilisateurDTO);
 }

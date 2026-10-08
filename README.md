@@ -81,7 +81,7 @@ Légende : ✅ autorisé · ❌ refusé · 👤 uniquement ses propres données 
 |---|:-:|:-:|:-:|
 | **Administrateurs** (toutes actions) | ✅ | ❌ | ❌ |
 | **Utilisateurs** : lister, voir, contacts | ✅ | ✅ | ✅ |
-| **Utilisateurs** : supprimer | ✅ | ❌ | ❌ |
+| **Utilisateurs** : supprimer, désactiver / réactiver un compte (`PATCH /api/utilisateurs/{id}/activation`) | ✅ | ❌ | ❌ |
 | **Utilisateurs** : modifier son propre profil (`PUT /api/utilisateurs/me` : nom, prénom, téléphone, adresse) | 👤 | 👤 | 👤 |
 | **Médecins** : créer, supprimer | ✅ | ❌ | ❌ |
 | **Médecins** : lister | ✅ | ✅ | ❌ |
@@ -137,6 +137,18 @@ Modifier son propre profil (tous les rôles). Seuls `nom`, `prenom`, `telephone`
 { "nom": "Martin", "prenom": "Paul", "telephone": "690000000", "adresse": "Douala" }
 ```
 **Réponse :** l'utilisateur mis à jour, au même format que `user` dans la réponse de connexion.
+
+### Désactiver un compte
+
+#### PATCH /api/utilisateurs/{id}/activation
+**Rôle :** ADMIN  
+Désactiver (ou réactiver) le compte d'un médecin, d'une secrétaire ou d'un autre administrateur, sans le supprimer.
+```json
+{ "actif": false }
+```
+- Effet immédiat : la connexion est refusée (**403** « Ce compte est désactivé. Contactez l'administrateur. », seulement si le mot de passe est correct) et les jetons déjà émis sont rejetés (**401** « Compte désactivé. »), y compris la connexion WebSocket du chat.
+- Un administrateur ne peut pas désactiver son propre compte (**400**).
+- **Réponse :** l'utilisateur, avec `actif` (aussi présent dans `GET /api/utilisateurs`, `/api/medecins`, `/api/secretaires`).
 
 ### Patients
 

@@ -71,6 +71,9 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
                     .orElseThrow(() -> new MessagingException("Connexion WebSocket refusée : utilisateur inconnu."));
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            if (!userDetails.isEnabled()) {
+                throw new MessagingException("Connexion WebSocket refusée : compte désactivé.");
+            }
 
             accessor.setUser(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
             sessionAttributes(accessor).put(USER_ID_ATTRIBUTE, String.valueOf(utilisateur.getId()));
@@ -99,10 +102,14 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     }
 
     private void checkSend(StompHeaderAccessor accessor) {
-        authenticatedUserId(accessor);
+        String userId = authenticatedUserId(accessor);
         String destination = accessor.getDestination();
         if (destination == null || !destination.startsWith("/app/")) {
             throw new MessagingException("Envoi refusé : " + destination);
+        }
+        // Une session ouverte avant la désactivation du compte ne peut plus envoyer de message
+        if (!utilisateurRepository.findById(Long.valueOf(userId)).map(Utilisateur::isActif).orElse(false)) {
+            throw new MessagingException("Envoi refusé : compte désactivé ou supprimé.");
         }
     }
 

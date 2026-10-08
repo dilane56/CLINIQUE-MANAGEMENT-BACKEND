@@ -542,4 +542,62 @@ class AccessControlTest {
         mockMvc.perform(get("/api/rendezvous/recherche")).andExpect(status().isForbidden());
         mockMvc.perform(get("/api/rendezvous/statistiques")).andExpect(status().isForbidden());
     }
+
+    // --- I5 : désactivation d'un compte par l'administrateur ---
+
+    @Test
+    @WithMockUser(username = "admin@clinique.com", roles = "ADMIN")
+    void adminCanDisableAnAccount() throws Exception {
+        mockMvc.perform(patch("/api/utilisateurs/5/activation").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"actif\":false}"))
+                .andExpect(status().isOk());
+        // L'administrateur qui agit est celui du JWT (pour lui interdire de se désactiver lui-même)
+        verify(utilisateurService).changerActivation(5L, false, "admin@clinique.com");
+    }
+
+    @Test
+    @WithMockUser(roles = "SECRETAIRE")
+    void onlyAdminCanDisableAnAccount() throws Exception {
+        mockMvc.perform(patch("/api/utilisateurs/5/activation").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"actif\":false}"))
+                .andExpect(status().isForbidden());
+        verify(utilisateurService, never()).changerActivation(anyLong(), org.mockito.ArgumentMatchers.anyBoolean(), any());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void activationWithoutValueIsRejected() throws Exception {
+        mockMvc.perform(patch("/api/utilisateurs/5/activation").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    private static String jetonPour(String email) {
+        return io.jsonwebtoken.Jwts.builder()
+                .subject(email)
+                .expiration(new java.util.Date(System.currentTimeMillis() + 60_000))
+                .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(io.jsonwebtoken.io.Decoders.BASE64
+                        .decode("dGVzdC1zZWNyZXQta2V5LWZvci11bml0LXRlc3RzLW9ubHktMzJieXRlcw==")))
+                .compact();
+    }
+
+    private void compteAdmin(String email, boolean actif) {
+        when(customUserDetailsService.loadUserByUsername(email)).thenReturn(new org.kfokam48.cliniquemanagementbackend.model.auth.CustomUserDetails(
+                email, "hash", java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN")), actif));
+    }
+
+    @Test
+    void validTokenOfActiveAccountIsAccepted() throws Exception {
+        compteAdmin("actif@clinique.com", true);
+        mockMvc.perform(get("/api/utilisateurs").header("Authorization", "Bearer " + jetonPour("actif@clinique.com")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void validTokenOfDisabledAccountIsRejectedImmediately() throws Exception {
+        compteAdmin("desactive@clinique.com", false);
+        mockMvc.perform(get("/api/utilisateurs").header("Authorization", "Bearer " + jetonPour("desactive@clinique.com")))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("Compte désactivé. Contactez l'administrateur."));
+        verify(utilisateurService, never()).findAll();
+    }
 }

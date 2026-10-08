@@ -10,11 +10,14 @@ public class CustomUserDetails implements UserDetails {
     private final String username;
     private final String password;
     private final Collection<? extends GrantedAuthority> authorities;
+    // false : compte désactivé par l'administrateur (I5)
+    private final boolean actif;
 
-    public CustomUserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities) {
+    public CustomUserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities, boolean actif) {
         this.username = username;
         this.password = password;
         this.authorities = authorities;
+        this.actif = actif;
     }
 
     @Override
@@ -52,7 +55,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        // Supposons que le compte est toujours actif.
-        return true;
+        // Compte désactivé : Spring Security refuse la connexion (DisabledException)
+        return actif;
     }
 }

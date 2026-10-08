@@ -29,7 +29,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 
 
-        return new CustomUserDetails(user.getEmail(), user.getPassword(), getGrantedAuthorities(String.valueOf(user.getRole())));
+        return new CustomUserDetails(user.getEmail(), user.getPassword(), getGrantedAuthorities(String.valueOf(user.getRole())), user.isActif());
     }
 
     private List<GrantedAuthority> getGrantedAuthorities(String role) {

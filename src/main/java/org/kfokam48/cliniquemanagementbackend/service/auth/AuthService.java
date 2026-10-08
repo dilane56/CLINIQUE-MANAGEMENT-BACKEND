@@ -9,14 +9,17 @@ import org.kfokam48.cliniquemanagementbackend.dto.auth.LoginRequest;
 import org.kfokam48.cliniquemanagementbackend.dto.auth.LoginResponse;
 import org.kfokam48.cliniquemanagementbackend.enums.Roles;
 import org.kfokam48.cliniquemanagementbackend.exception.AuthenticationFailedException;
+import org.kfokam48.cliniquemanagementbackend.exception.CompteDesactiveException;
 import org.kfokam48.cliniquemanagementbackend.exception.RessourceNotFoundException;
 import org.kfokam48.cliniquemanagementbackend.mapper.UtilisateurMapper;
 import org.kfokam48.cliniquemanagementbackend.model.Utilisateur;
 import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import io.jsonwebtoken.io.Decoders; // Important pour décoder la chaîne Base64
 import org.springframework.beans.factory.annotation.Value;
@@ -41,14 +44,16 @@ public class AuthService {
     private final UtilisateurRepository utilisateurRepository ;
     private final UtilisateurMapper utilisateurMapper;
     private final LoginAttemptService loginAttemptService;
+    private final PasswordEncoder passwordEncoder;
 
 
-    public AuthService(AuthenticationManager authenticationManager, UserDetailsService userDetailsService, UtilisateurRepository utilisateurRepository, UtilisateurMapper utilisateurMapper, LoginAttemptService loginAttemptService) {
+    public AuthService(AuthenticationManager authenticationManager, UserDetailsService userDetailsService, UtilisateurRepository utilisateurRepository, UtilisateurMapper utilisateurMapper, LoginAttemptService loginAttemptService, PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.userDetailsService = userDetailsService;
         this.utilisateurRepository = utilisateurRepository;
         this.utilisateurMapper = utilisateurMapper;
         this.loginAttemptService = loginAttemptService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // Initialisation de la clé au démarrage du service
@@ -91,6 +96,15 @@ public class AuthService {
             loginAttemptService.enregistrerSucces(authRequest.getEmail());
             return loginResponse;
 
+        } catch (DisabledException e) {
+            // I5 : Spring Security signale le compte désactivé AVANT de vérifier le mot de passe. On ne le
+            // dit qu'à qui connaît le bon mot de passe, sinon n'importe qui saurait que le compte existe.
+            if (motDePasseCorrect(authRequest)) {
+                log.warn("Connexion refusée : compte désactivé ({})", authRequest.getEmail());
+                throw new CompteDesactiveException("Ce compte est désactivé. Contactez l'administrateur.");
+            }
+            loginAttemptService.enregistrerEchec(authRequest.getEmail());
+            throw new AuthenticationFailedException("Identifiants invalides : vérifiez l'e-mail ou le mot de passe.");
         } catch (Exception e) {
             // Gestion des erreurs avec un message explicite
             loginAttemptService.enregistrerEchec(authRequest.getEmail());
@@ -99,6 +113,13 @@ public class AuthService {
         }
 
     }
+
+    private boolean motDePasseCorrect(LoginRequest authRequest) {
+        return utilisateurRepository.findByEmail(authRequest.getEmail())
+                .map(utilisateur -> passwordEncoder.matches(authRequest.getPassword(), utilisateur.getPassword()))
+                .orElse(false);
+    }
+
     public Roles getUserRole(LoginRequest loginRequest){
         Utilisateur user = utilisateurRepository.findByEmail(loginRequest.getEmail()).orElseThrow(()-> new RessourceNotFoundException("user not found"));
         return user.getRole();

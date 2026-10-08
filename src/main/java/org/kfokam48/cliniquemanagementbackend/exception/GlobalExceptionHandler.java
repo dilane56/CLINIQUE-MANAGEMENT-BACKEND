@@ -46,6 +46,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorBody(e.getMessage()), HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(CompteDesactiveException.class)
+    public ResponseEntity<Map<String, String>> handleCompteDesactiveException(CompteDesactiveException e) {
+        return new ResponseEntity<>(errorBody(e.getMessage()), HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler(InvalidTokenException.class)
     public ResponseEntity<Map<String, String>> handleInvalidTokenException(InvalidTokenException e) {
         return new ResponseEntity<>(errorBody(e.getMessage()), HttpStatus.UNAUTHORIZED);
