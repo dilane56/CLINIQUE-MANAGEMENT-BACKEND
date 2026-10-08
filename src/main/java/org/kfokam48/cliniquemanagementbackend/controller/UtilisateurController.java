@@ -1,5 +1,6 @@
 package org.kfokam48.cliniquemanagementbackend.controller;
 import org.springframework.security.core.Authentication;
+import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.ActivationCompteDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.utilisateur.ProfilUpdateDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.auth.UserDTO;
 import jakarta.validation.Valid;
@@ -39,6 +40,14 @@ public class UtilisateurController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserDTO> updateMonProfil(@Valid @RequestBody ProfilUpdateDTO profil, Authentication authentication) {
         return ResponseEntity.ok(utilisateurService.updateProfil(authentication.getName(), profil));
+    }
+
+    // I5 : désactiver ou réactiver un compte du personnel. Effet immédiat : connexion refusée et
+    // jetons déjà émis rejetés. L'administrateur ne peut pas désactiver son propre compte (400).
+    @PatchMapping("/{id}/activation")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UtilisateurResponseDTO> changerActivation(@PathVariable Long id, @Valid @RequestBody ActivationCompteDTO activation, Authentication authentication) {
+        return ResponseEntity.ok(utilisateurService.changerActivation(id, activation.getActif(), authentication.getName()));
     }
 
     // Endpoint pour récupérer un utilisateur par ID

@@ -63,9 +63,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
-                // Vérifier si le token est valide pour l'utilisateur (optionnel mais recommandé pour des validations plus poussées)
-                // Par exemple, vérifier si l'utilisateur est actif, etc.
-                // Pour l'instant, nous nous basons sur la validité de la signature et l'existence de l'utilisateur.
+                // I5 : un compte désactivé perd son accès immédiatement, même avec un token encore valide
+                // (l'utilisateur est relu en base à chaque requête)
+                if (!userDetails.isEnabled()) {
+                    logger.warn("Token refusé : compte désactivé ({})", userEmail);
+                    sendUnauthorizedResponse(response, "Compte désactivé. Contactez l'administrateur.");
+                    return;
+                }
 
                 UsernamePasswordAuthenticationToken authenticationToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

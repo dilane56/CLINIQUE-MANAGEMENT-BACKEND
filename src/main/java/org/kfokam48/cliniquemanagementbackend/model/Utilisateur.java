@@ -44,6 +44,10 @@ public abstract class Utilisateur {
     private Roles role; // ADMIN, MEDECIN, SECRETAIRE
     private LocalDate dateCreation;
     private String adresse;
+    // Compte désactivé par l'administrateur : connexion et jetons refusés (sans rapport avec "status",
+    // qui est la présence dans le chat)
+    @Column(nullable = false)
+    private boolean actif = true;
 
     public Utilisateur() {
     }

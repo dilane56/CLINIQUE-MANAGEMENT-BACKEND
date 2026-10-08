@@ -1,6 +1,7 @@
 {
   "administrateur.dtoVersEntite" : {
     "@type" : "Administrateur",
+    "actif" : "true",
     "adresse" : null,
     "dateCreation" : null,
     "derniereConnexion" : null,
@@ -155,6 +156,7 @@
   },
   "medecin.dtoVersEntite" : {
     "@type" : "Medecin",
+    "actif" : "true",
     "adresse" : null,
     "dateCreation" : null,
     "derniereConnexion" : null,
@@ -178,6 +180,7 @@
   },
   "medecin.reponse" : {
     "@type" : "MedecinResponseDTO",
+    "actif" : "true",
     "email" : "paul@clinique.cm",
     "id" : null,
     "nom" : "Martin",
@@ -211,6 +214,7 @@
     "@type" : "List",
     "elements" : [ {
       "@type" : "MedecinResponseDTO",
+      "actif" : "true",
       "email" : "paul@clinique.cm",
       "id" : null,
       "nom" : "Martin",
@@ -529,6 +533,7 @@
   },
   "secretaire.dtoVersEntite" : {
     "@type" : "Secretaire",
+    "actif" : "true",
     "adresse" : null,
     "dateCreation" : null,
     "derniereConnexion" : null,
@@ -547,6 +552,7 @@
   },
   "secretaire.reponse" : {
     "@type" : "SecretaireResponseDTO",
+    "actif" : "true",
     "email" : "brigitte@clinique.cm",
     "id" : "4",
     "medecins" : {
@@ -567,6 +573,7 @@
     "@type" : "List",
     "elements" : [ {
       "@type" : "SecretaireResponseDTO",
+      "actif" : "true",
       "email" : "brigitte@clinique.cm",
       "id" : "4",
       "medecins" : {
@@ -641,6 +648,7 @@
   },
   "utilisateur.reponse" : {
     "@type" : "UtilisateurResponseDTO",
+    "actif" : "true",
     "email" : "paul@clinique.cm",
     "id" : "7",
     "nom" : "Martin",
@@ -652,6 +660,7 @@
     "@type" : "List",
     "elements" : [ {
       "@type" : "UtilisateurResponseDTO",
+      "actif" : "true",
       "email" : "paul@clinique.cm",
       "id" : "7",
       "nom" : "Martin",
@@ -660,6 +669,7 @@
       "telephone" : "+237 690 00 00 07"
     }, {
       "@type" : "UtilisateurResponseDTO",
+      "actif" : "true",
       "email" : "brigitte@clinique.cm",
       "id" : "4",
       "nom" : "Ewondo",
@@ -668,6 +678,7 @@
       "telephone" : "+237 690 00 00 04"
     }, {
       "@type" : "UtilisateurResponseDTO",
+      "actif" : "true",
       "email" : "admin@clinique.cm",
       "id" : "1",
       "nom" : "Principal",

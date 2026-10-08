@@ -10,6 +10,7 @@ public class UtilisateurResponseDTO {
     private String prenom;
     private String telephone;
     private String role;
+    private Boolean actif;
 
 
 }

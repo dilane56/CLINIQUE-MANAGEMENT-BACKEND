@@ -37,6 +37,8 @@ class WebSocketAuthInterceptorTest {
     private static final long USER_ID = 5L;
 
     private WebSocketAuthInterceptor interceptor;
+    private Administrateur utilisateur;
+    private CustomUserDetailsService userDetailsService;
     private final MessageChannel channel = mock(MessageChannel.class);
 
     @BeforeEach
@@ -45,13 +47,14 @@ class WebSocketAuthInterceptorTest {
         ReflectionTestUtils.setField(jwtService, "jwtSecretString", SECRET);
         ReflectionTestUtils.invokeMethod(jwtService, "init");
 
-        Administrateur utilisateur = new Administrateur();
+        utilisateur = new Administrateur();
         utilisateur.setId(USER_ID);
         utilisateur.setEmail(EMAIL);
         UtilisateurRepository repository = mock(UtilisateurRepository.class);
         when(repository.findByEmail(EMAIL)).thenReturn(Optional.of(utilisateur));
+        when(repository.findById(USER_ID)).thenReturn(Optional.of(utilisateur));
 
-        CustomUserDetailsService userDetailsService = mock(CustomUserDetailsService.class);
+        userDetailsService = mock(CustomUserDetailsService.class);
         when(userDetailsService.loadUserByUsername(EMAIL))
                 .thenReturn(new User(EMAIL, "hash", List.of()));
 
@@ -134,5 +137,25 @@ class WebSocketAuthInterceptorTest {
     void sendToApplicationIsAllowed() {
         Map<String, Object> session = connectedSession();
         interceptor.preSend(frame(StompCommand.SEND, "/app/chat.send", null, session), channel);
+    }
+
+    // --- I5 : compte désactivé par l'administrateur ---
+
+    @Test
+    void connectWithDisabledAccountIsRejected() {
+        when(userDetailsService.loadUserByUsername(EMAIL))
+                .thenReturn(User.withUsername(EMAIL).password("hash").authorities(List.of()).disabled(true).build());
+        assertThatThrownBy(this::connectedSession)
+                .isInstanceOf(MessagingException.class)
+                .hasMessageContaining("désactivé");
+    }
+
+    @Test
+    void openSessionCannotSendOnceAccountIsDisabled() {
+        Map<String, Object> session = connectedSession();
+        utilisateur.setActif(false);
+        assertThatThrownBy(() -> interceptor.preSend(frame(StompCommand.SEND, "/app/chat.send", null, session), channel))
+                .isInstanceOf(MessagingException.class)
+                .hasMessageContaining("désactivé");
     }
 }
