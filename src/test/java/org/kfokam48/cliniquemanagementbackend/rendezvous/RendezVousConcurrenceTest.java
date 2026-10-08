@@ -4,8 +4,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.kfokam48.cliniquemanagementbackend.service.notification.NotificationService;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousDTO;
-import org.kfokam48.cliniquemanagementbackend.mapper.MapperConfig;
-import org.kfokam48.cliniquemanagementbackend.mapper.RendezVousMapper;
+import org.kfokam48.cliniquemanagementbackend.mapper.RendezVousMapperImpl;
 import org.kfokam48.cliniquemanagementbackend.model.Medecin;
 import org.kfokam48.cliniquemanagementbackend.model.Patient;
 import org.kfokam48.cliniquemanagementbackend.model.TypeRendezVous;
@@ -51,7 +50,7 @@ import static org.mockito.Mockito.doAnswer;
         "spring.flyway.enabled=false"
 })
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({RendezVousServiceImpl.class, RendezVousMapper.class, MapperConfig.class})
+@Import({RendezVousServiceImpl.class, RendezVousMapperImpl.class})
 @Transactional(propagation = Propagation.NOT_SUPPORTED) // chaque réservation committe réellement
 class RendezVousConcurrenceTest {
 

@@ -1,43 +1,21 @@
 package org.kfokam48.cliniquemanagementbackend.mapper;
 
-
 import org.kfokam48.cliniquemanagementbackend.dto.facture.FactureResponseDto;
 import org.kfokam48.cliniquemanagementbackend.model.Facture;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Component
-public class FactureMapper {
+@Mapper(config = MappingConfig.class, uses = LigneFactureMapper.class)
+public interface FactureMapper {
 
-    private final LigneFactureMapper ligneFactureMapper;
+    @Mapping(target = "patientNom", source = "rendezVous.patient.nom")
+    @Mapping(target = "patientPrenom", source = "rendezVous.patient.prenom")
+    @Mapping(target = "montantVerser", source = "montantPayement")
+    @Mapping(target = "lignesFacture", source = "lignes")
+    @Mapping(target = "rendezVousId", source = "rendezVous.id")
+    FactureResponseDto factureToFactureResponseDto(Facture facture);
 
-    public FactureMapper(LigneFactureMapper ligneFactureMapper) {
-        this.ligneFactureMapper = ligneFactureMapper;
-    }
-
-    public FactureResponseDto factureToFactureResponseDto(Facture facture) {
-        FactureResponseDto factureResponseDto = new FactureResponseDto();
-        factureResponseDto.setId(facture.getId());
-        factureResponseDto.setMontantTotal(facture.getMontantTotal());
-        factureResponseDto.setDateEmission(facture.getDateEmission());
-        factureResponseDto.setPatientNom(facture.getRendezVous().getPatient().getNom());
-        factureResponseDto.setPatientPrenom(facture.getRendezVous().getPatient().getPrenom());
-        factureResponseDto.setDatePayement(facture.getDatePayement());
-        factureResponseDto.setMontantVerser(facture.getMontantPayement());
-        factureResponseDto.setMontantRestant(facture.getMontantRestant());
-        factureResponseDto.setStatut(facture.getStatut());
-        factureResponseDto.setLignesFacture(ligneFactureMapper.toResponseDTOList(facture.getLignes()));
-        factureResponseDto.setRendezVousId(facture.getRendezVous().getId());
-        return factureResponseDto;
-   }
-
-
-    public List<FactureResponseDto> factureListToFactureResponseDtoList(List<Facture> factures) {
-        return factures.stream()
-                .map(this::factureToFactureResponseDto)
-                .toList();
-    }
-
-
+    List<FactureResponseDto> factureListToFactureResponseDtoList(List<Facture> factures);
 }

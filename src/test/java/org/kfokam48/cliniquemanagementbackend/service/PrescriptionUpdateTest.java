@@ -1,11 +1,10 @@
 package org.kfokam48.cliniquemanagementbackend.service;
 
 import org.junit.jupiter.api.Test;
-import org.modelmapper.ModelMapper;
 import org.kfokam48.cliniquemanagementbackend.dto.prescription.PrescriptionUpdateDTO;
 import org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous;
 import org.kfokam48.cliniquemanagementbackend.mapper.LignePrescriptionMapper;
-import org.kfokam48.cliniquemanagementbackend.mapper.PrescriptionMapper;
+import org.kfokam48.cliniquemanagementbackend.mapper.PrescriptionMapperImpl;
 import org.kfokam48.cliniquemanagementbackend.model.Prescription;
 import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
 import org.kfokam48.cliniquemanagementbackend.repository.PrescriptionRepository;
@@ -41,7 +40,7 @@ class PrescriptionUpdateTest {
         when(prescriptionRepository.findById(4L)).thenReturn(Optional.of(prescription));
 
         PrescriptionServiceImpl service = new PrescriptionServiceImpl(prescriptionRepository,
-                new PrescriptionMapper(new ModelMapper(), rendezVousRepository, lignePrescriptionMapper),
+                new PrescriptionMapperImpl(lignePrescriptionMapper),
                 rendezVousRepository, lignePrescriptionMapper);
         PrescriptionUpdateDTO dto = new PrescriptionUpdateDTO();
         dto.setDescription("Fièvre persistante");

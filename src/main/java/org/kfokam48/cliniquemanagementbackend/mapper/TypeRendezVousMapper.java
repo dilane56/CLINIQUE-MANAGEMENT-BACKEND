@@ -3,29 +3,18 @@ package org.kfokam48.cliniquemanagementbackend.mapper;
 import org.kfokam48.cliniquemanagementbackend.dto.typeRendezVous.TypeRendezVousDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.typeRendezVous.TypeRendezVousResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.model.TypeRendezVous;
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Component
-public class TypeRendezVousMapper {
+@Mapper(config = MappingConfig.class)
+public interface TypeRendezVousMapper {
 
-    private final ModelMapper modelMapper;
+    @Mapping(target = "id", ignore = true)
+    TypeRendezVous typeRendezVousDtoToTypeRendezVous(TypeRendezVousDTO typeRendezVousDTO);
 
-    public TypeRendezVousMapper(ModelMapper modelMapper) {
-        this.modelMapper = modelMapper;
-    }
+    TypeRendezVousResponseDTO typeRendezVousToTypeRendezVousResponseDTO(TypeRendezVous typeRendezVous);
 
-    public TypeRendezVous typeRendezVousDtoToTypeRendezVous(TypeRendezVousDTO typeRendezVousDTO) {
-      return modelMapper.map(typeRendezVousDTO, TypeRendezVous.class);
-    }
-    public TypeRendezVousResponseDTO typeRendezVousToTypeRendezVousResponseDTO(TypeRendezVous typeRendezVous) {
-        return modelMapper.map(typeRendezVous, TypeRendezVousResponseDTO.class);
-    }
-    public List<TypeRendezVousResponseDTO> typeRendezVousListToTypeRendezVousResponseDTOList(List<TypeRendezVous> typeRendezVousList) {
-        return typeRendezVousList.stream()
-                .map(this::typeRendezVousToTypeRendezVousResponseDTO)
-                .toList();
-    }
+    List<TypeRendezVousResponseDTO> typeRendezVousListToTypeRendezVousResponseDTOList(List<TypeRendezVous> typeRendezVousList);
 }
