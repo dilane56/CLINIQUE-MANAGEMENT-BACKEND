@@ -1,6 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.repository;
 
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 import org.kfokam48.cliniquemanagementbackend.model.Patient;
@@ -17,7 +18,7 @@ import java.util.Optional;
 
 
 @Repository
-public interface PatientRepository extends JpaRepository<Patient, Long> {
+public interface PatientRepository extends JpaRepository<Patient, Long>, JpaSpecificationExecutor<Patient> {
     Optional<Patient> findByEmail(String email);
 
     // Verrou en écriture (SELECT ... FOR UPDATE) : sérialise les réservations d'un même patient

@@ -633,4 +633,27 @@ class AccessControlTest {
     void onlyAdminCanReadAccountCounts() throws Exception {
         mockMvc.perform(get("/api/utilisateurs/statistiques")).andExpect(status().isForbidden());
     }
+
+    // --- Recherche de patients (choix du patient d'un rendez-vous) ---
+
+    @Test
+    @WithMockUser(roles = "SECRETAIRE")
+    void patientSearchPassesTextAndDefaultsToTenByName() throws Exception {
+        when(patientService.rechercher(any(), any(Pageable.class)))
+                .thenReturn(new PageResponse<>(List.of(), 0, 10, 0, 0));
+
+        mockMvc.perform(get("/api/patients/recherche").param("q", "fotso"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(0));
+
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(patientService).rechercher(org.mockito.ArgumentMatchers.eq("fotso"), pageable.capture());
+        assertThat(pageable.getValue().getPageSize()).isEqualTo(10);
+        assertThat(pageable.getValue().getSort().getOrderFor("nom")).isNotNull();
+    }
+
+    @Test
+    void anonymousCannotSearchPatients() throws Exception {
+        mockMvc.perform(get("/api/patients/recherche").param("q", "fotso")).andExpect(status().isForbidden());
+    }
 }

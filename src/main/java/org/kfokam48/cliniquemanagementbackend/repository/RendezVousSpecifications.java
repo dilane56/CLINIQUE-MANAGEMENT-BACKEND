@@ -36,8 +36,7 @@ public final class RendezVousSpecifications {
         if (texte == null || texte.isBlank()) {
             return null;
         }
-        String motif = "%" + texte.trim().toLowerCase(Locale.ROOT)
-                .replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
+        String motif = motifContient(texte);
         return (racine, requete, cb) -> {
             Join<RendezVous, Patient> patient = racine.join("patient");
             Join<RendezVous, Medecin> medecin = racine.join("medecin");
@@ -53,6 +52,15 @@ public final class RendezVousSpecifications {
                     cb.like(cb.lower(cb.concat(cb.concat(medecinPrenom, " "), medecinNom)), motif, '\\'),
                     cb.like(cb.lower(cb.coalesce(type.get("libelle"), "")), motif, '\\'));
         };
+    }
+
+    /**
+     * Motif LIKE "contient" en minuscules, à utiliser avec le caractère d'échappement '\\' :
+     * %, _ et \ saisis par l'utilisateur sont cherchés tels quels.
+     */
+    static String motifContient(String texte) {
+        return "%" + texte.trim().toLowerCase(Locale.ROOT)
+                .replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
     }
 
     static Specification<RendezVous> aLeStatut(StatutRendezVous statut) {
