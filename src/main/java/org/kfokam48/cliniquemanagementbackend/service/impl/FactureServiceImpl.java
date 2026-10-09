@@ -15,6 +15,7 @@ import org.kfokam48.cliniquemanagementbackend.enums.StatutFacture;
 import org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous;
 import org.kfokam48.cliniquemanagementbackend.exception.RessourceNotFoundException;
 import org.kfokam48.cliniquemanagementbackend.exception.RendezVousNonTermineException;
+import org.kfokam48.cliniquemanagementbackend.exception.ResourceAlreadyExistException;
 import org.kfokam48.cliniquemanagementbackend.mapper.FactureMapper;
 import org.kfokam48.cliniquemanagementbackend.mapper.LigneFactureMapper;
 import org.kfokam48.cliniquemanagementbackend.model.Facture;
@@ -64,6 +65,9 @@ public class FactureServiceImpl implements FactureService {
         if (rendezVous.getStatutRendezVous() != StatutRendezVous.TERMINE) {
             throw new RendezVousNonTermineException("Impossible de créer une facture pour un rendez-vous qui n'est pas terminé. Statut actuel: " + rendezVous.getStatutRendezVous());
         }
+        if (factureRepository.existsByRendezVous_Id(rendezVous.getId())) {
+            throw new ResourceAlreadyExistException("Ce rendez-vous a déjà une facture : modifiez-la plutôt que d'en créer une seconde.");
+        }
 
         Facture facture = buildFactureFromRendezVous(new Facture(), rendezVous, factureDTO.getLignesFacture());
         facture.setDateEmission(LocalDateTime.now());
@@ -92,6 +96,9 @@ public class FactureServiceImpl implements FactureService {
 
         RendezVous rendezVous = rendezVousRepository.findById(factureDTO.getRendezVousId())
                 .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous not found with id: " + factureDTO.getRendezVousId()));
+        if (factureRepository.existsByRendezVous_IdAndIdNot(rendezVous.getId(), id)) {
+            throw new ResourceAlreadyExistException("Ce rendez-vous a déjà une autre facture.");
+        }
 
         facture.getLignes().clear();
         buildFactureFromRendezVous(facture, rendezVous, factureDTO.getLignesFacture());
