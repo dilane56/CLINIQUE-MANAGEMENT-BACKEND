@@ -116,8 +116,8 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<PatientResponseDTO> rechercher(String texte, Pageable pageable) {
-        return PageResponse.of(patientRepository.findAll(PatientSpecifications.rechercher(texte), pageable),
+    public PageResponse<PatientResponseDTO> rechercher(String texte, Long medecinId, Pageable pageable) {
+        return PageResponse.of(patientRepository.findAll(PatientSpecifications.rechercher(texte, medecinId), pageable),
                 patientMapper::patientListToPatientResponseDtoList);
     }
 }

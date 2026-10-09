@@ -2,7 +2,10 @@ package org.kfokam48.cliniquemanagementbackend.rendezvous;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous;
+import org.kfokam48.cliniquemanagementbackend.model.Medecin;
 import org.kfokam48.cliniquemanagementbackend.model.Patient;
+import org.kfokam48.cliniquemanagementbackend.model.TypeRendezVous;
 import org.kfokam48.cliniquemanagementbackend.repository.PatientRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.PatientSpecifications;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -85,6 +89,26 @@ class PatientRechercheTest {
         // "_" n'est pas un joker : seul l'e-mail de Marie contient un vrai "_"
         assertThat(chercher("_")).containsExactly(marie);
         assertThat(chercher("%")).isEmpty();
+    }
+
+    @Test
+    void filtersPatientsOfADoctor() {
+        Medecin martin = em.persist(RendezVousTestData.medecin("martin@test.com"));
+        Medecin durand = em.persist(RendezVousTestData.medecin("durand@test.com"));
+        TypeRendezVous consultation = em.persist(RendezVousTestData.consultation30Minutes());
+        LocalDateTime jour = LocalDateTime.of(2030, 1, 15, 9, 0);
+        em.persist(RendezVousTestData.rendezVous(martin, jean, consultation, jour, StatutRendezVous.TERMINE));
+        em.persist(RendezVousTestData.rendezVous(martin, jean, consultation, jour.plusDays(7), StatutRendezVous.CONFIRME));
+        em.persist(RendezVousTestData.rendezVous(durand, aicha, consultation, jour, StatutRendezVous.CONFIRME));
+        em.flush();
+
+        // Un patient vu deux fois n'apparaît qu'une fois
+        assertThat(repository.findAll(PatientSpecifications.rechercher(null, martin.getId()), PREMIERE_PAGE).getContent())
+                .containsExactly(jean);
+        assertThat(repository.findAll(PatientSpecifications.rechercher("ngono", durand.getId()), PREMIERE_PAGE).getContent())
+                .containsExactly(aicha);
+        assertThat(repository.findAll(PatientSpecifications.rechercher("ngono", martin.getId()), PREMIERE_PAGE).getContent())
+                .isEmpty();
     }
 
     @Test

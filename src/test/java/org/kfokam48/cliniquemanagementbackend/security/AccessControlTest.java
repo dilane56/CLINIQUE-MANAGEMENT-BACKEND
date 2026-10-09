@@ -506,7 +506,7 @@ class AccessControlTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void appointmentSearchPassesCriteriaAndDefaultsToMostRecentFirst() throws Exception {
-        when(rendezVousService.rechercher(any(), any(), any(), any(Pageable.class)))
+        when(rendezVousService.rechercher(any(), any(Pageable.class)))
                 .thenReturn(new PageResponse<>(List.of(), 0, 20, 0, 0));
 
         mockMvc.perform(get("/api/rendezvous/recherche")
@@ -515,11 +515,37 @@ class AccessControlTest {
                 .andExpect(jsonPath("$.totalElements").value(0));
 
         ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
-        verify(rendezVousService).rechercher(org.mockito.ArgumentMatchers.eq("martin"),
-                org.mockito.ArgumentMatchers.eq(org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous.CONFIRME),
-                org.mockito.ArgumentMatchers.eq(java.time.LocalDate.of(2030, 1, 15)), pageable.capture());
+        verify(rendezVousService).rechercher(org.mockito.ArgumentMatchers.eq(
+                org.kfokam48.cliniquemanagementbackend.dto.rendezvous.CriteresRendezVous.de("martin",
+                        org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous.CONFIRME, java.time.LocalDate.of(2030, 1, 15))),
+                pageable.capture());
         assertThat(pageable.getValue().getSort().getOrderFor("dateRendezVous")).isNotNull();
         assertThat(pageable.getValue().getSort().getOrderFor("dateRendezVous").isDescending()).isTrue();
+    }
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void doctorSearchesOnlyOwnAppointments() throws Exception {
+        when(rendezVousService.rechercher(any(), any(Pageable.class)))
+                .thenReturn(new PageResponse<>(List.of(), 0, 20, 0, 0));
+        when(authz.isCurrentUser(MEDECIN_CONNECTE)).thenReturn(true);
+        when(authz.isCurrentUser(AUTRE_MEDECIN)).thenReturn(false);
+
+        mockMvc.perform(get("/api/rendezvous/recherche").param("medecinId", String.valueOf(MEDECIN_CONNECTE))
+                        .param("debut", "2030-01-13").param("fin", "2030-01-19")
+                        .param("statut", "EN_COURS").param("statut", "TERMINE").param("sansFacture", "true"))
+                .andExpect(status().isOk());
+        verify(rendezVousService).rechercher(org.mockito.ArgumentMatchers.eq(
+                new org.kfokam48.cliniquemanagementbackend.dto.rendezvous.CriteresRendezVous(null,
+                        List.of(org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous.EN_COURS,
+                                org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous.TERMINE),
+                        null, java.time.LocalDate.of(2030, 1, 13), java.time.LocalDate.of(2030, 1, 19),
+                        MEDECIN_CONNECTE, true)), any(Pageable.class));
+
+        // Ni les rendez-vous d'un autre médecin, ni la recherche sans médecin
+        mockMvc.perform(get("/api/rendezvous/recherche").param("medecinId", String.valueOf(AUTRE_MEDECIN)))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/rendezvous/recherche")).andExpect(status().isForbidden());
     }
 
     @Test
@@ -639,7 +665,7 @@ class AccessControlTest {
     @Test
     @WithMockUser(roles = "SECRETAIRE")
     void patientSearchPassesTextAndDefaultsToTenByName() throws Exception {
-        when(patientService.rechercher(any(), any(Pageable.class)))
+        when(patientService.rechercher(any(), any(), any(Pageable.class)))
                 .thenReturn(new PageResponse<>(List.of(), 0, 10, 0, 0));
 
         mockMvc.perform(get("/api/patients/recherche").param("q", "fotso"))
@@ -647,7 +673,7 @@ class AccessControlTest {
                 .andExpect(jsonPath("$.totalElements").value(0));
 
         ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
-        verify(patientService).rechercher(org.mockito.ArgumentMatchers.eq("fotso"), pageable.capture());
+        verify(patientService).rechercher(org.mockito.ArgumentMatchers.eq("fotso"), org.mockito.ArgumentMatchers.isNull(), pageable.capture());
         assertThat(pageable.getValue().getPageSize()).isEqualTo(10);
         assertThat(pageable.getValue().getSort().getOrderFor("nom")).isNotNull();
     }

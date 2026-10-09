@@ -2,7 +2,10 @@ package org.kfokam48.cliniquemanagementbackend.rendezvous;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.CriteresRendezVous;
+import org.kfokam48.cliniquemanagementbackend.enums.StatutFacture;
 import org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous;
+import org.kfokam48.cliniquemanagementbackend.model.Facture;
 import org.kfokam48.cliniquemanagementbackend.model.Medecin;
 import org.kfokam48.cliniquemanagementbackend.model.Patient;
 import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
@@ -118,6 +121,39 @@ class RendezVousRechercheTest {
         assertThat(chercher("jean", StatutRendezVous.CONFIRME, null)).containsExactly(jeanChezDurandLe16);
         assertThat(chercher("martin", StatutRendezVous.CONFIRME, LE_15)).containsExactly(aichaChezMartinLe15);
         assertThat(chercher("durand", null, LE_15)).isEmpty();
+    }
+
+    private List<RendezVous> chercher(CriteresRendezVous criteres) {
+        return repository.findAll(RendezVousSpecifications.rechercher(criteres), PREMIERE_PAGE).getContent();
+    }
+
+    @Test
+    void filtersByDoctorPeriodAndSeveralStatuses() {
+        Long martin = aichaChezMartinLe15.getMedecin().getId();
+        assertThat(chercher(new CriteresRendezVous(null, null, null, null, null, martin, null)))
+                .containsExactly(jeanChezMartinLe15, aichaChezMartinLe15);
+        // Période inclusive, à la journée (le 16 à 23h30 compte dans [15, 16])
+        assertThat(chercher(new CriteresRendezVous(null, null, null, LE_15, LE_15.plusDays(1), null, null))).hasSize(3);
+        assertThat(chercher(new CriteresRendezVous(null, null, null, LE_15.plusDays(1), null, null, null)))
+                .containsExactly(jeanChezDurandLe16);
+        assertThat(chercher(new CriteresRendezVous(null, null, null, null, LE_15, null, null)))
+                .containsExactly(jeanChezMartinLe15, aichaChezMartinLe15);
+        assertThat(chercher(new CriteresRendezVous(null,
+                List.of(StatutRendezVous.CONFIRME, StatutRendezVous.EN_ATTENTE), null, null, null, martin, null)))
+                .containsExactly(jeanChezMartinLe15, aichaChezMartinLe15);
+    }
+
+    @Test
+    void excludesAppointmentsThatAlreadyHaveAnInvoice() {
+        Facture facture = new Facture();
+        facture.setRendezVous(aichaChezMartinLe15);
+        facture.setStatut(StatutFacture.NON_PAYEE);
+        em.persist(facture);
+        em.flush();
+
+        assertThat(chercher(new CriteresRendezVous(null, null, null, null, null, null, true)))
+                .containsExactly(jeanChezDurandLe16, jeanChezMartinLe15);
+        assertThat(chercher(new CriteresRendezVous(null, null, null, null, null, null, false))).hasSize(3);
     }
 
     @Test
