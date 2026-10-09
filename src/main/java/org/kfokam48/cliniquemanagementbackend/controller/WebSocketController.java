@@ -72,9 +72,8 @@ public class WebSocketController {
                 user.setDerniereConnexion(Instant.now());
                 utilisateurRepository.save(user);
 
-                // Notifier tous les utilisateurs du changement de statut
-               notificationService.sendNotification(user.getId(), "Statut mis à jour", "Votre statut a été mis à jour à EN_LIGNE", false);
-                // Utilisation de DTO pour un formatage plus propre et plus sûr
+                // Diffusé à tous via /topic/status. Plus de notification « EN_LIGNE » à l'utilisateur lui-même :
+                // créée à chaque connexion, elle remplissait sa cloche (B1)
                 messagingTemplate.convertAndSend("/topic/status",
                         String.format("{\"userId\": %d, \"status\": \"EN_LIGNE\"}", user.getId()));
             }

@@ -4,7 +4,7 @@ import org.kfokam48.cliniquemanagementbackend.dto.RendezVousInUserDto;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.MedecinInRendezVousDto;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.PatientInRendezVousDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousResponseDTO;
-import org.kfokam48.cliniquemanagementbackend.dto.typeRendezVous.TypeRendezVousDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.typeRendezVous.TypeRendezVousResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.model.Medecin;
 import org.kfokam48.cliniquemanagementbackend.model.Patient;
 import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
@@ -37,5 +37,6 @@ public interface RendezVousMapper {
 
     MedecinInRendezVousDto medecinToMedecinInRendezVousDto(Medecin medecin);
 
-    TypeRendezVousDTO typeRendezVousToTypeRendezVousDTO(TypeRendezVous typeRendezVous);
+    // Avec son identifiant : le formulaire de modification d'un rendez-vous en a besoin
+    TypeRendezVousResponseDTO typeRendezVousToTypeRendezVousResponseDTO(TypeRendezVous typeRendezVous);
 }

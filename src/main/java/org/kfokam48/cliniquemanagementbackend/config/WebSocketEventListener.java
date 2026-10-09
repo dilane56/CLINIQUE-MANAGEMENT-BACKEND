@@ -7,11 +7,14 @@ import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.simp.user.SimpUser;
+import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.kfokam48.cliniquemanagementbackend.model.Utilisateur;
 
+import java.security.Principal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 
@@ -22,6 +25,7 @@ public class WebSocketEventListener {
 
     private final SimpMessageSendingOperations messagingTemplate;
     private final UtilisateurRepository utilisateurRepository;
+    private final SimpUserRegistry simpUserRegistry;
 
     // Dans votre classe WebSocketEventListener.java
     @EventListener
@@ -56,6 +60,10 @@ public class WebSocketEventListener {
         String userIdStr = (String) headerAccessor.getSessionAttributes().get("user_id");
 
         if (userIdStr != null) {
+            if (autreSessionOuverte(event)) {
+                // Un autre onglet reste connecté : l'utilisateur est toujours en ligne
+                return;
+            }
             try {
                 Long userId = Long.parseLong(userIdStr);
                 Utilisateur user = utilisateurRepository.findById(userId).orElse(null);
@@ -72,5 +80,16 @@ public class WebSocketEventListener {
                 log.warn("ID utilisateur non valide lors de la déconnexion WebSocket.");
             }
         }
+    }
+
+    // Le frontend ouvre une connexion par onglet : seule la fermeture de la dernière met hors ligne
+    private boolean autreSessionOuverte(SessionDisconnectEvent event) {
+        Principal principal = event.getUser();
+        if (principal == null) {
+            return false;
+        }
+        SimpUser simpUser = simpUserRegistry.getUser(principal.getName());
+        return simpUser != null && simpUser.getSessions().stream()
+                .anyMatch(session -> !session.getId().equals(event.getSessionId()));
     }
 }

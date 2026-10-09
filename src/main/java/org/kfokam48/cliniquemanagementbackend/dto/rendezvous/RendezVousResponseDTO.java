@@ -1,7 +1,7 @@
 package org.kfokam48.cliniquemanagementbackend.dto.rendezvous;
 
 import lombok.Data;
-import org.kfokam48.cliniquemanagementbackend.dto.typeRendezVous.TypeRendezVousDTO;
+import org.kfokam48.cliniquemanagementbackend.dto.typeRendezVous.TypeRendezVousResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous;
 
 import java.time.LocalDateTime;
@@ -16,6 +16,6 @@ public class RendezVousResponseDTO {
     private StatutRendezVous statutRendezVous;
     private LocalDateTime dateTimeFinRendezVousPossible;
     //private int dureeEstimerRendezVousEnMin;
-    private TypeRendezVousDTO typeRendezVous; // Référence au Type de Rendez-vous
+    private TypeRendezVousResponseDTO typeRendezVous; // Type de rendez-vous, avec son identifiant
 
 }
