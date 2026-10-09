@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 
 import jakarta.validation.Valid;
+import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.CriteresRendezVous;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousUpdateDto;
@@ -50,18 +51,26 @@ public class RendezVousController {
     }
 
     /**
-     * Recherche paginée, exécutée par la base : texte (patient, médecin, type de rendez-vous),
-     * statut et jour facultatifs. Exemple :
+     * Recherche paginée, exécutée par la base. Critères tous facultatifs : texte (patient, médecin,
+     * type de rendez-vous), un ou plusieurs statuts, jour, période [debut, fin], médecin, sans facture.
+     * Exemples :
      * /api/rendezvous/recherche?q=martin&statut=CONFIRME&date=2030-01-15&page=0&size=20&sort=dateRendezVous,desc
+     * /api/rendezvous/recherche?medecinId=4&debut=2030-01-13&fin=2030-01-19&size=100 (planning d'une semaine)
+     * Un médecin n'y accède que pour ses propres rendez-vous (medecinId obligatoire et égal au sien).
      */
     @GetMapping("/recherche")
-    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and #medecinId != null and @authz.isCurrentUser(#medecinId))")
     public ResponseEntity<PageResponse<RendezVousResponseDTO>> rechercherRendezVous(
             @RequestParam(required = false) String q,
-            @RequestParam(required = false) StatutRendezVous statut,
+            @RequestParam(required = false) List<StatutRendezVous> statut,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate debut,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fin,
+            @RequestParam(required = false) Long medecinId,
+            @RequestParam(required = false) Boolean sansFacture,
             @PageableDefault(size = 20, sort = "dateRendezVous", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(rendezVousService.rechercher(q, statut, date, pageable));
+        return ResponseEntity.ok(rendezVousService.rechercher(
+                new CriteresRendezVous(q, statut, date, debut, fin, medecinId, sansFacture), pageable));
     }
 
     // Nombre de rendez-vous par statut (compteurs) : { "EN_ATTENTE": 12, "CONFIRME": 23, ... }

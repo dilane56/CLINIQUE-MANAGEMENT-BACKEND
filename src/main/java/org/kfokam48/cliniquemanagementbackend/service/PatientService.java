@@ -20,5 +20,6 @@ public interface PatientService {
     PageResponse<PatientResponseDTO> findByMedecinId(Long medecinId, Pageable pageable);
 
     // Recherche paginée (nom, prénom, e-mail ou téléphone) ; texte vide : tous les patients
-    PageResponse<PatientResponseDTO> rechercher(String texte, Pageable pageable);
+    // medecinId facultatif : seulement les patients qui ont au moins un rendez-vous avec ce médecin
+    PageResponse<PatientResponseDTO> rechercher(String texte, Long medecinId, Pageable pageable);
 }

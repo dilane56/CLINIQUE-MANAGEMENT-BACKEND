@@ -4,11 +4,11 @@ package org.kfokam48.cliniquemanagementbackend.service.impl;
 import org.kfokam48.cliniquemanagementbackend.service.Compteurs;
 import org.kfokam48.cliniquemanagementbackend.repository.RendezVousSpecifications;
 import java.util.Map;
-import java.time.LocalDate;
 import org.springframework.data.domain.Pageable;
 import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import jakarta.validation.Valid;
 import org.kfokam48.cliniquemanagementbackend.service.notification.NotificationService;
+import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.CriteresRendezVous;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousUpdateDto;
@@ -232,9 +232,9 @@ public class RendezVousServiceImpl implements RendezVousService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<RendezVousResponseDTO> rechercher(String texte, StatutRendezVous statut, LocalDate date, Pageable pageable) {
+    public PageResponse<RendezVousResponseDTO> rechercher(CriteresRendezVous criteres, Pageable pageable) {
         return PageResponse.of(
-                rendezVousRepository.findAll(RendezVousSpecifications.rechercher(texte, statut, date), pageable),
+                rendezVousRepository.findAll(RendezVousSpecifications.rechercher(criteres), pageable),
                 rendezVousMapper::rendezVousListToRendezVousResponseDtoList);
     }
 

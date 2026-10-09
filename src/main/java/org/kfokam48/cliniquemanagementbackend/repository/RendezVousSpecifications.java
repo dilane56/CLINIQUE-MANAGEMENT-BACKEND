@@ -2,7 +2,11 @@ package org.kfokam48.cliniquemanagementbackend.repository;
 
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
+import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.CriteresRendezVous;
 import org.kfokam48.cliniquemanagementbackend.enums.StatutRendezVous;
+import org.kfokam48.cliniquemanagementbackend.model.Facture;
 import org.kfokam48.cliniquemanagementbackend.model.Medecin;
 import org.kfokam48.cliniquemanagementbackend.model.Patient;
 import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
@@ -10,6 +14,8 @@ import org.kfokam48.cliniquemanagementbackend.model.TypeRendezVous;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -23,9 +29,16 @@ public final class RendezVousSpecifications {
     }
 
     public static Specification<RendezVous> rechercher(String texte, StatutRendezVous statut, LocalDate date) {
-        return Specification.where(contientTexte(texte))
-                .and(aLeStatut(statut))
-                .and(estLe(date));
+        return rechercher(CriteresRendezVous.de(texte, statut, date));
+    }
+
+    public static Specification<RendezVous> rechercher(CriteresRendezVous criteres) {
+        return Specification.where(contientTexte(criteres.texte()))
+                .and(aUnDesStatuts(criteres.statuts()))
+                .and(estLe(criteres.date()))
+                .and(entre(criteres.debut(), criteres.fin()))
+                .and(duMedecin(criteres.medecinId()))
+                .and(Boolean.TRUE.equals(criteres.sansFacture()) ? sansFacture() : null);
     }
 
     /**
@@ -63,8 +76,41 @@ public final class RendezVousSpecifications {
                 .replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
     }
 
-    static Specification<RendezVous> aLeStatut(StatutRendezVous statut) {
-        return statut == null ? null : (racine, requete, cb) -> cb.equal(racine.get("statutRendezVous"), statut);
+    static Specification<RendezVous> aUnDesStatuts(List<StatutRendezVous> statuts) {
+        return statuts == null || statuts.isEmpty() ? null
+                : (racine, requete, cb) -> racine.get("statutRendezVous").in(statuts);
+    }
+
+    // Période [debut 00:00, fin+1 00:00[ ; une borne absente laisse la période ouverte de ce côté
+    static Specification<RendezVous> entre(LocalDate debut, LocalDate fin) {
+        if (debut == null && fin == null) {
+            return null;
+        }
+        return (racine, requete, cb) -> {
+            Expression<LocalDateTime> quand = racine.get("dateRendezVous");
+            if (debut == null) {
+                return cb.lessThan(quand, fin.plusDays(1).atStartOfDay());
+            }
+            if (fin == null) {
+                return cb.greaterThanOrEqualTo(quand, debut.atStartOfDay());
+            }
+            return cb.and(cb.greaterThanOrEqualTo(quand, debut.atStartOfDay()),
+                    cb.lessThan(quand, fin.plusDays(1).atStartOfDay()));
+        };
+    }
+
+    static Specification<RendezVous> duMedecin(Long medecinId) {
+        return medecinId == null ? null : (racine, requete, cb) -> cb.equal(racine.get("medecin").get("id"), medecinId);
+    }
+
+    // Rendez-vous sans facture : ceux qu'un médecin peut encore facturer
+    static Specification<RendezVous> sansFacture() {
+        return (racine, requete, cb) -> {
+            Subquery<Long> facture = requete.subquery(Long.class);
+            Root<Facture> f = facture.from(Facture.class);
+            facture.select(f.get("id")).where(cb.equal(f.get("rendezVous"), racine));
+            return cb.not(cb.exists(facture));
+        };
     }
 
     // Rendez-vous de la journée [date 00:00, date+1 00:00[

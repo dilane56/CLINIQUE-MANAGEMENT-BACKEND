@@ -2,9 +2,9 @@ package org.kfokam48.cliniquemanagementbackend.service;
 
 
 import java.util.Map;
-import java.time.LocalDate;
 import org.springframework.data.domain.Pageable;
 import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
+import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.CriteresRendezVous;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.rendezvous.RendezVousUpdateDto;
@@ -25,8 +25,8 @@ public interface RendezVousService {
     PageResponse<RendezVousResponseDTO> findAll(Pageable pageable);
     PageResponse<RendezVousResponseDTO> findByMedecinId(Long medecinId, Pageable pageable);
 
-    // Recherche paginée : texte (patient, médecin, type), statut et jour facultatifs
-    PageResponse<RendezVousResponseDTO> rechercher(String texte, StatutRendezVous statut, LocalDate date, Pageable pageable);
+    // Recherche paginée selon des critères tous facultatifs (texte, statuts, jour, période, médecin, sans facture)
+    PageResponse<RendezVousResponseDTO> rechercher(CriteresRendezVous criteres, Pageable pageable);
 
     // Nombre de rendez-vous par statut (tous les statuts, 0 si aucun)
     Map<StatutRendezVous, Long> compterParStatut();

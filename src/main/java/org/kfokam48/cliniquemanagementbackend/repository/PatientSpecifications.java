@@ -1,7 +1,10 @@
 package org.kfokam48.cliniquemanagementbackend.repository;
 
 import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.kfokam48.cliniquemanagementbackend.model.Patient;
+import org.kfokam48.cliniquemanagementbackend.model.RendezVous;
 import org.springframework.data.jpa.domain.Specification;
 
 /**
@@ -17,6 +20,23 @@ public final class PatientSpecifications {
      * Texte cherché (insensible à la casse) dans "nom prénom", "prénom nom", l'e-mail ou le
      * téléphone. Texte absent ou vide : aucun filtre.
      */
+    public static Specification<Patient> rechercher(String texte, Long medecinId) {
+        return Specification.where(rechercher(texte)).and(duMedecin(medecinId));
+    }
+
+    // Patients qui ont au moins un rendez-vous avec ce médecin
+    static Specification<Patient> duMedecin(Long medecinId) {
+        if (medecinId == null) {
+            return null;
+        }
+        return (racine, requete, cb) -> {
+            Subquery<Long> rendezVous = requete.subquery(Long.class);
+            Root<RendezVous> r = rendezVous.from(RendezVous.class);
+            rendezVous.select(r.get("id")).where(cb.equal(r.get("patient"), racine), cb.equal(r.get("medecin").get("id"), medecinId));
+            return cb.exists(rendezVous);
+        };
+    }
+
     public static Specification<Patient> rechercher(String texte) {
         if (texte == null || texte.isBlank()) {
             return null;
