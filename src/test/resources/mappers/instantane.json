@@ -493,8 +493,9 @@
     },
     "statutRendezVous" : "TERMINE",
     "typeRendezVous" : {
-      "@type" : "TypeRendezVousDTO",
+      "@type" : "TypeRendezVousResponseDTO",
       "duree" : "30",
+      "id" : "3",
       "libelle" : "Consultation",
       "tarif" : "15000.00"
     }
@@ -524,8 +525,9 @@
       },
       "statutRendezVous" : "TERMINE",
       "typeRendezVous" : {
-        "@type" : "TypeRendezVousDTO",
+        "@type" : "TypeRendezVousResponseDTO",
         "duree" : "30",
+        "id" : "3",
         "libelle" : "Consultation",
         "tarif" : "15000.00"
       }
