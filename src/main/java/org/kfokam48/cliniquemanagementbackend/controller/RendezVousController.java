@@ -98,7 +98,7 @@ public class RendezVousController {
     @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public ResponseEntity<String> deleteRendezVous(@PathVariable Long id) {
         rendezVousService.deleteById(id);
-        return ResponseEntity.ok("Rendez-vous deleted successfully");
+        return ResponseEntity.ok("Rendez-vous supprimé");
     }
 
     @GetMapping("/medecin/{medecinId}")

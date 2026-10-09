@@ -14,8 +14,8 @@ import java.util.Date;
 public class PatientDTO  {
 
 
-   @NotNull(message = "Email is required")
-   @NotBlank(message = "Email cannot be blank")
+   @NotNull(message = "L'e-mail est obligatoire")
+   @NotBlank(message = "L'e-mail est obligatoire")
    private String email;
    private String nom;
    private String prenom;

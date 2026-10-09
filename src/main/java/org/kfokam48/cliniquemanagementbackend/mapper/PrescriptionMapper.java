@@ -29,7 +29,7 @@ public abstract class PrescriptionMapper {
 
     protected RendezVous rendezVousParId(Long rendezVousId) {
         return rendezVousRepository.findById(rendezVousId)
-                .orElseThrow(() -> new RuntimeException("RendezVous not found"));
+                .orElseThrow(() -> new RuntimeException("Rendez-vous introuvable"));
     }
 
     // Associer la prescription à chaque ligne (côté propriétaire de la relation)

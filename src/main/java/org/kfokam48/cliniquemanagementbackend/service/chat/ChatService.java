@@ -34,9 +34,9 @@ public class ChatService {
     @Transactional
     public Message sendMessages(@Valid MessageDTO messageDTO){
         Utilisateur sender = userRepo.findById(messageDTO.getExpediteurId())
-                .orElseThrow(() -> new RuntimeException("Sender not found"));
+                .orElseThrow(() -> new RuntimeException("Expéditeur introuvable"));
         Utilisateur receiver = userRepo.findById(messageDTO.getDestinataireId())
-                .orElseThrow(() -> new RuntimeException("Receiver not found"));
+                .orElseThrow(() -> new RuntimeException("Destinataire introuvable"));
 
         Conversation conversation = conversationRepo
                 .findByParticipants(sender, receiver)
@@ -100,12 +100,12 @@ public class ChatService {
     // Récupère les conversations d'un utilisateur
     public List<Conversation> getUserConversations(Long userId) {
         Utilisateur user = userRepo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
         return conversationRepo.findByParticipantsContaining(user);
     }
 
     public void deleteMessage (Long id){
-        Message message = messageRepo.findById(id).orElseThrow(()->new RessourceNotFoundException("message not found"));
+        Message message = messageRepo.findById(id).orElseThrow(()->new RessourceNotFoundException("Message introuvable"));
         messageRepo.deleteById(id);
 
     }

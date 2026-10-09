@@ -28,13 +28,13 @@ public class LignePrescriptionServiceImpl implements LignePrescriptionService {
 
     @Override
     public LignePrescriptionResponseDTO modifierLigne(Long id, LignePrescriptionUpdateDTO dto) {
-        LignePrescription lignePrescription = repository.findById(id).orElseThrow(()-> new RessourceNotFoundException("LignePrescription not found"));
+        LignePrescription lignePrescription = repository.findById(id).orElseThrow(()-> new RessourceNotFoundException("Ligne de prescription introuvable"));
         lignePrescription.setMedicament(dto.getMedicament());
         lignePrescription.setDosage(dto.getDosage());
         lignePrescription.setFrequence(dto.getFrequence());
         lignePrescription.setDuree(dto.getDuree());
         lignePrescription.setPrescription(prescriptionRepository.findById(dto.getPrescriptionId())
-                .orElseThrow(() -> new RessourceNotFoundException("Prescription not found")));
+                .orElseThrow(() -> new RessourceNotFoundException("Prescription introuvable")));
         repository.save(lignePrescription);
         return lignePrescriptionMapper.lignePrescriptionToLignePrescriptionResponseDTO(lignePrescription);
 
@@ -47,7 +47,7 @@ public class LignePrescriptionServiceImpl implements LignePrescriptionService {
 
     @Override
     public LignePrescriptionResponseDTO getLigne(Long id) {
-       LignePrescription lignePrescription = repository.findById(id).orElseThrow(()-> new RessourceNotFoundException("LignePrescription not found"));
+       LignePrescription lignePrescription = repository.findById(id).orElseThrow(()-> new RessourceNotFoundException("Ligne de prescription introuvable"));
         return lignePrescriptionMapper.lignePrescriptionToLignePrescriptionResponseDTO(lignePrescription);
     }
 

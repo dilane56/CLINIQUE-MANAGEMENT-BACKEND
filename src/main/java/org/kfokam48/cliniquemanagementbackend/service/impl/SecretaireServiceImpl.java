@@ -38,7 +38,7 @@ public class SecretaireServiceImpl implements SecretaireService {
     @Override
     public SecretaireResponseDTO save(@Valid SecretaireDTO secretaireDTO) {
         if (utilisateurRepository.existsByEmail(secretaireDTO.getEmail())) {
-            throw new ResourceAlreadyExistException("User already exists with this email");
+            throw new ResourceAlreadyExistException("Un compte existe déjà avec cet e-mail");
         }
 
         Secretaire secretaire = secretaireMapper.secretaireDtoToSecretaire(secretaireDTO);
@@ -51,14 +51,14 @@ public class SecretaireServiceImpl implements SecretaireService {
     @Override
     public SecretaireResponseDTO findById(Long id) {
         Secretaire secretaire= secretaireRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Secretaire not found"));
+                .orElseThrow(() -> new RessourceNotFoundException("Secrétaire introuvable"));
         return secretaireMapper.secretaireToSecretaireResponseDto(secretaire);
     }
 
     @Override
     public SecretaireResponseDTO update(Long id,@Valid SecretaireDTO secretaireDTO) {
         Secretaire secretaire = secretaireRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Secretaire not found"));
+                .orElseThrow(() -> new RessourceNotFoundException("Secrétaire introuvable"));
         if (Objects.equals(secretaire.getEmail(), secretaireDTO.getEmail()) || !utilisateurRepository.existsByEmail(secretaireDTO.getEmail())) {
 
             secretaire.setEmail(secretaireDTO.getEmail());
@@ -70,7 +70,7 @@ public class SecretaireServiceImpl implements SecretaireService {
             secretaireRepository.save(secretaire);
             return secretaireMapper.secretaireToSecretaireResponseDto(secretaire);
         } else {
-            throw new ResourceAlreadyExistException("User already exists with this email");
+            throw new ResourceAlreadyExistException("Un compte existe déjà avec cet e-mail");
         }
 
 
@@ -84,7 +84,7 @@ public class SecretaireServiceImpl implements SecretaireService {
     @Override
     public void deleteById(Long id) {
        secretaireRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Secretaire not found"));
+                .orElseThrow(() -> new RessourceNotFoundException("Secrétaire introuvable"));
         secretaireRepository.deleteById(id);
     }
 

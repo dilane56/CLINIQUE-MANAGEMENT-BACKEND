@@ -14,11 +14,11 @@ import org.kfokam48.cliniquemanagementbackend.enums.Roles;
 @Data
 public class UtilisateurDTO {
 
-    @NotNull(message = "Password is required")
-    @NotBlank(message = "Password cannot be blank")
+    @NotNull(message = "Le mot de passe est obligatoire")
+    @NotBlank(message = "Le mot de passe est obligatoire")
     private String password;
-    @NotNull(message = "Email is required")
-    @NotBlank(message = "Email cannot be blank")
+    @NotNull(message = "L'e-mail est obligatoire")
+    @NotBlank(message = "L'e-mail est obligatoire")
     private String email;
     private String nom;
     private String prenom;

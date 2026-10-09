@@ -40,7 +40,7 @@ public class MedecinServiceImpl implements MedecinService {
     @Override
     public Medecin save(@Valid MedecinDTO medecinDTO) {
         if (utilisateurRepository.existsByEmail(medecinDTO.getEmail())) {
-            throw new ResourceAlreadyExistException("User already exists with this email");
+            throw new ResourceAlreadyExistException("Un compte existe déjà avec cet e-mail");
         }
 
         Medecin medecin = medecinMapper.medecinDtoToMedecin(medecinDTO);
@@ -53,13 +53,13 @@ public class MedecinServiceImpl implements MedecinService {
     @Override
     public MedecinResponseDTO findById(Long id) {
         return medecinMapper.medecinToMedecinResponseDto(medecinRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Medecin not found with id: " + id)))  ;
+                .orElseThrow(() -> new RessourceNotFoundException("Médecin introuvable : " + id)))  ;
     }
 
     @Override
     public MedecinResponseDTO update(Long id,@Valid MedecinDTO medecinDTO) {
         Medecin medecin = medecinRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Medecin not found"));
+                .orElseThrow(() -> new RessourceNotFoundException("Médecin introuvable"));
         if (Objects.equals(medecin.getEmail(), medecinDTO.getEmail()) || !utilisateurRepository.existsByEmail(medecinDTO.getEmail())) {
 
             medecin.setEmail(medecinDTO.getEmail());
@@ -72,7 +72,7 @@ public class MedecinServiceImpl implements MedecinService {
             medecinRepository.save(medecin);
             return medecinMapper.medecinToMedecinResponseDto(medecin);
         } else {
-            throw new ResourceAlreadyExistException("User already exists with this email");
+            throw new ResourceAlreadyExistException("Un compte existe déjà avec cet e-mail");
         }
 
 
@@ -87,7 +87,7 @@ public class MedecinServiceImpl implements MedecinService {
     @Override
     public void deleteById(Long id) {
         Medecin medecin = medecinRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Medecin not found"));
+                .orElseThrow(() -> new RessourceNotFoundException("Médecin introuvable"));
         medecinRepository.delete(medecin);
     }
 

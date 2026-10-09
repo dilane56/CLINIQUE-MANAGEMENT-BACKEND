@@ -67,7 +67,7 @@ public class MedecinController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteMedecin(@PathVariable Long id) {
         medecinService.deleteById(id);
-        return ResponseEntity.ok("Medecin deleted successfully");
+        return ResponseEntity.ok("Médecin supprimé");
     }
 
 }

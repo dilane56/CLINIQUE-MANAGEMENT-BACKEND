@@ -83,13 +83,13 @@ public class PrescriptionController {
     @PreAuthorize("hasRole('ADMIN') or (hasRole('MEDECIN') and @authz.ownsPrescription(#id))")
     public ResponseEntity<String> deletePrescription(@PathVariable Long id) {
         prescriptionService.deleteById(id);
-        return ResponseEntity.ok("Prescription deleted successfully");
+        return ResponseEntity.ok("Prescription supprimée");
     }
 
     @GetMapping("/{id}/pdf")
     @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE') or (hasRole('MEDECIN') and @authz.ownsPrescription(#id))")
     public ResponseEntity<byte[]> generatePrescriptionPdf(@PathVariable Long id) throws DocumentException, FileNotFoundException {
-        Prescription prescription = prescriptionRepository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Prescription not found"));
+        Prescription prescription = prescriptionRepository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Prescription introuvable"));
         if (prescription == null) {
             return ResponseEntity.notFound().build();
         }

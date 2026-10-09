@@ -86,7 +86,7 @@ public class PatientController {
     @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')") // Un médecin ne peut pas supprimer de patient
     public ResponseEntity<String> deletePatient(@PathVariable Long id) {
         patientService.deleteById(id);
-        return ResponseEntity.ok("Patient deleted successfully");
+        return ResponseEntity.ok("Patient supprimé");
     }
 
 

@@ -91,7 +91,7 @@ public class FactureController {
     @PreAuthorize("hasRole('ADMIN') or (hasRole('MEDECIN') and @authz.ownsFacture(#id))")
     public ResponseEntity<String> deleteFacture(@PathVariable Long id) {
         factureService.deleteById(id);
-        return ResponseEntity.ok("Facture deleted successfully");
+        return ResponseEntity.ok("Facture supprimée");
     }
 
     @GetMapping("/{id}/pdf")

@@ -73,7 +73,7 @@ public class UtilisateurController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteUtilisateur(@PathVariable Long id) {
         utilisateurService.deleteById(id);
-        return ResponseEntity.ok("Utilisateur deleted successfully");
+        return ResponseEntity.ok("Utilisateur supprimé");
     }
 
     // Endpoint pour récupérer tous les utilisateurs
