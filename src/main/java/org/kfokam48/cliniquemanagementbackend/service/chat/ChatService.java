@@ -2,6 +2,7 @@ package org.kfokam48.cliniquemanagementbackend.service.chat;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.kfokam48.cliniquemanagementbackend.dto.PageResponse;
 import org.kfokam48.cliniquemanagementbackend.dto.message.MessageDTO;
 import org.kfokam48.cliniquemanagementbackend.dto.message.MessageResponseDTO;
 import org.kfokam48.cliniquemanagementbackend.enums.MessageStatus;
@@ -13,6 +14,7 @@ import org.kfokam48.cliniquemanagementbackend.model.Utilisateur;
 import org.kfokam48.cliniquemanagementbackend.repository.ConversationRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.MessageRepository;
 import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,6 +77,18 @@ public class ChatService {
                     return messageMapper.messageToMessageResponseDTO(message);
                 })
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Historique paginé (les plus récents d'abord avec le tri par défaut du contrôleur). Comme la
+     * version complète, les messages reçus par user1Id passent de SENT à DELIVERED, mais en une
+     * seule requête au lieu d'une sauvegarde par message.
+     */
+    @Transactional
+    public PageResponse<MessageResponseDTO> getConversation(Long user1Id, Long user2Id, Pageable pageable) {
+        messageRepo.marquerDistribues(user2Id, user1Id);
+        return PageResponse.of(messageRepo.findConversation(user1Id, user2Id, pageable),
+                messages -> messages.stream().map(messageMapper::messageToMessageResponseDTO).toList());
     }
 
     // Met à jour le statut des messages d'un expéditeur donné vers un destinataire

@@ -61,7 +61,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         RendezVousController.class,
         PrescriptionController.class,
         NotificationRestController.class,
-        TypeRendezVousController.class
+        TypeRendezVousController.class,
+        org.kfokam48.cliniquemanagementbackend.controller.MessageController.class
 }, properties = {
         // Clé de test uniquement (Base64, 256 bits)
         "jwt.secret=dGVzdC1zZWNyZXQta2V5LWZvci11bml0LXRlc3RzLW9ubHktMzJieXRlcw==",
@@ -94,6 +95,7 @@ class AccessControlTest {
     @MockitoBean private NotificationService notificationService;
     @MockitoBean private EmailService emailService;
     @MockitoBean private TypeRendezVousService typeRendezVousService;
+    @MockitoBean private org.kfokam48.cliniquemanagementbackend.service.chat.ChatService chatService;
 
     // --- C3 : plus aucune route métier publique ---
 
@@ -658,6 +660,30 @@ class AccessControlTest {
     @WithMockUser(roles = "SECRETAIRE")
     void onlyAdminCanReadAccountCounts() throws Exception {
         mockMvc.perform(get("/api/utilisateurs/statistiques")).andExpect(status().isForbidden());
+    }
+
+    // --- Historique paginé du chat (P7) ---
+
+    @Test
+    @WithMockUser(roles = "MEDECIN")
+    void chatHistoryIsPagedMostRecentFirstAndOnlyForParticipants() throws Exception {
+        when(authz.isCurrentUser(MEDECIN_CONNECTE)).thenReturn(true);
+        when(authz.isCurrentUser(AUTRE_MEDECIN)).thenReturn(false);
+        when(authz.isCurrentUser(3L)).thenReturn(false);
+        when(chatService.getConversation(any(), any(), any(Pageable.class)))
+                .thenReturn(new PageResponse<>(List.of(), 0, 30, 0, 0));
+
+        mockMvc.perform(get("/api/messages/conversation/" + MEDECIN_CONNECTE + "/" + AUTRE_MEDECIN).param("page", "0"))
+                .andExpect(status().isOk());
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(chatService).getConversation(org.mockito.ArgumentMatchers.eq(MEDECIN_CONNECTE),
+                org.mockito.ArgumentMatchers.eq(AUTRE_MEDECIN), pageable.capture());
+        assertThat(pageable.getValue().getPageSize()).isEqualTo(30);
+        assertThat(pageable.getValue().getSort().getOrderFor("dateEnvoi").isDescending()).isTrue();
+
+        // Conversation entre deux autres utilisateurs : refusée
+        mockMvc.perform(get("/api/messages/conversation/" + AUTRE_MEDECIN + "/3").param("page", "0"))
+                .andExpect(status().isForbidden());
     }
 
     // --- Recherche de patients (choix du patient d'un rendez-vous) ---
