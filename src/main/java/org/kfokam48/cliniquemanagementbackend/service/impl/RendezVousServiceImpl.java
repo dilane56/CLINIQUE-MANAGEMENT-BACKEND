@@ -89,14 +89,14 @@ public class RendezVousServiceImpl implements RendezVousService {
     public RendezVousResponseDTO findById(Long Id) {
         return rendezVousMapper.rendezVousToRendezVousResponseDto(
                 rendezVousRepository.findById(Id)
-                        .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous not found"))
+                        .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous introuvable"))
         );
     }
 
     @Override
     public RendezVousResponseDTO update(Long id, @Valid RendezVousUpdateDto rendezVousDTO) {
         RendezVous rendezVous = rendezVousRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous not found"));
+                .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous introuvable"));
 
         rendezVous.setDateRendezVous(rendezVousDTO.getDateRendezVous());
         rendezVous.setMotif(rendezVousDTO.getMotif());
@@ -140,11 +140,11 @@ public class RendezVousServiceImpl implements RendezVousService {
     private void affecterEtVerifierCreneau(RendezVous rendezVous, Long medecinId, Long patientId,
                                            Long typeRendezVousId, Long rendezVousIdAIgnorer) {
         rendezVous.setMedecin(medecinRepository.findByIdForUpdate(medecinId)
-                .orElseThrow(() -> new RessourceNotFoundException("Medecin not found")));
+                .orElseThrow(() -> new RessourceNotFoundException("Médecin introuvable")));
         rendezVous.setPatient(patientRepository.findByIdForUpdate(patientId)
-                .orElseThrow(() -> new RessourceNotFoundException("Patient not found")));
+                .orElseThrow(() -> new RessourceNotFoundException("Patient introuvable")));
         rendezVous.setTypeRendezVous(typeRendezVousRepository.findById(typeRendezVousId)
-                .orElseThrow(() -> new RessourceNotFoundException("Type de rendez-vous not found")));
+                .orElseThrow(() -> new RessourceNotFoundException("Type de rendez-vous introuvable")));
 
         LocalDateTime debut = rendezVous.getDateRendezVous();
         if (debut.isBefore(LocalDateTime.now().plusMinutes(30))) {
@@ -173,7 +173,7 @@ public class RendezVousServiceImpl implements RendezVousService {
     @Override
     public void deleteById(Long id) {
         RendezVous rendezVous = rendezVousRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous not found"));
+                .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous introuvable"));
         rendezVousRepository.deleteById(id);
     }
 
@@ -189,7 +189,7 @@ public class RendezVousServiceImpl implements RendezVousService {
     @Override
     public RendezVousResponseDTO updateStatut(Long id, StatutRendezVous statut) {
         RendezVous rendezVous = rendezVousRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous not found"));
+                .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous introuvable"));
 
         if (statut == StatutRendezVous.EN_COURS && rendezVous.getDateRendezVous().isAfter(LocalDateTime.now())) {
             throw new IllegalStateException("Impossible de passer le statut à EN_COURS avant la date et l'heure du rendez-vous.");

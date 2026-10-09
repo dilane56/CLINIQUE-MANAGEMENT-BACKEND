@@ -5,11 +5,11 @@ import lombok.Data;
 @Data
 public class MessageDTO {
 
-    @NotNull(message = "Expediter ID cannot be null")
+    @NotNull(message = "L'expéditeur est obligatoire")
     private Long expediteurId;
-    @NotNull(message = "Destinataire ID cannot be null")
+    @NotNull(message = "Le destinataire est obligatoire")
     private Long destinataireId;
-    @NotNull(message = "Contenu cannot be null")
+    @NotNull(message = "Le contenu du message est obligatoire")
     private String contenu;
 
 

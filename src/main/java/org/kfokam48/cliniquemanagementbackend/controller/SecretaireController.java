@@ -61,7 +61,7 @@ public class SecretaireController {
     @PreAuthorize("hasAnyRole('ADMIN','MEDECIN')")
     public ResponseEntity<String> deleteSecretaire(@PathVariable Long id) {
         secretaireService.deleteById(id);
-        return ResponseEntity.ok("Secretaire deleted successfully");
+        return ResponseEntity.ok("Secrétaire supprimée");
     }
 
 

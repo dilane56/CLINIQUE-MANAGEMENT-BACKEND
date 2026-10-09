@@ -42,7 +42,7 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     @Override
     public PrescriptionResponseDTO save(@Valid PrescriptionDTO prescriptionDTO) {
         RendezVous rendezVous = rendezVousRepository.findById(prescriptionDTO.getRendezVousId())
-                .orElseThrow(() -> new RessourceNotFoundException("RendezVous not found"));
+                .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous introuvable"));
         if (!(rendezVous.getStatutRendezVous() == StatutRendezVous.TERMINE || rendezVous.getStatutRendezVous() == StatutRendezVous.EN_COURS)) {
             throw new IllegalStateException("Impossible d'ajouter une prescription pour un rendez-vous qui n'est pas terminé ou en cours.");
         }
@@ -55,18 +55,18 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     @Override
     public PrescriptionResponseDTO findById(Long id) {
         return prescriptionMapper.prescriptionToPrescriptionResponseDto(prescriptionRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Prescription not found")));
+                .orElseThrow(() -> new RessourceNotFoundException("Prescription introuvable")));
     }
 
     @Override
     public PrescriptionResponseDTO update(Long id, @Valid PrescriptionUpdateDTO prescriptionUpdateDTO) {
         Prescription prescription = prescriptionRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Prescription not found"));
+                .orElseThrow(() -> new RessourceNotFoundException("Prescription introuvable"));
         // rendezVousId facultatif : absent, la prescription reste rattachée à son rendez-vous actuel
         RendezVous rendezVous = prescriptionUpdateDTO.getRendezVousId() == null
                 ? prescription.getRendezVous()
                 : rendezVousRepository.findById(prescriptionUpdateDTO.getRendezVousId())
-                        .orElseThrow(() -> new RessourceNotFoundException("RendezVous not found"));
+                        .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous introuvable"));
         if (!(rendezVous.getStatutRendezVous() == StatutRendezVous.TERMINE || rendezVous.getStatutRendezVous() == StatutRendezVous.EN_COURS)) {
             throw new IllegalStateException("Impossible de modifier une prescription pour un rendez-vous qui n'est pas terminé ou en cours.");
         }
@@ -86,7 +86,7 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     @Override
     public void deleteById(Long id) {
         Prescription prescription = prescriptionRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Prescription not found"));
+                .orElseThrow(() -> new RessourceNotFoundException("Prescription introuvable"));
         prescriptionRepository.deleteById(id);
 
     }

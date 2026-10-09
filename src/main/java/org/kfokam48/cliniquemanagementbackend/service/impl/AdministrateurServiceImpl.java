@@ -42,7 +42,7 @@ public class AdministrateurServiceImpl implements AdministrateurService {
     @Override
     public Administrateur save(@Valid AdministrateurDTO administrateurDTO) {
         if (utilisateurRepository.existsByEmail(administrateurDTO.getEmail())) {
-            throw new ResourceAlreadyExistException("Administrateur already exists with this email");
+            throw new ResourceAlreadyExistException("Un compte existe déjà avec cet e-mail");
         }
 
         Administrateur administrateur = administrateurMapper.administrateurDtoToAdministrateur(administrateurDTO);
@@ -60,16 +60,16 @@ public class AdministrateurServiceImpl implements AdministrateurService {
 
     @Override
     public Administrateur findById(Long id) {
-        return administrateurRepository.findById(id).orElseThrow(()->new RessourceNotFoundException("Administrateur not found"));
+        return administrateurRepository.findById(id).orElseThrow(()->new RessourceNotFoundException("Administrateur introuvable"));
     }
 
     @Override
     public Administrateur update(Long id,@Valid AdministrateurDTO administrateurDTO) {
-        Administrateur administrateur = administrateurRepository.findById(id).orElseThrow(()->new RessourceNotFoundException("Administrateur not found"));
+        Administrateur administrateur = administrateurRepository.findById(id).orElseThrow(()->new RessourceNotFoundException("Administrateur introuvable"));
         // Son propre e-mail est accepté ; seul un e-mail déjà pris par un autre compte est refusé
         if (!Objects.equals(administrateur.getEmail(), administrateurDTO.getEmail())
                 && utilisateurRepository.existsByEmail(administrateurDTO.getEmail())) {
-            throw new ResourceAlreadyExistException("Administrateur already exists with this email");
+            throw new ResourceAlreadyExistException("Un compte existe déjà avec cet e-mail");
         }
 
         administrateur.setEmail(administrateurDTO.getEmail());
@@ -85,12 +85,12 @@ public class AdministrateurServiceImpl implements AdministrateurService {
     @Override
     public Administrateur findByEmail(String email) {
         return administrateurRepository.findByEmail(email)
-                .orElseThrow(() -> new RessourceNotFoundException("Administrateur not found"));
+                .orElseThrow(() -> new RessourceNotFoundException("Administrateur introuvable"));
     }
 
     @Override
     public void deleteById(Long id) {
-        Administrateur administrateur = administrateurRepository.findById(id).orElseThrow(()->new RessourceNotFoundException("Administrateur not found"));
+        Administrateur administrateur = administrateurRepository.findById(id).orElseThrow(()->new RessourceNotFoundException("Administrateur introuvable"));
         administrateurRepository.deleteById(id);
 
     }

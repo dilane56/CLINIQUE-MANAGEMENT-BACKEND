@@ -60,7 +60,7 @@ public class FactureServiceImpl implements FactureService {
     @Override
     public FactureResponseDto save(@Valid FactureDTO factureDTO) {
         RendezVous rendezVous = rendezVousRepository.findById(factureDTO.getRendezVousId())
-                .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous not found with id: " + factureDTO.getRendezVousId()));
+                .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous introuvable : " + factureDTO.getRendezVousId()));
 
         if (rendezVous.getStatutRendezVous() != StatutRendezVous.TERMINE) {
             throw new RendezVousNonTermineException("Impossible de créer une facture pour un rendez-vous qui n'est pas terminé. Statut actuel: " + rendezVous.getStatutRendezVous());
@@ -79,7 +79,7 @@ public class FactureServiceImpl implements FactureService {
 
     @Override
     public FactureResponseDto findById(Long id) {
-        return factureMapper.factureToFactureResponseDto(factureRepository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Facture not found")));
+        return factureMapper.factureToFactureResponseDto(factureRepository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Facture introuvable")));
     }
 
     @Override
@@ -90,12 +90,12 @@ public class FactureServiceImpl implements FactureService {
     @Override
     public FactureResponseDto update(Long id, @Valid FactureDTO factureDTO) {
         Facture facture = factureRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Facture not found"));
+                .orElseThrow(() -> new RessourceNotFoundException("Facture introuvable"));
         // Sans cette vérification, la mise à jour remettait le montant payé à 0 et effaçait les paiements
         facture.verifierModifiable();
 
         RendezVous rendezVous = rendezVousRepository.findById(factureDTO.getRendezVousId())
-                .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous not found with id: " + factureDTO.getRendezVousId()));
+                .orElseThrow(() -> new RessourceNotFoundException("Rendez-vous introuvable : " + factureDTO.getRendezVousId()));
         if (factureRepository.existsByRendezVous_IdAndIdNot(rendezVous.getId(), id)) {
             throw new ResourceAlreadyExistException("Ce rendez-vous a déjà une autre facture.");
         }
@@ -113,7 +113,7 @@ public class FactureServiceImpl implements FactureService {
 
     @Override
     public void deleteById(Long id) {
-        Facture facture = factureRepository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Facture not found"));
+        Facture facture = factureRepository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Facture introuvable"));
         // Une facture qui a reçu un paiement fait partie de l'historique des revenus : elle n'est jamais supprimée
         if (facture.getMontantPayement() != null && facture.getMontantPayement().signum() > 0) {
             throw new IllegalStateException("Impossible de supprimer la facture #" + id
@@ -131,7 +131,7 @@ public class FactureServiceImpl implements FactureService {
     @Override
     public FactureResponseDto updatePaiement(Long id, @Valid FacturePaiementUpdateDTO paiementUpdateDTO) {
         Facture facture = factureRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Facture not found with id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Facture introuvable : " + id));
 
         if (facture.getStatut() == StatutFacture.PAYEE) {
             throw new IllegalStateException("Cette facture est déjà entièrement payée.");
@@ -176,7 +176,7 @@ public class FactureServiceImpl implements FactureService {
     @Override
     public ByteArrayOutputStream generatePdf(Long id) throws DocumentException {
         Facture facture = factureRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Facture not found with id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Facture introuvable : " + id));
         return pdfService.generateFacturePdf(facture);
     }
 

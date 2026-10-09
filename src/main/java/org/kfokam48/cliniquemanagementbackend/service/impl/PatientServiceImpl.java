@@ -44,7 +44,7 @@ public class PatientServiceImpl implements PatientService {
     public PatientResponseDTO save(@Valid PatientDTO patientDto) {
         log.debug("Création patient : {}", patientDto.getEmail());
         if (utilisateurRepository.existsByEmail(patientDto.getEmail())) {
-            throw new ResourceAlreadyExistException("User already exists with this email");
+            throw new ResourceAlreadyExistException("Un patient existe déjà avec cet e-mail");
         }
 
         Patient patient = patientMapper.patientDtoToPatient(patientDto);
@@ -58,15 +58,15 @@ public class PatientServiceImpl implements PatientService {
     public PatientResponseDTO findById(Long id) {
         log.debug("Recherche patient id={}", id);
         return   patientMapper.patientToPatientResponseDTO(patientRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Patient not found")));
+                .orElseThrow(() -> new RessourceNotFoundException("Patient introuvable")));
     }
 
     @Override
     public PatientResponseDTO update(Long id,@Valid PatientDTO patientDTO) {
         Patient patient = patientRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Patient not found"));
+                .orElseThrow(() -> new RessourceNotFoundException("Patient introuvable"));
        if(!Objects.equals(patient.getEmail(), patientDTO.getEmail()) && utilisateurRepository.existsByEmail(patientDTO.getEmail())){
-            throw new ResourceAlreadyExistException("User already exists with this email");
+            throw new ResourceAlreadyExistException("Un patient existe déjà avec cet e-mail");
         }
         patient.setEmail(patientDTO.getEmail());
        patient.setPrenom(patientDTO.getPrenom());
@@ -83,7 +83,7 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public void deleteById(Long id) {
         Patient patient = patientRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Patient not found"));
+                .orElseThrow(() -> new RessourceNotFoundException("Patient introuvable"));
         patientRepository.deleteById(id);
         log.info("Patient supprimé id={}", id);
 

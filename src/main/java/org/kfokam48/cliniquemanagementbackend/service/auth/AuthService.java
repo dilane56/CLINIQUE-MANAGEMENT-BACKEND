@@ -77,7 +77,7 @@ public class AuthService {
                     new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword())
             );
             // Récupération des détails de l'utilisateur
-            Utilisateur user = utilisateurRepository.findByEmail(authRequest.getEmail()).orElseThrow(()-> new RessourceNotFoundException("user not found"));
+            Utilisateur user = utilisateurRepository.findByEmail(authRequest.getEmail()).orElseThrow(()-> new RessourceNotFoundException("Utilisateur introuvable"));
             UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getEmail());
             log.info("Authentification réussie pour : {}", userDetails.getUsername());
 //            // Génération du token JWT
@@ -121,7 +121,7 @@ public class AuthService {
     }
 
     public Roles getUserRole(LoginRequest loginRequest){
-        Utilisateur user = utilisateurRepository.findByEmail(loginRequest.getEmail()).orElseThrow(()-> new RessourceNotFoundException("user not found"));
+        Utilisateur user = utilisateurRepository.findByEmail(loginRequest.getEmail()).orElseThrow(()-> new RessourceNotFoundException("Utilisateur introuvable"));
         return user.getRole();
     }
 

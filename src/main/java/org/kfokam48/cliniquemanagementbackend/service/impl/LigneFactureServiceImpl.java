@@ -35,7 +35,7 @@ public class LigneFactureServiceImpl implements LigneFactureService {
     @Transactional
     public LigneFactureResponseDTO modifierLigne(Long id, LigneFactureDTO dto) {
         LigneFacture entity = repository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("LigneFacture not found with id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Ligne de facture introuvable : " + id));
         Facture facture = entity.getFacture();
         if (facture != null) {
             facture.verifierModifiable();
@@ -57,7 +57,7 @@ public class LigneFactureServiceImpl implements LigneFactureService {
     @Transactional
     public void supprimerLigne(Long id) {
         LigneFacture entity = repository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("LigneFacture not found with id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Ligne de facture introuvable : " + id));
         Facture facture = entity.getFacture();
         if (facture == null) {
             repository.delete(entity);
@@ -72,7 +72,7 @@ public class LigneFactureServiceImpl implements LigneFactureService {
 
     @Override
     public LigneFactureResponseDTO getLigne(Long id) {
-        repository.findById(id).orElseThrow(() -> new RessourceNotFoundException("LigneFacture not found with id: " + id));
+        repository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Ligne de facture introuvable : " + id));
         return mapper.toResponseDTO(repository.findById(id).orElseThrow());
     }
 

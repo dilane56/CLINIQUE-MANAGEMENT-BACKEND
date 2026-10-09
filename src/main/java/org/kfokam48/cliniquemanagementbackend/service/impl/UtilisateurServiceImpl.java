@@ -39,13 +39,13 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     @Override
     public Utilisateur findById(Long id) {
         return utilisateurRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Utilisateur not found with id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Utilisateur introuvable : " + id));
     }
 
     @Override
     public Utilisateur update(Long id,@Valid UtilisateurDTO utilisateurDTO) {
         Utilisateur utilisateur = utilisateurRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Utilisateur not found with id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Utilisateur introuvable : " + id));
         if (!utilisateurRepository.existsByEmail(utilisateurDTO.getEmail())) {
 
             utilisateur.setEmail(utilisateurDTO.getEmail());
@@ -58,7 +58,7 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     @Override
     public Utilisateur findByEmail(String email) {
         return utilisateurRepository.findByEmail(email)
-                .orElseThrow(() -> new RessourceNotFoundException("Utilisateur not found with email: " + email));
+                .orElseThrow(() -> new RessourceNotFoundException("Utilisateur introuvable : " + email));
     }
 
 
@@ -66,7 +66,7 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     @Override
     public void deleteById(Long id) {
         Utilisateur utilisateur = utilisateurRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Utilisateur not found with id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Utilisateur introuvable : " + id));
         utilisateurRepository.deleteById(id);
     }
 
