@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kfokam48.cliniquemanagementbackend.enums.UserStatus;
 import org.kfokam48.cliniquemanagementbackend.repository.UtilisateurRepository;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -27,30 +28,32 @@ public class WebSocketEventListener {
     private final UtilisateurRepository utilisateurRepository;
     private final SimpUserRegistry simpUserRegistry;
 
-    // Dans votre classe WebSocketEventListener.java
+    // Le message de cet événement est l'accusé de connexion du broker : il ne porte pas les attributs
+    // de session (« user_id » y était toujours absent, l'utilisateur ne passait jamais en ligne).
+    // L'utilisateur est retrouvé par le Principal (e-mail) posé par WebSocketAuthInterceptor au CONNECT.
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
-        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+        Principal principal = event.getUser();
+        if (principal == null) {
+            return;
+        }
+        Utilisateur user = utilisateurRepository.findByEmail(principal.getName()).orElse(null);
+        if (user != null && user.getStatus() != UserStatus.EN_LIGNE) {
+            user.setStatus(UserStatus.EN_LIGNE);
+            utilisateurRepository.save(user);
 
-        // Vérifier si les attributs de session ne sont pas null
-        if (headerAccessor.getSessionAttributes() != null) {
-            String userIdStr = (String) headerAccessor.getSessionAttributes().get("user_id");
+            messagingTemplate.convertAndSend("/topic/status",
+                    String.format("{\"userId\": %d, \"status\": \"EN_LIGNE\"}", user.getId()));
+        }
+    }
 
-            if (userIdStr != null) {
-                try {
-                    Long userId = Long.parseLong(userIdStr);
-                    Utilisateur user = utilisateurRepository.findById(userId).orElse(null);
-                    if (user != null && user.getStatus() != UserStatus.EN_LIGNE) {
-                        user.setStatus(UserStatus.EN_LIGNE);
-                        utilisateurRepository.save(user);
-
-                        messagingTemplate.convertAndSend("/topic/status",
-                                String.format("{\"userId\": %d, \"status\": \"EN_LIGNE\"}", user.getId()));
-                    }
-                } catch (NumberFormatException e) {
-                    log.warn("ID utilisateur non valide lors de la connexion WebSocket.");
-                }
-            }
+    // Au redémarrage, aucune connexion n'est ouverte : les statuts EN_LIGNE restés en base
+    // (serveur arrêté sans événement de déconnexion) sont remis à HORS_LIGNE
+    @EventListener(ApplicationReadyEvent.class)
+    public void reinitialiserStatuts() {
+        int remis = utilisateurRepository.passerTousHorsLigne(UserStatus.HORS_LIGNE);
+        if (remis > 0) {
+            log.info("{} utilisateur(s) remis hors ligne au démarrage", remis);
         }
     }
 

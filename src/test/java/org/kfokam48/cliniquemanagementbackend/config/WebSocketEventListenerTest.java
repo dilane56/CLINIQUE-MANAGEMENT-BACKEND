@@ -14,6 +14,7 @@ import org.springframework.messaging.simp.user.SimpUser;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.security.Principal;
@@ -25,6 +26,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -57,6 +59,36 @@ class WebSocketEventListenerTest {
         messagingTemplate = mock(SimpMessageSendingOperations.class);
         registry = mock(SimpUserRegistry.class);
         listener = new WebSocketEventListener(messagingTemplate, repository, registry);
+    }
+
+    @Test
+    void connexion_passeEnLigneEtPrevientLesContacts() {
+        // L'accusé de connexion du broker ne porte pas les attributs de session : seul le Principal est fiable
+        utilisateur.setStatus(UserStatus.HORS_LIGNE);
+        when(repository.findByEmail(EMAIL)).thenReturn(Optional.of(utilisateur));
+
+        listener.handleWebSocketConnectListener(connexion());
+
+        assertThat(utilisateur.getStatus()).isEqualTo(UserStatus.EN_LIGNE);
+        verify(repository).save(utilisateur);
+        verify(messagingTemplate).convertAndSend(eq("/topic/status"), any(Object.class));
+    }
+
+    @Test
+    void connexionDejaEnLigne_rienARediffuser() {
+        when(repository.findByEmail(EMAIL)).thenReturn(Optional.of(utilisateur));
+
+        listener.handleWebSocketConnectListener(connexion());
+
+        verify(repository, never()).save(any());
+        verify(messagingTemplate, never()).convertAndSend(anyString(), any(Object.class));
+    }
+
+    @Test
+    void demarrage_remetLesStatutsHorsLigne() {
+        listener.reinitialiserStatuts();
+
+        verify(repository).passerTousHorsLigne(UserStatus.HORS_LIGNE);
     }
 
     @Test
@@ -100,6 +132,14 @@ class WebSocketEventListenerTest {
         }
         when(simpUser.getSessions()).thenReturn(sessions);
         when(registry.getUser(EMAIL)).thenReturn(simpUser);
+    }
+
+    private SessionConnectedEvent connexion() {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.CONNECTED);
+        accessor.setSessionId("s1");
+        Message<byte[]> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+        Principal principal = () -> EMAIL;
+        return new SessionConnectedEvent(this, message, principal);
     }
 
     private SessionDisconnectEvent deconnexion(String sessionId) {
